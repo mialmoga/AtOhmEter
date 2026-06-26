@@ -1,0 +1,85 @@
+{
+  "__NOTA__": "Elimina todas las claves que empiecen con __ antes de usar este template",
+
+  "__OBLIGATORIO__": "title, formula, legend, tooltips, states, stateLabels, formulaOpacity, limits, predictions",
+
+  "__CRITICO__": "formulaOpacity y stateLabels son los campos que más se olvidan y sin ellos el Live Paper queda mudo o roto",
+
+  "title": "Título de la ecuación principal",
+
+  "__formula__": "Cada término necesita: term (texto), class (color), key (identificador único), op (operador o null para el primero)",
+  "__clases_disponibles__": "ft-kin (blanco), ft-higgs (cyan), ft-snap (rosa/rojo), ft-bohm (verde), ft-phase (ámbar)",
+  "formula": [
+    { "term": "∂ψ/∂t = término1", "class": "ft-kin",   "key": "t1", "op": null },
+    { "term": "+ término2",        "class": "ft-snap",  "key": "t2", "op": "+"  },
+    { "term": "+ término3",        "class": "ft-phase", "key": "t3", "op": "+"  }
+  ],
+
+  "__legend__": "Un entry por cada key en formula[]",
+  "legend": [
+    { "key": "t1", "label": "Nombre término 1", "color": "rgba(255,255,255,0.6)" },
+    { "key": "t2", "label": "Nombre término 2", "color": "rgba(255,80,120,0.7)"  },
+    { "key": "t3", "label": "Nombre término 3", "color": "rgba(255,200,60,0.7)"  }
+  ],
+
+  "__tooltips__": "Un entry por cada key en formula[]. Aparece al tocar el término en el Live Paper",
+  "tooltips": {
+    "t1": "Explicación detallada del término 1 — qué hace físicamente.",
+    "t2": "Explicación detallada del término 2.",
+    "t3": "Explicación detallada del término 3."
+  },
+
+  "__states__": "Descripción narrativa de cada estado. Las claves DEBEN coincidir con los strings devueltos por classifyState() en el motor",
+  "states": {
+    "vacuum":     "Descripción del estado vacuum — campo en reposo.",
+    "nucleating": "Descripción del estado nucleating — emergiendo.",
+    "active":     "Descripción del estado active — campo activo.",
+    "pumping":    "Descripción del estado pumping — alta energía.",
+    "stable":     "Descripción del estado stable — estructura establecida.",
+    "locked":     "Descripción del estado locked — estructura fija ◉",
+    "collapse":   "Descripción del estado collapse — divergencia."
+  },
+
+  "__stateLabels__": "OBLIGATORIO — texto que aparece en el header del Live Paper. Mismo conjunto de claves que states{}",
+  "stateLabels": {
+    "vacuum":     "mi engine — reposo",
+    "nucleating": "mi engine — nucleando",
+    "active":     "mi engine — activo",
+    "pumping":    "mi engine — bombeando",
+    "stable":     "mi engine — estable",
+    "locked":     "mi engine — BLOQUEADO ◉",
+    "collapse":   "mi engine — divergencia"
+  },
+
+  "__formulaOpacity__": "OBLIGATORIO — controla qué términos brillan en cada estado. Un entry por estado, con opacidad [0,1] para cada key de formula[]. Sin esto el Live Paper es estático.",
+  "formulaOpacity": {
+    "vacuum":     { "t1": 0.4, "t2": 0.1, "t3": 0.1 },
+    "nucleating": { "t1": 0.6, "t2": 0.4, "t3": 0.3 },
+    "active":     { "t1": 0.8, "t2": 0.8, "t3": 0.6 },
+    "pumping":    { "t1": 1.0, "t2": 1.0, "t3": 0.8 },
+    "stable":     { "t1": 0.5, "t2": 0.6, "t3": 0.9 },
+    "locked":     { "t1": 0.3, "t2": 0.4, "t3": 1.0 },
+    "collapse":   { "t1": 1.0, "t2": 0.3, "t3": 0.2 }
+  },
+
+  "__limits__": "Honestidad científica — qué funciona, qué es aproximado, qué está pendiente. status: ok, warn, open",
+  "limits": [
+    { "status": "ok",   "label": "✓ algo que funciona bien",   "text": "Explicación de por qué es correcto." },
+    { "status": "warn", "label": "⚠ algo aproximado",          "text": "Explicación de la limitación." },
+    { "status": "open", "label": "○ algo pendiente",           "text": "Qué faltaría para completarlo." }
+  ],
+
+  "__predictions__": "Predicciones falsificables — qué debería pasar que se pueda verificar experimentalmente en el simulador",
+  "predictions": [
+    {
+      "id":    "P1",
+      "label": "Nombre de la predicción",
+      "text":  "Descripción precisa de qué debería observarse y bajo qué condiciones."
+    },
+    {
+      "id":    "P2",
+      "label": "Falsificación",
+      "text":  "Si X=0 el sistema debe comportarse como Y. Si no, el mecanismo central falla."
+    }
+  ]
+}

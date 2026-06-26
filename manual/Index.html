@@ -1,1 +1,980 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AtOhmEter — Manual del Constructor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&display=swap');
 
+  :root {
+    --bg:       #0a0b0d;
+    --surface:  #111318;
+    --border:   rgba(255,255,255,0.06);
+    --amber:    #f5a623;
+    --cyan:     #3ce8c8;
+    --hot:      #ff6b4a;
+    --text:     rgba(255,255,255,0.75);
+    --muted:    rgba(255,255,255,0.3);
+    --code-bg:  #0d1117;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    line-height: 1.8;
+    min-height: 100vh;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ── */
+  nav {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 32px 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .nav-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--amber);
+    padding: 0 20px 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+  }
+
+  nav a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    transition: color 0.15s, background 0.15s;
+    border-left: 2px solid transparent;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--text);
+    background: rgba(255,255,255,0.03);
+    border-left-color: var(--amber);
+  }
+
+  nav .nav-section {
+    margin-top: 16px;
+    padding: 0 20px 6px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.15);
+    text-transform: uppercase;
+  }
+
+  /* ── Main content ── */
+  main {
+    padding: 60px 64px;
+    max-width: 860px;
+  }
+
+  /* ── Header ── */
+  .hero {
+    margin-bottom: 64px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .hero-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 42px;
+    line-height: 1.1;
+    color: #fff;
+    margin-bottom: 12px;
+  }
+
+  .hero h1 em {
+    font-style: italic;
+    color: var(--amber);
+  }
+
+  .hero-sub {
+    color: var(--muted);
+    font-size: 12px;
+    max-width: 520px;
+    line-height: 1.9;
+  }
+
+  .hero-meta {
+    margin-top: 24px;
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+  }
+
+  .badge .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--cyan);
+  }
+
+  /* ── Sections ── */
+  section {
+    margin-bottom: 64px;
+    scroll-margin-top: 32px;
+  }
+
+  section h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+
+  section h2 .section-num {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.1em;
+  }
+
+  section h3 {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin: 28px 0 10px;
+  }
+
+  p { margin-bottom: 14px; }
+
+  /* ── Code blocks ── */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--amber);
+    padding: 20px 24px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    font-size: 11.5px;
+    line-height: 1.7;
+    border-radius: 0 2px 2px 0;
+  }
+
+  code {
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+  }
+
+  pre code {
+    background: none;
+    padding: 0;
+    color: rgba(255,255,255,0.8);
+  }
+
+  .comment { color: rgba(255,255,255,0.3); }
+  .keyword { color: var(--amber); }
+  .string  { color: var(--cyan); }
+  .fn      { color: #a8d8a8; }
+
+  /* ── Info boxes ── */
+  .box {
+    padding: 16px 20px;
+    border: 1px solid var(--border);
+    margin: 16px 0;
+    font-size: 12px;
+    line-height: 1.8;
+  }
+
+  .box.warn  { border-left: 3px solid var(--hot);  background: rgba(255,107,74,0.04); }
+  .box.info  { border-left: 3px solid var(--cyan); background: rgba(60,232,200,0.04); }
+  .box.amber { border-left: 3px solid var(--amber);background: rgba(245,166,35,0.04); }
+
+  .box .box-title {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .box.warn  .box-title { color: var(--hot);  }
+  .box.info  .box-title { color: var(--cyan); }
+  .box.amber .box-title { color: var(--amber);}
+
+  /* ── Table ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 11.5px;
+  }
+
+  th {
+    text-align: left;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.04);
+    border-bottom: 1px solid var(--border);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  td code { font-size: 10.5px; }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ── Engine gallery ── */
+  .engine-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+
+  .engine-card {
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    transition: border-color 0.15s;
+  }
+
+  .engine-card:hover { border-color: rgba(255,255,255,0.15); }
+
+  .engine-card .engine-name {
+    font-size: 11px;
+    color: var(--amber);
+    letter-spacing: 0.06em;
+    margin-bottom: 4px;
+  }
+
+  .engine-card .engine-desc {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  /* ── API reference ── */
+  .api-item {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .api-item .api-sig {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    color: var(--cyan);
+  }
+
+  .api-item .api-desc {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .api-item.required .api-sig::after {
+    content: ' *';
+    color: var(--hot);
+  }
+
+  /* ── Footer ── */
+  footer {
+    margin-top: 80px;
+    padding-top: 32px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); }
+
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    nav { display: none; }
+    main { padding: 32px 24px; }
+    .hero h1 { font-size: 28px; }
+    .api-item { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<nav>
+  <div class="nav-title">AtOhmEter 🦝</div>
+  <div class="nav-section">Introducción</div>
+  <a href="#filosofia">Filosofía</a>
+  <a href="#estructura">Estructura</a>
+  <div class="nav-section">El Contrato</div>
+  <a href="#api">API obligatoria</a>
+  <a href="#metricas">getMetrics()</a>
+  <a href="#classify">classifyState()</a>
+  <div class="nav-section">Archivos</div>
+  <a href="#config">config.json</a>
+  <a href="#paper">paper.json</a>
+  <a href="#shader">shader.glsl</a>
+  <a href="#capacidades">Capacidades del shell</a>
+  <div class="nav-section">Referencia</div>
+  <a href="#patrones">Patrones comunes</a>
+  <a href="#errores">Errores frecuentes</a>
+  <div class="nav-section">Inspiración</div>
+  <a href="#motores">Motores existentes</a>
+  <a href="#preguntas">Preguntas guía</a>
+  <a href="#v1">Motor V1 completo</a>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-eyebrow">Manual del Constructor</div>
+    <h1>Construye tu universo <em>propio</em></h1>
+    <p class="hero-sub">
+      AtOhmEter es un laboratorio de física especulativa en el navegador.
+      Cualquier campo, cualquier regla, cualquier idea —
+      si implementa el contrato del shell, funciona.
+      Este manual te enseña cómo.
+    </p>
+    <div class="hero-meta">
+      <div class="badge"><div class="dot"></div> 4 archivos por engine</div>
+      <div class="badge"><div class="dot" style="background:var(--amber)"></div> JS + JSON + GLSL</div>
+      <div class="badge"><div class="dot" style="background:var(--hot)"></div> Sin dependencias</div>
+    </div>
+  </div>
+
+  <!-- Flujo recomendado -->
+  <div class="box amber" style="margin-bottom:48px">
+    <div class="box-title">✦ Por dónde empezar — para humanos</div>
+    <strong style="color:rgba(255,255,255,0.8)">1. Escribe el paper primero.</strong>
+    ¿Qué hace tu campo? ¿Cuál es su ecuación? ¿Qué estados tiene?
+    Rellena <code>paper.json</code> y <code>config.json</code> antes de tocar el motor.<br><br>
+    <strong style="color:rgba(255,255,255,0.8)">2. Implementa lo que prometiste.</strong>
+    El <code>motor.js</code> tiene que hacer lo que el paper dice.
+    Si no coinciden, uno de los dos está mal — y esa tensión es donde se aprende.<br><br>
+    <strong style="color:rgba(255,255,255,0.8)">3. Copia un shader existente.</strong>
+    No empieces por el GLSL. Copia <code>engines/mirror/shader.glsl</code> y ya.<br><br>
+    <strong style="color:rgba(255,255,255,0.8)">4. Si carga sin errores:</strong>
+    tu IA (o tú) está certificada para generar universos de bolsillo. 🦝
+  </div>
+
+  <!-- Filosofía -->
+  <section id="filosofia">
+    <h2><span class="section-num">01</span> Filosofía</h2>
+    <p>
+      El laboratorio no juzga qué física es "real". Los motores existentes incluyen
+      campos que mueren por entropía irreversible, autómatas celulares de consenso social,
+      campos con memoria temporal estratificada, y partículas que heredan fase al reproducirse.
+    </p>
+    <p>
+      La única restricción es técnica: implementar el contrato de la API para que el shell
+      sepa cómo llamar tu motor, visualizarlo, y guardar snapshots.
+    </p>
+    <div class="box amber">
+      <div class="box-title">La pregunta que importa</div>
+      ¿Qué pasa si el espacio tiene esta propiedad? ¿Y si los campos se comportan así?
+      El simulador te dice qué pasa. Tú decides qué preguntar.
+    </div>
+  </section>
+
+  <!-- Estructura -->
+  <section id="estructura">
+    <h2><span class="section-num">02</span> Estructura de archivos</h2>
+    <p>Cada engine vive en su propia carpeta dentro de <code>engines/</code>:</p>
+    <pre><code>engines/
+└── mi_engine/
+    ├── motor.js      <span class="comment">← tu física (el único archivo que realmente importa)</span>
+    ├── shader.glsl   <span class="comment">← el render (puedes reusar uno existente)</span>
+    ├── config.json   <span class="comment">← parámetros, semillas, HUD</span>
+    └── paper.json    <span class="comment">← narrativa, fórmulas, tooltips</span></code></pre>
+    <p>Se carga con: <code>?engine=mi_engine</code></p>
+    <div class="box info">
+      <div class="box-title">Shader reutilizable</div>
+      Si no quieres escribir GLSL, copia <code>engines/mirror/shader.glsl</code>.
+      Usa rueda completa de colores por fase — funciona bien para la mayoría de campos.
+      Para colores semánticos (como COSTUMBRE) necesitas tu propio shader.
+    </div>
+  </section>
+
+  <!-- API -->
+  <section id="api">
+    <h2><span class="section-num">03</span> API obligatoria</h2>
+    <p>
+      El shell importa <code>createEngine</code> y espera exactamente estas funciones
+      en el objeto devuelto. Nombres exactos, sin variaciones.
+    </p>
+    <pre><code><span class="keyword">export function</span> <span class="fn">createEngine</span>(N, renderVolume, phaseData, texture3D, texturePhase) {
+  <span class="comment">// N             — tamaño del grid (32, 48 o 64)</span>
+  <span class="comment">// renderVolume  — Float32Array(N³) — escribe aquí el brillo del vóxel</span>
+  <span class="comment">// phaseData     — Float32Array(N³) — escribe aquí el color/fase</span>
+  <span class="comment">// texture3D     — THREE.Data3DTexture — marca needsUpdate=true</span>
+  <span class="comment">// texturePhase  — THREE.Data3DTexture — ídem</span>
+
+  <span class="keyword">return</span> {
+    <span class="fn">step</span>(),           <span class="comment">// avanzar un frame — llamado cada frame</span>
+    <span class="fn">refresh</span>(),        <span class="comment">// escribir al GPU — llamado según refreshRate</span>
+    <span class="fn">getMetrics</span>(),     <span class="comment">// devolver objeto de métricas</span>
+    <span class="fn">seed</span>(name),       <span class="comment">// inicializar semilla por nombre</span>
+    <span class="fn">inject</span>(name),     <span class="comment">// ejecutar inyección</span>
+    <span class="fn">applyParams</span>(p),   <span class="comment">// recibir cambios de sliders</span>
+    <span class="fn">getParams</span>(),      <span class="comment">// devolver objeto de parámetros</span>
+    <span class="fn">getState</span>(),       <span class="comment">// snapshot serializable</span>
+    <span class="fn">setState</span>(s),      <span class="comment">// restaurar snapshot</span>
+    <span class="fn">savePrev</span>(),       <span class="comment">// puede estar vacío: () => {}</span>
+    <span class="fn">classifyState</span>(m), <span class="comment">// string de estado desde métricas</span>
+  };
+}</code></pre>
+
+    <div class="api-item required">
+      <div class="api-sig">step()</div>
+      <div class="api-desc">Avanza un paso de física. El shell lo llama cada frame de animación. Toda tu ecuación va aquí.</div>
+    </div>
+    <div class="api-item required">
+      <div class="api-sig">refresh()</div>
+      <div class="api-desc">Escribe en <code>renderVolume</code> y <code>phaseData</code>, y marca <code>texture3D.needsUpdate = true</code>. Sin esto el render no se actualiza.</div>
+    </div>
+    <div class="api-item required">
+      <div class="api-sig">seed(name)</div>
+      <div class="api-desc">Inicializa el campo con la semilla indicada. Llamado en Reset y al cambiar semilla. Debe llamar <code>refresh()</code> al final.</div>
+    </div>
+    <div class="api-item">
+      <div class="api-sig">savePrev()</div>
+      <div class="api-desc">Puede estar completamente vacío: <code>savePrev() {}</code>. El shell lo llama pero no requiere nada.</div>
+    </div>
+  </section>
+
+  <!-- Métricas -->
+  <section id="metricas">
+    <h2><span class="section-num">04</span> getMetrics()</h2>
+    <p>
+      Devuelve el objeto que el shell muestra en el HUD y pasa a <code>classifyState()</code>.
+      Las claves son fijas — asigna tus valores a las que tengan sentido para tu motor.
+    </p>
+    <table>
+      <tr><th>Clave</th><th>HUD ID</th><th>Descripción</th></tr>
+      <tr><td><code>E_total</code></td><td>s-etotal</td><td>Energía total o métrica principal</td></tr>
+      <tr><td><code>E_kin</code></td><td>s-ekin</td><td>Energía cinética o segunda métrica</td></tr>
+      <tr><td><code>E_torsion</code></td><td>s-etorsion</td><td>Cualquier métrica de estructura</td></tr>
+      <tr><td><code>E_phase</code></td><td>s-ephase</td><td>Cualquier métrica de fase/orden</td></tr>
+      <tr><td><code>helicity</code></td><td>s-helic</td><td>Helicidad o métrica de rotación</td></tr>
+      <tr><td><code>boundary</code></td><td>s-boundary</td><td>Fracción en frontera o zona especial</td></tr>
+      <tr><td><code>pump</code></td><td>s-pump</td><td>Bombeo, generación, o contador</td></tr>
+      <tr><td><code>u_max</code></td><td>s-umax</td><td>Valor máximo del campo principal</td></tr>
+      <tr><td><code>psiMax</code></td><td>—</td><td><strong>El shell usa esto internamente</strong> — pon aquí el máximo relevante</td></tr>
+      <tr><td><code>coherence</code></td><td>s-coher</td><td>Coherencia, overlap, o identidad</td></tr>
+    </table>
+  </section>
+
+  <!-- classifyState -->
+  <section id="classify">
+    <h2><span class="section-num">05</span> classifyState(m)</h2>
+    <p>
+      Recibe el objeto de métricas y devuelve un string. El shell lo usa para
+      actualizar la narrativa del Live Paper y las opacidades de la fórmula.
+    </p>
+    <p>Los 7 estados con estilos predefinidos en el shell:</p>
+    <pre><code><span class="keyword">function</span> <span class="fn">classifyState</span>(m) {
+  <span class="keyword">if</span> (m.psiMax > 10)        <span class="keyword">return</span> <span class="string">'collapse'</span>;   <span class="comment">// divergencia</span>
+  <span class="keyword">if</span> (m.boundary > 0.5)     <span class="keyword">return</span> <span class="string">'locked'</span>;    <span class="comment">// estructura fija</span>
+  <span class="keyword">if</span> (m.coherence > 0.7)    <span class="keyword">return</span> <span class="string">'stable'</span>;    <span class="comment">// identidad preservada</span>
+  <span class="keyword">if</span> (m.E_total > 1.0)      <span class="keyword">return</span> <span class="string">'pumping'</span>;   <span class="comment">// alta energía</span>
+  <span class="keyword">if</span> (m.E_total > 0.3)      <span class="keyword">return</span> <span class="string">'active'</span>;    <span class="comment">// campo activo</span>
+  <span class="keyword">if</span> (m.E_total > 0.05)     <span class="keyword">return</span> <span class="string">'nucleating'</span>;<span class="comment">// emergiendo</span>
+  <span class="keyword">return</span> <span class="string">'vacuum'</span>;                               <span class="comment">// reposo</span>
+}</code></pre>
+    <p>
+      Puedes agregar estados custom en <code>paper.json</code> — solo asegúrate de
+      definirlos en <code>states</code>, <code>stateLabels</code> y <code>formulaOpacity</code>.
+    </p>
+  </section>
+
+  <!-- config.json -->
+  <section id="config">
+    <h2><span class="section-num">06</span> config.json</h2>
+    <pre><code>{
+  <span class="string">"id"</span>: <span class="string">"mi_engine"</span>,
+  <span class="string">"name"</span>: <span class="string">"Mi Engine — Descripción"</span>,
+  <span class="string">"panelTitle"</span>: <span class="string">"⚗ TÍTULO"</span>,
+
+  <span class="string">"params"</span>: {
+    <span class="string">"MI_PARAM"</span>: {
+      <span class="string">"default"</span>: 1.0, <span class="string">"label"</span>: <span class="string">"label"</span>,
+      <span class="string">"min"</span>: 0.0, <span class="string">"max"</span>: 5.0, <span class="string">"step"</span>: 0.1
+    },
+    <span class="string">"THRESH"</span>: { <span class="string">"default"</span>: 0.08, <span class="string">"label"</span>: <span class="string">"Umbral 👁"</span>,
+                <span class="string">"min"</span>: 0.01, <span class="string">"max"</span>: 1.0, <span class="string">"step"</span>: 0.01 }
+  },
+
+  <span class="string">"uniformBindings"</span>: { <span class="string">"THRESH"</span>: <span class="string">"uThresh"</span> },
+
+  <span class="string">"seeds"</span>: [
+    { <span class="string">"id"</span>: <span class="string">"semilla1"</span>, <span class="string">"label"</span>: <span class="string">"Descripción"</span> }
+  ],
+  <span class="string">"defaultSeed"</span>: <span class="string">"semilla1"</span>,
+
+  <span class="string">"injections"</span>: [
+    { <span class="string">"id"</span>: <span class="string">"inyeccion1"</span>, <span class="string">"label"</span>: <span class="string">"⊕ Nombre"</span>, <span class="string">"class"</span>: <span class="string">"amber"</span> }
+  ],
+
+  <span class="string">"gridOptions"</span>: [
+    { <span class="string">"value"</span>: 32, <span class="string">"label"</span>: <span class="string">"32³"</span>, <span class="string">"default"</span>: true },
+    { <span class="string">"value"</span>: 48, <span class="string">"label"</span>: <span class="string">"48³"</span> },
+    { <span class="string">"value"</span>: 64, <span class="string">"label"</span>: <span class="string">"64³"</span> }
+  ],
+
+  <span class="string">"hud"</span>: [
+    { <span class="string">"id"</span>: <span class="string">"s-etotal"</span>, <span class="string">"label"</span>: <span class="string">"mi métrica"</span>, <span class="string">"class"</span>: <span class="string">"hot"</span> }
+  ],
+
+  <span class="string">"zoomLabels"</span>: [
+    { <span class="string">"min"</span>: 8, <span class="string">"label"</span>: <span class="string">"lejos"</span> },
+    { <span class="string">"min"</span>: 0, <span class="string">"label"</span>: <span class="string">"cerca"</span> }
+  ]
+}</code></pre>
+  </section>
+
+  <!-- paper.json -->
+  <section id="paper">
+    <h2><span class="section-num">07</span> paper.json</h2>
+    <p>Define la narrativa del Live Paper. Los campos mínimos:</p>
+    <pre><code>{
+  <span class="string">"title"</span>: <span class="string">"Título de la ecuación"</span>,
+  <span class="string">"formula"</span>: [
+    { <span class="string">"term"</span>: <span class="string">"∂ψ/∂t = ..."</span>, <span class="string">"class"</span>: <span class="string">"ft-kin"</span>, <span class="string">"key"</span>: <span class="string">"wave"</span>, <span class="string">"op"</span>: null },
+    { <span class="string">"term"</span>: <span class="string">"+ término"</span>,  <span class="string">"class"</span>: <span class="string">"ft-snap"</span>,<span class="string">"key"</span>: <span class="string">"t2"</span>,  <span class="string">"op"</span>: <span class="string">"+"</span>  }
+  ],
+  <span class="string">"legend"</span>: [
+    { <span class="string">"key"</span>: <span class="string">"wave"</span>, <span class="string">"label"</span>: <span class="string">"Onda"</span>, <span class="string">"color"</span>: <span class="string">"rgba(255,255,255,0.6)"</span> }
+  ],
+  <span class="string">"tooltips"</span>: { <span class="string">"wave"</span>: <span class="string">"Explicación..."</span> },
+  <span class="string">"states"</span>: { <span class="string">"vacuum"</span>: <span class="string">"..."</span>, <span class="string">"active"</span>: <span class="string">"..."</span> },
+  <span class="string">"stateLabels"</span>: { <span class="string">"vacuum"</span>: <span class="string">"engine — reposo"</span> },
+  <span class="string">"formulaOpacity"</span>: {
+    <span class="string">"vacuum"</span>: { <span class="string">"wave"</span>: 0.3, <span class="string">"t2"</span>: 0.1 },
+    <span class="string">"active"</span>: { <span class="string">"wave"</span>: 0.9, <span class="string">"t2"</span>: 0.7 }
+  },
+  <span class="string">"limits"</span>: [
+    { <span class="string">"status"</span>: <span class="string">"ok"</span>, <span class="string">"label"</span>: <span class="string">"✓ algo"</span>, <span class="string">"text"</span>: <span class="string">"..."</span> }
+  ],
+  <span class="string">"predictions"</span>: [
+    { <span class="string">"id"</span>: <span class="string">"P1"</span>, <span class="string">"label"</span>: <span class="string">"Nombre"</span>, <span class="string">"text"</span>: <span class="string">"Descripción falsificable."</span> }
+  ]
+}</code></pre>
+
+    <h3>Clases de fórmula</h3>
+    <table>
+      <tr><th>Clase</th><th>Color por defecto</th><th>Uso sugerido</th></tr>
+      <tr><td><code>ft-kin</code></td><td>Blanco</td><td>Inercia, onda base</td></tr>
+      <tr><td><code>ft-higgs</code></td><td>Cyan</td><td>Potencial, pozo de energía</td></tr>
+      <tr><td><code>ft-snap</code></td><td>Rosa/rojo</td><td>Acoplamiento, snap, interacción</td></tr>
+      <tr><td><code>ft-bohm</code></td><td>Verde</td><td>Presión cuántica, corrección</td></tr>
+      <tr><td><code>ft-phase</code></td><td>Ámbar</td><td>Fase, rotación, memoria</td></tr>
+    </table>
+  </section>
+
+  <!-- Shader -->
+  <section id="shader">
+    <h2><span class="section-num">08</span> shader.glsl</h2>
+    <p>Dos secciones separadas por <code>// === FRAGMENT ===</code>. Uniforms disponibles:</p>
+    <pre><code><span class="comment">// renderVolume → uVolume (sampler3D)</span>
+<span class="comment">// phaseData    → uPhase  (sampler3D)</span>
+<span class="keyword">uniform float</span> uThresh;   <span class="comment">// controlado por THRESH en config</span>
+<span class="keyword">uniform float</span> uTime;     <span class="comment">// tiempo en segundos (para animaciones)</span>
+<span class="keyword">uniform vec3</span>  uCameraLocal; <span class="comment">// posición de la cámara en espacio local</span></code></pre>
+
+    <div class="box info">
+      <div class="box-title">Opción rápida</div>
+      Copia <code>engines/mirror/shader.glsl</code> para rueda de colores por fase.
+      Copia <code>engines/costumbre/shader.glsl</code> para paleta semántica personalizada.
+    </div>
+  </section>
+
+  <!-- Capacidades del shell -->
+  <section id="capacidades">
+    <h2><span class="section-num">08b</span> Capacidades del shell</h2>
+    <p>
+      El shell ofrece cuatro entradas <strong>opcionales</strong> que conectan tu
+      motor con el mundo físico del teléfono. Todas son <strong>opt-in</strong>:
+      se activan con una bandera en <code>config.json</code>, y si no las declaras
+      no pasa nada (cero impacto en tu motor). Cada una muestra su propia barra.
+    </p>
+
+    <h3>🎤 Micrófono — el campo escucha</h3>
+    <p>
+      Bloque <code>mic</code> en config. Mapea las <em>features</em> del audio
+      (<code>volume</code>, <code>bass</code>, <code>mid</code>, <code>treble</code>,
+      todas 0..1) a un <code>param</code> (lo modula entre min..max) o a una
+      <code>inject</code> (la dispara al cruzar <code>threshold</code>).
+    </p>
+    <pre><code><span class="string">"mic"</span>: {
+  <span class="string">"enabled"</span>: <span class="keyword">true</span>,
+  <span class="string">"bindings"</span>: [
+    { <span class="string">"feature"</span>: <span class="string">"bass"</span>,   <span class="string">"param"</span>: <span class="string">"MI_PARAM"</span>, <span class="string">"min"</span>: 0, <span class="string">"max"</span>: 2 },
+    { <span class="string">"feature"</span>: <span class="string">"volume"</span>, <span class="string">"inject"</span>: <span class="string">"soplar"</span>, <span class="string">"threshold"</span>: 0.12,
+      <span class="string">"cooldown"</span>: 3, <span class="string">"passStrength"</span>: <span class="keyword">true</span> }
+  ]
+}</code></pre>
+    <p>
+      <code>passStrength: true</code> pasa la intensidad como <code>data.strength</code>
+      a tu <code>inject(name, data)</code> — soplar más fuerte, efecto más grande.
+      <strong>BURBUJA</strong> usa esto: tu aliento crea e infla las pompas.
+    </p>
+
+    <h3>📱 Giroscopio — el campo siente</h3>
+    <p>
+      Bloque <code>gyro</code>. Mapea la orientación del teléfono (features -1..1)
+      a params. <code>tiltX</code> (izq/der) y <code>tiltY</code> (ad/atrás) son
+      <strong>confiables</strong>; <code>tiltZ</code> (brújula) es
+      <strong>inestable</strong> — úsalo solo para efectos no críticos.
+    </p>
+    <pre><code><span class="string">"gyro"</span>: {
+  <span class="string">"enabled"</span>: <span class="keyword">true</span>,
+  <span class="string">"bindings"</span>: [
+    { <span class="string">"feature"</span>: <span class="string">"tiltX"</span>, <span class="string">"param"</span>: <span class="string">"GRAV_X"</span>, <span class="string">"min"</span>: -0.06, <span class="string">"max"</span>: 0.06 },
+    { <span class="string">"feature"</span>: <span class="string">"tiltY"</span>, <span class="string">"param"</span>: <span class="string">"GRAV_Y"</span>, <span class="string">"min"</span>: -0.06, <span class="string">"max"</span>: 0.06 }
+  ]
+}</code></pre>
+    <div class="box warn">
+      <div class="box-title">⚠ El eje Y va al revés</div>
+      En pantalla, <code>+Y</code> es <em>arriba</em>. Si quieres que "inclinar hacia
+      ti" haga <em>caer</em> las cosas, invierte el signo en tu motor:
+      <code>a.vy += -gy</code>. (Lo aprendimos con BLOOM: caían hacia arriba. 🙃)
+    </div>
+
+    <h3>🔄 Órbita automática — el visor contempla</h3>
+    <p>
+      <code>"autoOrbit": true</code> y <code>"autoOrbitSpeed": 0.5</code>. La cámara
+      gira sola para apreciar el volumen desde todos los ángulos. Es un control
+      <strong>universal</strong> (toggle + slider debajo del timeline) que funciona
+      en todos los motores; la bandera solo fija el estado inicial. Sigue girando
+      con la simulación pausada — combínalo con el replay de snapshots para una
+      pieza de museo: la física avanza y la cámara la rodea.
+    </p>
+
+    <h3>👆 Toque — el dedo interactúa</h3>
+    <p>
+      El shell ya trae raycaster. Si tu motor implementa el caso
+      <code>'touch'</code> en <code>inject</code>, recibe el punto tocado en
+      coordenadas locales <code>[-1,1]³</code>:
+    </p>
+    <pre><code><span class="keyword">function</span> <span class="fn">inject</span>(name, data) {
+  <span class="keyword">if</span> (name === <span class="string">'touch'</span>) {
+    <span class="keyword">const</span> gx = (data.x*0.5+0.5)*N; <span class="comment">// [-1,1] → [0,N]</span>
+    <span class="keyword">const</span> gy = (data.y*0.5+0.5)*N;
+    <span class="keyword">const</span> gz = (data.z*0.5+0.5)*N;
+    <span class="comment">// usa el punto: atractor, tinta, calor...</span>
+  }
+}</code></pre>
+    <p>
+      Se llama repetido al arrastrar; no avisa al soltar. Para saber cuándo
+      termina, usa un valor que decaiga solo y se renueve con cada toque.
+      <strong>BLOOM</strong> e <strong>INK</strong> usan este mecanismo.
+    </p>
+
+    <h3>📷 Dirección de cámara</h3>
+    <p>
+      El shell expone <code>window._camera</code>. Útil si tu motor reacciona a
+      desde dónde lo miran (<strong>BURBUJA</strong> detecta qué cara del cubo está
+      al frente). Protégelo con <code>if (cam)</code> para correr headless.
+    </p>
+
+    <div class="box info">
+      <div class="box-title">Plantilla lista</div>
+      <code>motor_v2.js</code> ejemplifica las cuatro: recibe el toque, lee la
+      cámara, y tiene params que el micro y el giro modulan. Cópialo si tu motor
+      usa estas entradas.
+    </div>
+  </section>
+
+  <!-- Patrones comunes -->
+  <section id="patrones">
+    <h2><span class="section-num">09</span> Patrones comunes</h2>
+    <h3>Índice 3D periódico</h3>
+    <pre><code><span class="keyword">function</span> <span class="fn">idx</span>(x, y, z) {
+  <span class="keyword">return</span> ((x+N)%N)*N*N + ((y+N)%N)*N + ((z+N)%N);
+}</code></pre>
+
+    <h3>Laplaciano estándar</h3>
+    <pre><code><span class="keyword">function</span> <span class="fn">laplaciano</span>(F, out) {
+  <span class="keyword">for</span> (<span class="keyword">let</span> x=0;x&lt;N;x++) <span class="keyword">for</span> (<span class="keyword">let</span> y=0;y&lt;N;y++) <span class="keyword">for</span> (<span class="keyword">let</span> z=0;z&lt;N;z++) {
+    <span class="keyword">const</span> i = idx(x,y,z);
+    out[i] = F[idx(x+1,y,z)] + F[idx(x-1,y,z)]
+           + F[idx(x,y+1,z)] + F[idx(x,y-1,z)]
+           + F[idx(x,y,z+1)] + F[idx(x,y,z-1)]
+           - 6*F[i];
+  }
+}</code></pre>
+
+    <h3>Gradiente</h3>
+    <pre><code><span class="keyword">function</span> <span class="fn">gradiente</span>(F, gx, gy, gz) {
+  <span class="keyword">for</span> (<span class="keyword">let</span> x=0;x&lt;N;x++) <span class="keyword">for</span> (<span class="keyword">let</span> y=0;y&lt;N;y++) <span class="keyword">for</span> (<span class="keyword">let</span> z=0;z&lt;N;z++) {
+    <span class="keyword">const</span> i = idx(x,y,z);
+    gx[i] = (F[idx(x+1,y,z)] - F[idx(x-1,y,z)]) * 0.5;
+    gy[i] = (F[idx(x,y+1,z)] - F[idx(x,y-1,z)]) * 0.5;
+    gz[i] = (F[idx(x,y,z+1)] - F[idx(x,y,z-1)]) * 0.5;
+  }
+}</code></pre>
+
+    <h3>Pulso gaussiano (semilla típica)</h3>
+    <pre><code><span class="keyword">const</span> c = N >> 1; <span class="comment">// centro del grid</span>
+<span class="keyword">for</span> (<span class="keyword">let</span> x=0;x&lt;N;x++) <span class="keyword">for</span> (<span class="keyword">let</span> y=0;y&lt;N;y++) <span class="keyword">for</span> (<span class="keyword">let</span> z=0;z&lt;N;z++) {
+  <span class="keyword">const</span> i = idx(x,y,z);
+  <span class="keyword">const</span> dx=x-c, dy=y-c, dz=z-c;
+  field[i] = Math.<span class="fn">exp</span>(-(dx*dx+dy*dy+dz*dz) / (2*(N/5)**2));
+}</code></pre>
+  </section>
+
+  <!-- Errores frecuentes -->
+  <section id="errores">
+    <h2><span class="section-num">10</span> Errores frecuentes</h2>
+    <table>
+      <tr><th>Error en consola</th><th>Causa</th><th>Solución</th></tr>
+      <tr>
+        <td><code>engine.seed is not a function</code></td>
+        <td>Exportas <code>initSeed</code> pero el shell llama <code>seed</code></td>
+        <td>Añadir <code>seed: initSeed</code> al return</td>
+      </tr>
+      <tr>
+        <td><code>engine.getParams is not a function</code></td>
+        <td>Falta en el return</td>
+        <td><code>getParams() { return {...P}; }</code></td>
+      </tr>
+      <tr>
+        <td><code>engine.setState is not a function</code></td>
+        <td>Exportas <code>loadState</code></td>
+        <td>Añadir <code>setState(s) { this.loadState(s); }</code></td>
+      </tr>
+      <tr>
+        <td><code>Unexpected end of input</code></td>
+        <td>Llave <code>}</code> faltante</td>
+        <td>Verificar cierre de todos los <code>for</code> y <code>if</code></td>
+      </tr>
+      <tr>
+        <td>Render no actualiza</td>
+        <td>Falta <code>needsUpdate = true</code></td>
+        <td>Al final de <code>refresh()</code>:<br><code>texture3D.needsUpdate = true;</code><br><code>texturePhase.needsUpdate = true;</code></td>
+      </tr>
+      <tr>
+        <td>HUD siempre en 0 o -</td>
+        <td>Mismatch en nombres de claves</td>
+        <td>Verificar que <code>getMetrics()</code> devuelve exactamente las claves esperadas</td>
+      </tr>
+    </table>
+  </section>
+
+  <!-- Motores existentes -->
+  <section id="motores">
+    <h2><span class="section-num">11</span> Motores existentes — inspiración</h2>
+    <p>
+      El laboratorio tiene 12 engines construidos. Úsalos como referencia
+      para ver diferentes enfoques de la misma API.
+    </p>
+    <div class="engine-grid">
+      <div class="engine-card">
+        <div class="engine-name">V5.5 — ψ Complejo</div>
+        <div class="engine-desc">Campo ψ ∈ ℂ³ con Bohm, Higgs, snap variacional</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">V3core — Cosserat</div>
+        <div class="engine-desc">u, θ, φ bifásico. Segundo orden temporal</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">ESPEJO</div>
+        <div class="engine-desc">Campo que mide su propia entropía local</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">RUMOR</div>
+        <div class="engine-desc">Autómata celular de consenso y disenso</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">PALIMPSESTO</div>
+        <div class="engine-desc">Campo con memoria temporal estratificada</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">FRONTERA</div>
+        <div class="engine-desc">Geometría emergente desde red de puntos</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">PARTÍCULA V2</div>
+        <div class="engine-desc">Particle Life con ψ complejo y herencia</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">CENIZA</div>
+        <div class="engine-desc">Termodinámica irreversible. Todo muere.</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">HORIZONTE</div>
+        <div class="engine-desc">Campo que siente el límite de su contenedor</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">COSTUMBRE</div>
+        <div class="engine-desc">Campo que se habitúa. La normalidad ciega.</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">MUSE</div>
+        <div class="engine-desc">Campo lógico popcount(logic(x,y,z)) en 3D. Diálogo con el lab ŚN1E de Borkowski.</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">KRANK</div>
+        <div class="engine-desc">Fractura entre realidades. Mandelbulb 3D, espuma orgánica que crece.</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">KRUNCH</div>
+        <div class="engine-desc">Cristal que se astilla. Menger 3D, venas angulares (vidrio estrellado). Micro.</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">BURBUJA</div>
+        <div class="engine-desc">Cubo de jabón que respiras con el micrófono. Caras distintas, iridiscencia, UV.</div>
+      </div>
+      <div class="engine-card">
+        <div class="engine-name">BLOOM</div>
+        <div class="engine-desc">Enjambre con peso que forma células. Giro + toque. Homenaje a Velvet.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Preguntas guía -->
+  <section id="preguntas">
+    <h2><span class="section-num">12</span> Preguntas para inspirar tu motor</h2>
+    <p>Dale una de estas preguntas a tu IA preferida junto con este manual y el V0:</p>
+
+    <div class="box amber" style="margin-bottom:12px">
+      <div class="box-title">Física especulativa</div>
+      ¿Qué pasa si el vacío tiene viscosidad que depende de la curvatura local?<br>
+      ¿Y si las partículas son solo nodos de alta coherencia en un campo de relaciones?<br>
+      ¿Cómo sería un campo donde la masa emerge de la resistencia al cambio de fase?
+    </div>
+
+    <div class="box info" style="margin-bottom:12px">
+      <div class="box-title">Sistemas complejos</div>
+      ¿Qué pasa si cada celda "vota" por su estado basándose en sus vecinos?<br>
+      ¿Cómo evoluciona un campo donde las reglas cambian según la densidad local?<br>
+      ¿Qué estructuras emergen cuando la información fluye más rápido que la energía?
+    </div>
+
+    <div class="box" style="border-left:3px solid rgba(180,80,255,0.7); background:rgba(180,80,255,0.04); margin-bottom:12px">
+      <div class="box-title" style="color:rgba(180,80,255,0.9)">Filosófico / abstracto</div>
+      ¿Cómo se vería un campo cuya única ley es minimizar su propia sorpresa?<br>
+      ¿Qué pasa si el tiempo es un campo que también evoluciona?<br>
+      ¿Cómo sería un universo donde el olvido es la única fuerza fundamental?
+    </div>
+  </section>
+
+  <!-- Motor V1 -->
+  <section id="v1">
+    <h2><span class="section-num">13</span> Motor V1 — El Campo Resonante</h2>
+    <p>
+      Un motor completo con personalidad: campo oscilante que se amplifica
+      donde sus vecinos vibran en fase y se inhibe donde vibran en antifase.
+      Las estructuras emergen donde la resonancia se auto-sostiene.
+    </p>
+    <p>
+      Ecuación: <code>∂²ψ/∂t² = c²∇²ψ − ω²ψ + κ·C(ψ)·ψ</code><br>
+      donde <code>C(ψ)</code> es la correlación local de fase.
+    </p>
+
+    <div class="box info">
+      <div class="box-title">Cómo usar</div>
+      Copia <code>motor_v1.js</code> a <code>engines/resonante/</code>.
+      Crea los <code>config.json</code> y <code>paper.json</code> correspondientes
+      (guíate por la sección 06 y 07). Copia cualquier <code>shader.glsl</code> existente.
+      Carga con <code>?engine=resonante</code>.
+    </div>
+
+    <p>El archivo <code>motor_v1.js</code> incluye:</p>
+    <ul style="margin: 12px 0 0 20px; color: var(--muted); font-size:12px; line-height:2;">
+      <li>Campo complejo ψ con parte real e imaginaria</li>
+      <li>Segundo orden temporal (velocidades + Verlet)</li>
+      <li>Observable emergente: coherencia local de fase</li>
+      <li>3 semillas: pulso gaussiano, vórtice, ruido</li>
+      <li>3 inyecciones: sacudir, antifase, pulso puntual</li>
+      <li>Overlap de modo como medida de identidad</li>
+      <li>Todos los aliases necesarios (seed, setState, loadState)</li>
+    </ul>
+  </section>
+
+  <footer>
+    AtOhmEter — Brujo · Éter · Velvet · Ámbar — 2026 🦝<br>
+    Un laboratorio de física especulativa de bolsillo.
+  </footer>
+
+</main>
+</div>
+
+<script>
+  // Highlight nav active section
+  const sections = document.querySelectorAll('section[id], div[id]');
+  const navLinks = document.querySelectorAll('nav a');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        navLinks.forEach(a => a.classList.remove('active'));
+        const active = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3, rootMargin: '-20% 0px -70% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+
+</body>
+</html>

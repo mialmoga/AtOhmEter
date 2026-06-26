@@ -1,0 +1,97 @@
+{
+  "__NOTA__": "Elimina todas las claves que empiecen con __ antes de usar este template",
+
+  "__OBLIGATORIO__": "id, name, panelTitle, params, uniformBindings, seeds, defaultSeed, injections, gridOptions, hud, zoomLabels",
+
+  "id":          "mi_engine",
+  "name":        "Mi Engine — Descripción corta",
+  "description": "Descripción larga para el panel de información.",
+  "panelTitle":  "⚗ TÍTULO PANEL",
+
+  "__params__": "Cada clave debe coincidir EXACTAMENTE con un parámetro en el objeto P del motor",
+  "params": {
+    "MI_PARAM": {
+      "default": 1.0,
+      "label":   "label visible en el slider",
+      "min":     0.0,
+      "max":     5.0,
+      "step":    0.1
+    },
+    "__THRESH_OBLIGATORIO__": "THRESH controla el umbral visual — siempre inclúyelo",
+    "THRESH": {
+      "default": 0.08,
+      "label":   "Umbral 👁",
+      "min":     0.01,
+      "max":     1.0,
+      "step":    0.01
+    }
+  },
+
+  "__uniformBindings__": "Conecta parámetros del motor con uniforms del shader. THRESH→uThresh es obligatorio si usas umbral visual",
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+
+  "__seeds__": "Cada id debe coincidir con un case en la función seed() del motor",
+  "seeds": [
+    { "id": "semilla1", "label": "Descripción de la semilla 1" },
+    { "id": "semilla2", "label": "Descripción de la semilla 2" }
+  ],
+
+  "__defaultSeed__": "Debe ser uno de los ids en seeds[]",
+  "defaultSeed": "semilla1",
+
+  "__injections__": "Cada id debe coincidir con un case en la función inject() del motor. class puede ser: amber, red, o vacío",
+  "injections": [
+    { "id": "inyeccion1", "label": "⊕ Nombre",  "class": "amber" },
+    { "id": "inyeccion2", "label": "◌ Nombre2", "class": ""      }
+  ],
+
+  "__gridOptions__": "Opciones de resolución — siempre incluir 32 como default",
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+
+  "__hud__": "IDs disponibles: s-etotal, s-ekin, s-etorsion, s-ephase, s-helic, s-boundary, s-pump, s-umax, s-thmax, s-phimax, s-coher, s-vortex. class: hot, cool, amber, o vacío",
+  "hud": [
+    { "id": "s-etotal",   "label": "métrica principal", "class": "hot"  },
+    { "id": "s-ekin",     "label": "segunda métrica",   "class": ""     },
+    { "id": "s-etorsion", "label": "tercera métrica",   "class": "cool" },
+    { "id": "s-umax",     "label": "valor máximo",      "class": ""     },
+    { "id": "s-coher",    "label": "coherencia",        "class": "cool" }
+  ],
+
+  "__zoomLabels__": "Labels que aparecen según el nivel de zoom. min=distancia mínima para mostrar ese label",
+  "zoomLabels": [
+    { "min": 8, "label": "cosmos"   },
+    { "min": 4, "label": "campo"    },
+    { "min": 2, "label": "zona"     },
+    { "min": 0, "label": "detalle"  }
+  ],
+
+  "__CAPACIDADES_OPCIONALES__": "Todo lo de abajo es OPT-IN. Elimina los bloques que no uses. Ver manual_LLM.md sección 9b. Si no declaras un bloque, esa capacidad simplemente no aparece (cero impacto).",
+
+  "__mic__": "MICRÓFONO. features: volume/bass/mid/treble (0..1). Un binding con 'param' modula ese parámetro entre min..max; uno con 'inject' lo dispara al cruzar threshold. passStrength pasa la intensidad como data.strength al inject.",
+  "mic": {
+    "enabled": true,
+    "bindings": [
+      { "feature": "bass",   "param": "MI_PARAM", "min": 0.0, "max": 5.0 },
+      { "feature": "volume", "inject": "inyeccion1", "threshold": 0.12, "cooldown": 3, "passStrength": true }
+    ]
+  },
+
+  "__gyro__": "GIROSCOPIO. features: tiltX (gamma izq/der, CONFIABLE), tiltY (beta ad/atrás, CONFIABLE), tiltZ (alpha brújula, INESTABLE). Solo modula params (no dispara inject). Mapeo lineal -1..1 → min..max.",
+  "gyro": {
+    "enabled": true,
+    "bindings": [
+      { "feature": "tiltX", "param": "GRAV_X", "min": -0.06, "max": 0.06 },
+      { "feature": "tiltY", "param": "GRAV_Y", "min": -0.06, "max": 0.06 }
+    ]
+  },
+
+  "__autoOrbit__": "ÓRBITA AUTOMÁTICA. autoOrbit decide si la cámara arranca girando; autoOrbitSpeed la velocidad. El control (toggle+slider) está SIEMPRE disponible en el visor; esto solo fija el estado inicial.",
+  "autoOrbit": false,
+  "autoOrbitSpeed": 0.5
+}
