@@ -478,7 +478,7 @@ import { RGBShiftShader }  from 'three/addons/shaders/RGBShiftShader.js';
 //  CONFIGURACIÓN DESDE URL
 // ════════════════════════════════════════════════════════════
 const params  = new URLSearchParams(window.location.search);
-const ENGINE  = params.get('engine') || 'v55';
+const ENGINE  = params.get('engine') || 'v4';
 const _urlN   = params.get('N');
 const N       = _urlN ? Math.min(64, Math.max(16, +_urlN)) : 32;
 const TOTAL   = N * N * N;
