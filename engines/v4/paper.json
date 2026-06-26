@@ -1,0 +1,211 @@
+{
+  "title": "El Corazón de la Carnita",
+  "formula": [
+    {
+      "term": "ρ ∂²u/∂t² = μ∇²u",
+      "class": "ft-kin",
+      "key": "wave",
+      "op": null
+    },
+    {
+      "term": "2α∇×θ",
+      "class": "ft-snap",
+      "key": "couple",
+      "op": "+"
+    },
+    {
+      "term": "J ∂²θ/∂t² = γ∇²θ",
+      "class": "ft-phase",
+      "key": "torsion",
+      "op": ";"
+    },
+    {
+      "term": "2α(∇×u − 2θ)",
+      "class": "ft-snap",
+      "key": "spring",
+      "op": "+"
+    },
+    {
+      "term": "∂²φ/∂t² = −4λφ(φ²−1)",
+      "class": "ft-higgs",
+      "key": "well",
+      "op": ";"
+    }
+  ],
+  "legend": [
+    {
+      "key": "wave",
+      "label": "Onda u",
+      "color": "rgba(255,255,255,0.6)"
+    },
+    {
+      "key": "couple",
+      "label": "Bombeo α",
+      "color": "rgba(255,80,120,0.7)"
+    },
+    {
+      "key": "torsion",
+      "label": "Torsión θ",
+      "color": "rgba(255,200,60,0.7)"
+    },
+    {
+      "key": "spring",
+      "label": "Muelle −2αθ",
+      "color": "rgba(255,80,120,0.5)"
+    },
+    {
+      "key": "well",
+      "label": "Doble pozo φ",
+      "color": "rgba(60,200,255,0.7)"
+    }
+  ],
+  "tooltips": {
+    "wave": "ρ·∂²u/∂t² = μ·∇²u — Onda acústica del vacío. Segundo orden temporal: inercia real. La onda viaja, rebota, interfiere. No se disipa sola.",
+    "couple": "2α·∇×θ — El término de bombeo Cosserat. La torsión genera onda, la onda genera torsión. α controla la intensidad del intercambio. ES el latido.",
+    "torsion": "J·∂²θ/∂t² = γ·∇²θ — Torsión interna del sustrato. Los micro-rotaciones tienen su propia inercia J. Se propagan como una segunda onda independiente.",
+    "spring": "2α·(∇×u − 2θ) — El muelle restaurador Cosserat. El término −2αθ es la fuerza que hace que la torsión oscile en lugar de divergir. Sin esto no hay rebote.",
+    "well": "−4λφ(φ²−1) — Potencial doble pozo tipo Ginzburg-Landau. Empuja φ hacia +1 o −1 (dos fases incompatibles). Las fronteras almacenan energía elástica.",
+    "radial": "Perfil radial de |u| — amplitud media del campo de desplazamiento a cada radio. Nodos discretos = modos cuantizados. Continuo = sin cuantización."
+  },
+  "states": {
+    "vacuum": "Sustrato en reposo. Campos en estado base, sin bombeo. Las paredes de fase son estables pero inactivas.",
+    "nucleating": "Energía acumulándose. El acoplamiento torsión-onda empieza a transferir energía entre campos.",
+    "active": "Campo activo — fronteras de fase vibrando. La energía se redistribuye entre u, θ y φ. Estructuras emergiendo.",
+    "torsion": "Torsión dominante. Los micro-rotaciones θ almacenan la mayor parte de la energía. Las paredes de fase se deforman.",
+    "pumping": "¡BOMBEO DETECTADO! Oscilación periódica del campo de fase. El grumo late — torsión y onda se intercambian energía cíclicamente.",
+    "collapse": "Divergencia inminente. |u| o |φ| creciendo sin límite. Reducir DT o α.",
+    "orbital": "Modo estacionario detectado. El campo u forma nodos radiales — posibles orbitales emergentes. Verificar perfil radial contra j₀(kr)."
+  },
+  "stateLabels": {
+    "vacuum": "sustrato Cosserat — reposo",
+    "nucleating": "sustrato Cosserat — nucleando",
+    "active": "sustrato Cosserat — campo activo",
+    "torsion": "sustrato Cosserat — torsión dominante",
+    "pumping": "sustrato Cosserat — ¡BOMBEANDO!",
+    "collapse": "sustrato Cosserat — divergencia",
+    "orbital": "sustrato Cosserat — modo orbital"
+  },
+  "formulaOpacity": {
+    "vacuum": {
+      "wave": 0.3,
+      "couple": 0.2,
+      "torsion": 0.3,
+      "spring": 0.2,
+      "well": 0.6
+    },
+    "nucleating": {
+      "wave": 0.5,
+      "couple": 0.7,
+      "torsion": 0.5,
+      "spring": 0.6,
+      "well": 0.5
+    },
+    "active": {
+      "wave": 0.8,
+      "couple": 0.9,
+      "torsion": 0.8,
+      "spring": 0.9,
+      "well": 0.7
+    },
+    "torsion": {
+      "wave": 0.4,
+      "couple": 1.0,
+      "torsion": 1.0,
+      "spring": 1.0,
+      "well": 0.5
+    },
+    "pumping": {
+      "wave": 1.0,
+      "couple": 1.0,
+      "torsion": 1.0,
+      "spring": 1.0,
+      "well": 0.8
+    },
+    "collapse": {
+      "wave": 1.0,
+      "couple": 0.5,
+      "torsion": 0.8,
+      "spring": 0.5,
+      "well": 0.2
+    }
+  },
+  "limits": [
+    {
+      "status": "ok",
+      "label": "✓ Segundo orden temporal",
+      "text": "∂²/∂t² — inercia real para u y θ. La onda rebota, no se disipa. Störmer-Verlet para φ. El salto fundamental desde V5.5."
+    },
+    {
+      "status": "ok",
+      "label": "✓ Acoplamiento cruzado",
+      "text": "α·(∇×θ ↔ ∇×u) es el mecanismo de bombeo Cosserat formal. No es un hack — es la ecuación constitutiva micropolar."
+    },
+    {
+      "status": "ok",
+      "label": "✓ Defecto ortogonal",
+      "text": "8 octantes de fase alterna + torsión π/2 cruzada. La energía está almacenada geométricamente, no inyectada."
+    },
+    {
+      "status": "ok",
+      "label": "✓ Damping adaptativo",
+      "text": "Vacío disipa, defectos se conservan. Protección de Velvet: las estructuras con torsión alta resisten la disipación."
+    },
+    {
+      "status": "warn",
+      "label": "⚠ Resolución N=32",
+      "text": "Suficiente para bombeo. Insuficiente para medir períodos exactos. N≥48 recomendado para análisis cuantitativo."
+    },
+    {
+      "status": "warn",
+      "label": "⚠ 13 campos Float64",
+      "text": "u(3) + u_v(3) + θ(3) + θ_v(3) + φ + φ_prev = 13 arrays. Más pesado que V5.5. Mobile viable solo en N=32."
+    },
+    {
+      "status": "open",
+      "label": "○ Sin unidades físicas",
+      "text": "ρ, J, μ, γ, α son adimensionales. La calibración contra observables experimentales es trabajo pendiente."
+    },
+    {
+      "status": "open",
+      "label": "○ Conteo de vórtices",
+      "text": "Pendiente: detector topológico de defectos de fase. Actualmente solo se mide la fracción de frontera."
+    }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "Bombeo emergente",
+      "text": "El acoplamiento α·(∇×θ ↔ ∇×u) debe producir oscilación periódica del campo de fase φ en la región del defecto. Período dependiente de α y γ."
+    },
+    {
+      "id": "P2",
+      "label": "Conservación de energía",
+      "text": "E_total debe permanecer aproximadamente constante (ΔE/E < 10%) si el integrador Verlet es correcto. Desviación indica error numérico."
+    },
+    {
+      "id": "P3",
+      "label": "Ondas acústicas",
+      "text": "Perturbaciones en u deben propagarse radialmente a velocidad √(μ/ρ). Medible comparando u_max a distintas distancias del centro."
+    },
+    {
+      "id": "P4",
+      "label": "Estabilidad del defecto",
+      "text": "Las paredes de fase (φ≈0) deben persistir con damping adaptativo. Sin protección de Velvet, el defecto se diluye en ~500 pasos."
+    },
+    {
+      "id": "P5",
+      "label": "Bifurcación por α",
+      "text": "Existe un α_c crítico por encima del cual el bombeo es autosostenido. Por debajo, la oscilación decae. Estimado: α_c ≈ 1.5 para N=32."
+    },
+    {
+      "id": "P6",
+      "label": "Falsificación: bombeo sin α",
+      "text": "Si aparece oscilación sostenida con α=0, el mecanismo Cosserat no es necesario y el modelo pierde su tesis central."
+    },
+    {
+      "id": "P7",
+      "label": "Orbitales como modos Bessel",
+      "text": "Un núcleo bipolar bombeando a frecuencia ω debe producir nodos de |u| en posiciones discretas r_n que correspondan a los ceros de j₀(k_n·r). Si el espectro radial es continuo, el mecanismo de cuantización emergente falla."
+    }
+  ]
+}
