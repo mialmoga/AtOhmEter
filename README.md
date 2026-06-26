@@ -7,7 +7,7 @@
 *Cualquier campo, cualquier regla, cualquier idea —*
 *si implementa el contrato, corre en tu navegador.*
 
-[**▶ Demo en vivo**](https://mialmoga.github.io/AtOhmEter/?engine=v4) · [**📖 Manual**](https://mialmoga.github.io/AtOhmEter/manual/index.html) · [**🔬 Para LLMs**](manual/manual_LLM.md)
+[**▶ Demo en vivo**](https://mialmoga.github.io/AtOhmEter/) · [**📖 Manual**](https://mialmoga.github.io/AtOhmEter/manual/index.html) · [**🔬 Para LLMs**](manual/manual_LLM.md)
 
 </div>
 
