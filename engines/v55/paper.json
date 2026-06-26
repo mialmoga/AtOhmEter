@@ -1,0 +1,67 @@
+{
+  "title": "La Ecuación del Tejido",
+  "formula": [
+    { "term": "iℏ ∂ψ/∂t = −½∇²ψ",      "class": "ft-kin",   "key": "kin",   "op": null },
+    { "term": "2λ(|ψ|²−φ₀²)ψ",           "class": "ft-higgs", "key": "higgs", "op": "+"  },
+    { "term": "η∇×[ψ×(∇×ψ)]",            "class": "ft-snap",  "key": "snap",  "op": "+"  },
+    { "term": "Q(ρ)ψ",                    "class": "ft-bohm",  "key": "bohm",  "op": "+"  },
+    { "term": "γe⁻ⁱᶿ⁰ψ",                 "class": "ft-phase", "key": "phase", "op": "+"  }
+  ],
+  "legend": [
+    { "key": "kin",   "label": "Inercia",  "color": "rgba(255,255,255,0.6)" },
+    { "key": "higgs", "label": "Higgs",    "color": "rgba(60,200,255,0.7)"  },
+    { "key": "snap",  "label": "Snap",     "color": "rgba(255,80,120,0.7)"  },
+    { "key": "bohm",  "label": "Bohm",     "color": "rgba(100,255,180,0.7)" },
+    { "key": "phase", "label": "Fase",     "color": "rgba(255,200,60,0.7)"  }
+  ],
+  "tooltips": {
+    "kin":   "iℏ ∂ψ/∂t — Ecuación de Schrödinger modificada. Primer orden temporal. El campo evoluciona como un fluido cuántico, no como una onda mecánica. Sin inercia propia.",
+    "higgs": "2λ(|ψ|²−φ₀²)ψ — Potencial de autointeracción tipo Ginzburg-Landau. Empuja |ψ| hacia la densidad de equilibrio φ₀. Crea la 'tensión superficial' del campo.",
+    "snap":  "η·∇×[ψ×(∇×ψ)] — Operador snap derivado variativamente del Lagrangiano. Mide desalineación entre ψ y ∇×ψ. Empuja el campo hacia estados Beltrami: ψ ∥ ∇×ψ.",
+    "bohm":  "Q(ρ)ψ = −(ℏ²/2m)·(∇²√ρ/√ρ)·ψ — Presión cuántica de Bohm via log(ρ). Evita colapso en regiones de densidad baja. Implementado siguiendo donita.py.",
+    "phase": "γe⁻ⁱᶿ⁰ψ — Acoplamiento de fase global. Representa la interacción del campo con la 'fase del vacío'. θ₀=0 en el estado base."
+  },
+  "states": {
+    "vacuum":     "Vacío cuántico. Campo en estado base, fluctuaciones mínimas. Esperando nucleación espontánea.",
+    "nucleating": "Nucleando vórtices. El snap está enrollando el campo. La helicidad acumula antes de que aparezcan estructuras discretas.",
+    "active":     "Campo activo — alta energía torsional. Vórtices en competencia. El attractor aún no está determinado.",
+    "stable":     "Estructuras metaestables detectadas. El campo encontró un mínimo local. C(x,t) ≈ 1 indica persistencia.",
+    "collapse":   "Colapso inminente. |ψ|_max diverge. Reducir DT o ETA."
+  },
+  "stateLabels": {
+    "vacuum":     "ψ emergente — vacío cuántico",
+    "nucleating": "ψ emergente — nucleando vórtices",
+    "active":     "ψ emergente — campo activo",
+    "stable":     "ψ emergente — estructuras estables",
+    "collapse":   "ψ emergente — colapso inminente"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "kin":0.3, "higgs":0.6, "snap":0.2, "bohm":0.3, "phase":0.2,
+                    "wave":0.3, "couple":0.2, "torsion":0.3, "spring":0.2, "well":0.6 },
+    "nucleating": { "kin":0.5, "higgs":0.5, "snap":1.0, "bohm":0.4, "phase":0.3,
+                    "wave":0.5, "couple":1.0, "torsion":0.7, "spring":0.8, "well":0.5 },
+    "active":     { "kin":0.7, "higgs":0.8, "snap":0.8, "bohm":0.6, "phase":0.5,
+                    "wave":0.8, "couple":0.9, "torsion":0.8, "spring":0.9, "well":0.7 },
+    "stable":     { "kin":0.4, "higgs":1.0, "snap":0.5, "bohm":1.0, "phase":0.4,
+                    "wave":0.5, "couple":0.6, "torsion":0.9, "spring":0.7, "well":1.0 },
+    "collapse":   { "kin":1.0, "higgs":0.2, "snap":1.0, "bohm":0.2, "phase":0.5,
+                    "wave":1.0, "couple":1.0, "torsion":0.9, "spring":1.0, "well":0.2 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Snap variacional", "text": "η·∇×[ψ×(∇×ψ)] deriva del Lagrangiano por variación. No es un término puesto a mano." },
+    { "status": "ok",   "label": "✓ Bohm via log(ρ)",  "text": "Implementado siguiendo donita.py. Más estable numéricamente que ∇²√ρ/√ρ directo." },
+    { "status": "ok",   "label": "✓ Hamiltoniano completo", "text": "E_kin + E_higgs + E_torsion medidos correctamente. E_proxy legacy mantenido para comparación." },
+    { "status": "warn", "label": "⚠ Primer orden temporal", "text": "∂ψ/∂t — relajación, no inercia. El campo se disuelve en lugar de rebotar. Motor Cosserat (V6) resuelve esto." },
+    { "status": "warn", "label": "⚠ Resolución N=32",  "text": "Suficiente para nucleación. Insuficiente para winding numbers. Necesitamos N≥64 con WebGPU." },
+    { "status": "open", "label": "○ Sin unidades físicas", "text": "Parámetros adimensionales. Conexión con ℏ, c, G requiere calibrar contra un observable experimental." },
+    { "status": "open", "label": "○ Sin Lorentz",       "text": "Ecuación no-relativista. La extensión covariante es el siguiente salto teórico." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Colapso finito",         "text": "Un estado de alta helicidad debe colapsar en tiempo finito cuando ETA supera un umbral crítico. Medible como divergencia de |ψ|_max." },
+    { "id": "P2", "label": "Número de enrollamiento", "text": "Las estructuras persistentes deben tener winding number entero conservado. Requiere N≥64." },
+    { "id": "P3", "label": "Interferencia real",      "text": "Dos grumos con fase relativa π deben aniquilarse. Dos con fase 0 deben reforzarse." },
+    { "id": "P4", "label": "Helicidad precede",       "text": "H = Re(ψ*·∇×ψ) acumula ANTES de que aparezcan vórtices contables. Verificado en donita.py frames 0-114." },
+    { "id": "P5", "label": "Razón de radios H₂",     "text": "La separación de equilibrio entre dos grumos debe reproducir la razón del radio de enlace H₂. Verificación cualitativa pendiente." },
+    { "id": "P6", "label": "Falsificación estructural","text": "Si aparecen estructuras estables SIN coherencia persistente (C→0) o SIN alineación ψ∥∇×ψ, el mecanismo central falla." }
+  ]
+}

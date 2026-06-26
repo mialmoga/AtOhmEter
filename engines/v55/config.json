@@ -1,0 +1,114 @@
+{
+  "id": "v55",
+  "name": "V5.5 — Campo Complejo ψ",
+  "description": "Motor original: campo vectorial complejo ψ ∈ ℂ³ con snap variacional, Bohm y feedback helicoidal.",
+  "panelTitle": "⚗ CARNITA",
+  "params": {
+    "ETA": {
+      "default": 0.32,
+      "label": "η snap",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    },
+    "LAMBDA": {
+      "default": 0.08,
+      "label": "λ Higgs",
+      "min": 0.01,
+      "max": 5.0,
+      "step": 0.01
+    },
+    "BOHM_C": {
+      "default": 0.6,
+      "label": "Bohm",
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05
+    },
+    "HELIC_FEEDBACK": {
+      "default": 0.05,
+      "label": "Helic ↻",
+      "min": 0.0,
+      "max": 0.5,
+      "step": 0.01
+    },
+    "DAMP_BASE": {
+      "default": 0.992,
+      "label": "Damp∅",
+      "min": 0.98,
+      "max": 1.0,
+      "step": 0.001
+    },
+    "DAMP_VORT": {
+      "default": 0.9995,
+      "label": "Damp⟳",
+      "min": 0.99,
+      "max": 1.0,
+      "step": 0.0005
+    },
+    "GAMMA": {
+      "default": 0.15,
+      "label": "γ fase",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    "DT": {
+      "default": 0.0015,
+      "label": "DT",
+      "min": 0.0005,
+      "max": 0.01,
+      "step": 0.0005
+    },
+    "THRESH": {
+      "default": 0.15,
+      "label": "Umbral 👁",
+      "min": 0.05,
+      "max": 3.0,
+      "step": 0.05
+    },
+    "VORTEX_THRESH": {
+      "default": 0.5,
+      "label": "V.thresh 🌀",
+      "min": 0.05,
+      "max": 3.0,
+      "step": 0.05
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "seeds": [
+    { "id": "grumo",      "label": "Grumo toroidal (donita.py)" },
+    { "id": "helicoidal",  "label": "Helicoidal 720° (fermión)" },
+    { "id": "ruido",       "label": "Solo ruido (spontaneous)" },
+    { "id": "vacio",       "label": "Vacío puro" }
+  ],
+  "defaultSeed": "grumo",
+  "injections": [
+    { "id": "perturbacion", "label": "⊕ Inyectar", "class": "amber" },
+    { "id": "helicoidal",   "label": "↺ Helicoidal", "class": "amber" },
+    { "id": "ruido",        "label": "~ Ruido",      "class": "" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "E_total",    "class": "hot"  },
+    { "id": "s-ekin",      "label": "E_kin",       "class": ""     },
+    { "id": "s-ehiggs",   "label": "E_higgs",    "class": "cool" },
+    { "id": "s-etorsion", "label": "E_torsion",  "class": ""     },
+    { "id": "s-helic",    "label": "helicidad",   "class": "cool" },
+    { "id": "s-psimax",   "label": "|ψ|_max",    "class": ""     },
+    { "id": "s-coher",    "label": "C(x,t)",      "class": "cool" },
+    { "id": "s-vortex",   "label": "vórtices",    "class": ""     }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "cosmos"  },
+    { "min": 4,  "label": "campo"   },
+    { "min": 2,  "label": "vórtice" },
+    { "min": 0,  "label": "núcleo"  }
+  ]
+}
