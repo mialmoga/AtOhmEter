@@ -1,0 +1,43 @@
+# ==============================================================================
+# PLANTILLA CONFIGURACIÓN GENERAL .HTACCESS
+# ==============================================================================
+
+# 1. ARCHIVO DE INICIO PREDETERMINADO
+# Cambia 'index.html' por tu archivo principal si usas otro (ej. inicio.html, index.php)
+DirectoryIndex index.html
+
+# 2. ACTIVAR MOTOR DE REESCRITURA
+#RewriteEngine
+# Si tu web está en una subcarpeta (ej. ://mihost.com), cambia / por /mi-app/
+#RewriteBase 
+
+# 3. COMPORTAMIENTO PARA INDEX Y PARÁMETROS (?parametro=valor)
+# Permite que 'mihost/?p=1' o 'mihost/pagina?p=1' mantengan los parámetros limpios
+RewriteCond %{QUERY_STRING} ^(.*)$
+RewriteRule ^$ index.html [L,QSA]
+
+# 4. QUITAR LA EXTENSIÓN .HTML DE LAS URLS
+# Redirige externamente si el usuario escribe .html manualmente
+RewriteCond %{THE_REQUEST} ^[A-Z]{3,}\s([^.]+)\.html [NC]
+RewriteRule ^ %1 [R=301,L]
+
+# Lee internamente el archivo .html si la URL no tiene extensión
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}\.html -f
+RewriteRule ^(.*)$ $1.html [L,QSA]
+
+# 5. SEGURIDAD BÁSICA (RECOMENDADO)
+# Desactivar la exploración de carpetas si no hay un index
+Options -Indexes
+
+# Ocultar la firma del servidor Apache
+ServerSignature Off
+
+# Bloquear acceso directo al propio archivo .htaccess y archivos de configuración
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# 6. PÁGINAS DE ERROR PERSONALIZADAS (OPCIONAL)
+# Reemplaza /error404.html por tu propia página de error si la tienes
+#ErrorDocument 404 /index.html

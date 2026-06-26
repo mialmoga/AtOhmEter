@@ -1,0 +1,2295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>AtOhmEter — Lab</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background:#000; overflow:hidden; font-family:'Courier New',monospace; touch-action:none; }
+
+        /* ── Identity & HUD ─────────────────────────────────── */
+        #ui {
+            position:absolute; top:0; left:0; right:0;
+            display:flex; justify-content:space-between; align-items:flex-start;
+            padding:16px 20px; pointer-events:none; z-index:10;
+        }
+        #identity h1 { font-size:11px; letter-spacing:0.3em; color:rgba(255,255,255,0.15); text-transform:uppercase; }
+        #identity h1 span { color:rgba(255,160,60,0.5); }
+        #engine-name { margin-top:3px; font-size:8px; letter-spacing:0.12em; color:rgba(255,160,40,0.3); }
+        #field-display { margin-top:5px; font-size:10px; letter-spacing:0.08em; color:rgba(255,200,100,0.5); }
+
+        #stats { text-align:right; font-size:9px; line-height:2.2; letter-spacing:0.08em; color:rgba(255,255,255,0.25); }
+        #stats span { color:rgba(255,255,255,0.6); }
+        #stats .hot  { color:rgba(255,120,60,0.9); }
+        #stats .cool { color:rgba(60,200,255,0.9); }
+
+        /* ── Controls ───────────────────────────────────────── */
+        #controls {
+            position:absolute; bottom:0; left:0; right:0;
+            display:flex; justify-content:center; align-items:center;
+            gap:6px; padding:16px; z-index:10; flex-wrap:wrap;
+        }
+        .btn {
+            background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.08);
+            color:rgba(255,255,255,0.45); font-family:'Courier New',monospace;
+            font-size:10px; letter-spacing:0.1em; padding:7px 14px; cursor:pointer;
+            border-radius:2px; transition:all 0.1s; user-select:none; -webkit-user-select:none;
+        }
+        .btn:active { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.9); }
+        .btn.amber  { border-color:rgba(255,160,40,0.3);  color:rgba(255,160,40,0.5); }
+        .btn.amber:active { background:rgba(255,160,40,0.08); color:rgba(255,180,60,0.95); }
+        .btn.cyan   { border-color:rgba(60,220,200,0.3);  color:rgba(60,220,200,0.5); }
+        .btn.cyan:active { background:rgba(60,220,200,0.06); color:rgba(60,220,200,0.95); }
+        .btn.red    { border-color:rgba(255,70,70,0.3);   color:rgba(255,70,70,0.45); }
+
+        /* ── Gear / Params panel ────────────────────────────── */
+        #render-btn {
+            position:absolute; left:44px; top:72px; z-index:15;
+            background:rgba(0,0,0,0.6); border:1px solid rgba(100,200,255,0.2);
+            color:rgba(100,200,255,0.5); font-size:14px; width:30px; height:30px;
+            border-radius:3px; cursor:pointer; pointer-events:auto;
+            display:flex; align-items:center; justify-content:center;
+        }
+        #render-btn:active { background:rgba(100,200,255,0.08); }
+        #render-panel {
+            position:absolute; left:10px; top:108px;
+            width:min(280px, 88vw); background:rgba(4,4,12,0.94);
+            border:1px solid rgba(100,200,255,0.1);
+            border-radius:4px; padding:10px 12px; z-index:15;
+            pointer-events:auto; display:none;
+        }
+        #render-panel.open { display:block; }
+        #render-panel .pt { font-size:7px; letter-spacing:0.2em;
+            color:rgba(100,200,255,0.35); text-transform:uppercase;
+            margin-bottom:8px; border-bottom:1px solid rgba(100,200,255,0.1);
+            padding-bottom:5px; }
+        #gear-btn {
+            position:absolute; left:10px; top:72px; z-index:15;
+            background:rgba(0,0,0,0.6); border:1px solid rgba(255,160,40,0.2);
+            color:rgba(255,160,40,0.5); font-size:16px; width:30px; height:30px;
+            border-radius:3px; cursor:pointer; pointer-events:auto;
+            display:flex; align-items:center; justify-content:center;
+        }
+        #gear-btn:active { background:rgba(255,160,40,0.1); }
+        #params {
+            position:absolute; left:10px; top:108px;
+            width:min(320px, 90vw); background:rgba(4,4,12,0.94);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:4px; padding:10px 12px; z-index:15;
+            pointer-events:auto; display:none;
+        }
+        #params.open { display:block; }
+        #params .pt { font-size:7px; letter-spacing:0.2em; color:rgba(255,160,40,0.35);
+                      text-transform:uppercase; margin-bottom:8px;
+                      border-bottom:1px solid rgba(255,160,40,0.1); padding-bottom:5px;
+                      display:flex; justify-content:space-between; }
+        .pgrid { display:grid; grid-template-columns:1fr 1fr; gap:4px 12px; }
+        .pgrid label {
+            font-size:6.5px; color:rgba(255,255,255,0.3);
+            letter-spacing:0.06em; display:flex;
+            justify-content:space-between; align-items:center;
+        }
+        .pgrid label span { color:rgba(255,255,255,0.5); font-size:7px; }
+        .pgrid input[type=range] {
+            width:100%; height:2px; -webkit-appearance:none; appearance:none;
+            background:rgba(255,255,255,0.08); border-radius:1px;
+            cursor:pointer; display:block; touch-action:none;
+        }
+        .pgrid input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance:none; width:8px; height:8px;
+            border-radius:50%; cursor:pointer; background:rgba(255,160,40,0.7);
+        }
+        .pgrid select, .pgrid input[type=number],
+        #seed-select, #sN {
+            width:100%; background:rgba(0,0,0,0.85); border:1px solid rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.5); font-family:'Courier New',monospace;
+            font-size:8px; padding:3px 4px; border-radius:2px;
+            -webkit-appearance:none; appearance:none;
+        }
+        .pgrid select option, #seed-select option, #sN option { background:#111; color:rgba(255,255,255,0.7); }
+        #energy-bar-wrap { margin-top:10px; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px; }
+        .eb-label { font-size:7px; letter-spacing:0.12em; color:rgba(255,160,40,0.35); margin-bottom:3px; }
+        .eb-bg { height:3px; background:rgba(255,255,255,0.05); border-radius:2px; overflow:hidden; }
+        #energy-fill { height:100%; width:0%; border-radius:2px;
+            background:linear-gradient(90deg, rgba(60,200,255,0.7), rgba(255,160,40,0.9)); transition:width 0.3s; }
+
+        /* ── Timeline ───────────────────────────────────────── */
+        #timeline-wrap {
+            position:fixed; bottom:90px; left:0; right:0; z-index:15;
+            background:rgba(0,0,0,0.85); padding:6px 12px;
+            display:none; align-items:center; gap:8px; flex-wrap:wrap;
+            border-top:1px solid rgba(255,255,255,0.05);
+            pointer-events:auto;
+        }
+        #timeline-wrap.visible { display:flex; }
+        #timeline-slider { flex:1; min-width:80px; height:2px; -webkit-appearance:none; appearance:none;
+            background:rgba(255,255,255,0.15); border-radius:1px; cursor:pointer; }
+        #timeline-slider::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px;
+            border-radius:50%; background:rgba(255,160,40,0.9); cursor:pointer; }
+        #timeline-label { font-size:7px; color:rgba(255,255,255,0.3); min-width:60px; }
+        .tl-btn {
+            background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.5); font-size:12px; padding:2px 6px;
+            border-radius:2px; cursor:pointer; line-height:1;
+        }
+        .tl-btn.playing {
+            background:rgba(60,220,200,0.1); border-color:rgba(60,220,200,0.4);
+            color:rgba(60,220,200,0.9);
+        }
+        #refresh-rate::-webkit-slider-thumb {
+            -webkit-appearance:none; width:8px; height:8px;
+            border-radius:50%; cursor:pointer; background:rgba(255,160,40,0.7);
+        }
+        #tl-speed::-webkit-slider-thumb {
+            -webkit-appearance:none; width:7px; height:7px;
+            border-radius:50%; cursor:pointer; background:rgba(60,220,200,0.7);
+        }
+        #tl-mode {
+            background:rgba(0,0,0,0.6); border:1px solid rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.4); font-size:7px; font-family:'Courier New',monospace;
+            padding:2px 4px; border-radius:2px; cursor:pointer;
+        }
+        #tl-mode option { background:#111; }
+
+        /* ── Zoom hint ──────────────────────────────────────── */
+        #zoom-hint {
+            position:fixed; bottom:110px; right:0; padding:16px 20px;
+            font-size:8px; letter-spacing:0.08em; color:rgba(255,255,255,0.1);
+            line-height:2; pointer-events:none; text-align:right; z-index:5;
+        }
+
+        /* ── Live Paper ─────────────────────────────────────── */
+        .lp-overlay {
+            position:fixed; top:0; right:0; bottom:56px;
+            width:min(380px,92vw); background:rgba(2,2,10,0.97);
+            border-left:1px solid rgba(255,255,255,0.06);
+            overflow-y:auto; z-index:20; display:none;
+            pointer-events:auto; -webkit-overflow-scrolling:touch;
+        }
+        .lp-overlay.open { display:block; }
+        .lp-inner { padding:20px; }
+        .lp-title { font-size:8px; letter-spacing:0.2em; color:rgba(255,160,40,0.4);
+                    text-transform:uppercase; margin:16px 0 8px; }
+        .formula-wrap { display:flex; flex-wrap:wrap; gap:4px 2px; align-items:center;
+                        justify-content:center;
+                        background:rgba(255,255,255,0.02); border-radius:3px; padding:10px; margin:6px 0; }
+        .ft { font-size:11px; font-style:italic; color:rgba(255,255,255,0.5);
+              padding:2px 4px; border-radius:2px; cursor:pointer; transition:all 0.2s; }
+        .ft:hover, .ft.active { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.9); }
+        .ft-kin   { color:rgba(255,255,255,0.55); }
+        .ft-higgs { color:rgba(60,200,255,0.65);  }
+        .ft-snap  { color:rgba(255,80,120,0.65);  }
+        .ft-bohm  { color:rgba(100,255,180,0.65); }
+        .ft-phase { color:rgba(255,200,60,0.65);  }
+        .legend-row { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0; }
+        .legend-item { display:flex; align-items:center; gap:4px;
+                       font-size:7px; color:rgba(255,255,255,0.3); cursor:pointer; }
+        .legend-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+        #ft-tooltip {
+            position:fixed; background:rgba(0,0,0,0.95);
+            border:1px solid rgba(255,255,255,0.1); border-radius:3px;
+            padding:10px 12px; font-size:8px; color:rgba(255,255,255,0.55);
+            max-width:280px; line-height:1.7; z-index:100;
+            display:none; pointer-events:none; letter-spacing:0.03em;
+        }
+        .telem-row { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+        .telem-item { font-size:8px; color:rgba(255,255,255,0.25); background:rgba(255,255,255,0.03);
+                      border-radius:2px; padding:3px 7px; }
+        .tv-e { color:rgba(255,120,60,0.9); }
+        .tv-h { color:rgba(60,200,255,0.9); }
+        .tv-v { color:rgba(100,255,180,0.7); }
+        .narrative-box { font-size:9px; line-height:1.8; color:rgba(255,255,255,0.4);
+                         background:rgba(255,255,255,0.03); border-left:2px solid rgba(255,160,40,0.2);
+                         border-radius:0 3px 3px 0; padding:10px 12px; margin:8px 0; }
+        .limit-card { border-radius:3px; padding:8px 10px; margin:6px 0;
+                      border:1px solid transparent; }
+        .lc-ok   { border-color:rgba(60,200,100,0.15); background:rgba(60,200,100,0.04); }
+        .lc-warn { border-color:rgba(255,160,40,0.15);  background:rgba(255,160,40,0.04); }
+        .lc-open { border-color:rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); }
+        .lc-label { font-size:8px; color:rgba(255,255,255,0.5); margin-bottom:3px; }
+        .lc-text  { font-size:7px; color:rgba(255,255,255,0.3); line-height:1.5; }
+        .pred-card { background:rgba(255,255,255,0.02); border-radius:3px; padding:8px 10px; margin:6px 0; }
+        .pred-id   { font-size:7px; color:rgba(255,160,40,0.5); margin-bottom:2px; }
+        .pred-label{ font-size:8px; color:rgba(255,255,255,0.5); margin-bottom:3px; }
+        .pred-text { font-size:7px; color:rgba(255,255,255,0.3); line-height:1.5; }
+    </style>
+</head>
+<body>
+
+<!-- HUD -->
+<div id="ui">
+    <div id="identity">
+        <h1>AtOhmEter <span id="version-label">—</span></h1>
+        <div id="engine-name">cargando motor…</div>
+        <div id="field-display">ψ —</div>
+</div>
+    <div id="stats">
+        <div>frame &nbsp;&nbsp;<span id="s-frame">0</span></div>
+        <!-- El HUD de métricas se genera dinámicamente desde config.json -->
+        <div id="hud-metrics"></div>
+        <div>zoom &nbsp;&nbsp;&nbsp;<span id="s-zoom">campo</span></div>
+    </div>
+</div>
+
+<!-- ⚙ Gear button + Params panel (sliders generados dinámicamente) -->
+<button id="gear-btn">⚙</button>
+<button id="render-btn" title="Renderer">🎨</button>
+<div id="render-panel">
+    <div class="pt">🎨 RENDERER</div>
+    <div class="pgrid">
+        <div><label>Bloom <span id="vBloom">1.8</span></label>
+             <input type="range" id="sBloom" min="0" max="4" step="0.1" value="1.8"></div>
+        <div><label>Radius <span id="vBRadius">0.6</span></label>
+             <input type="range" id="sBRadius" min="0" max="2" step="0.05" value="0.6"></div>
+        <div><label>Threshold <span id="vBThresh">0.05</span></label>
+             <input type="range" id="sBThresh" min="0" max="1" step="0.01" value="0.05"></div>
+        <div><label>Exposición <span id="vExpo">1.3</span></label>
+             <input type="range" id="sExpo" min="0.2" max="4" step="0.1" value="1.3"></div>
+        <div><label>Pasos ray <span id="vSteps">96</span></label>
+             <input type="range" id="sSteps" min="32" max="256" step="16" value="96"></div>
+        <div><label>Step size <span id="vStep">48</span></label>
+             <input type="range" id="sStep" min="24" max="128" step="8" value="48"></div>
+    </div>
+    <!-- RGB Shift -->
+    <div class="pt" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(100,200,255,0.08);">🌈 RGB SHIFT</div>
+    <div class="pgrid">
+        <div style="grid-column:1/-1;display:flex;align-items:center;gap:8px;padding:4px 0;">
+            <label style="position:relative;display:inline-block;width:28px;height:15px;flex-shrink:0;">
+                <input type="checkbox" id="cbRGB" style="opacity:0;width:0;height:0;position:absolute;">
+                <span id="cbRGB-track" style="position:absolute;inset:0;border-radius:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);transition:all 0.2s;cursor:pointer;"></span>
+                <span id="cbRGB-thumb" style="position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all 0.2s;cursor:pointer;"></span>
+            </label>
+            <label for="cbRGB" style="font-size:7px;letter-spacing:0.1em;color:rgba(100,200,255,0.5);cursor:pointer;">Activar RGB Shift</label>
+        </div>
+        <div><label>Distancia <span id="vRGBAmt">0.003</span></label>
+             <input type="range" id="sRGBAmt" min="0" max="0.02" step="0.001" value="0.003"></div>
+        <div><label>Ángulo <span id="vRGBAng">0.0</span></label>
+             <input type="range" id="sRGBAng" min="0" max="6.28" step="0.01" value="0.0"></div>
+    </div>
+</div>
+</div>
+<div id="params">
+    <div class="pt">
+        <span id="panel-title">⚗ MOTOR</span>
+        <span id="engine-id-label" style="opacity:0.5;font-size:6px"></span>
+    </div>
+    <div class="pgrid" id="slider-grid"><!-- generado dinámicamente --></div>
+    <div style="margin-top:8px;">
+        <div style="font-size:6.5px;color:rgba(255,255,255,0.2);margin-bottom:4px;letter-spacing:0.1em;">SEMILLA</div>
+        <select id="seed-select" class="pgrid" style="width:100%"><!-- generado --></select>
+    </div>
+    <div style="margin-top:8px;">
+        <div style="font-size:6.5px;color:rgba(255,255,255,0.2);margin-bottom:4px;letter-spacing:0.1em;">N GRID</div>
+        <select id="sN" class="pgrid" style="width:100%">
+            <!-- generado dinámicamente desde config.gridOptions -->
+        </select>
+    </div>
+    <div id="energy-bar-wrap">
+        <div class="eb-label">ENERGÍA CAMPO</div>
+        <div class="eb-bg"><div id="energy-fill"></div></div>
+    </div>
+</div>
+
+<div id="zoom-hint">scroll → zoom<br>drag → órbita</div>
+
+<!-- Controls -->
+<div id="controls">
+    <span id="injection-buttons"><!-- generado dinámicamente desde config.injections --></span>
+    <button class="btn cyan"  id="btn-pause">▶ Iniciar</button>
+    <button class="btn"       id="btn-snap">📸</button>
+    <button class="btn"       id="btn-paper">📄 Paper</button>
+    <button class="btn"       id="btn-fullscreen" title="Pantalla completa">⛶</button>
+    <button class="btn red"   id="btn-reset">Reset</button>
+</div>
+
+<!-- Timeline -->
+<div id="timeline-wrap">
+    <span id="timeline-label">—</span>
+    <input type="range" id="timeline-slider" min="0" max="0" value="0">
+    <button class="tl-btn" id="tl-play" title="Reproducir snapshots">▶</button>
+    <span id="tl-speed-wrap" style="display:flex;align-items:center;gap:3px;">
+      <input type="range" id="tl-speed" min="1" max="120" value="30"
+        style="width:48px;height:2px;-webkit-appearance:none;appearance:none;
+        background:rgba(255,255,255,0.12);border-radius:1px;cursor:pointer;"
+        title="Velocidad de reproducción (snapshots/s)">
+      <span id="tl-speed-val" style="font-size:6px;color:rgba(60,220,200,0.5);min-width:24px;">30/s</span>
+    </span>
+    <button class="tl-btn" id="tl-snap">📸</button>
+    <button class="tl-btn" id="tl-export">💾</button>
+    <button class="tl-btn" id="tl-import">📂</button>
+    <select id="tl-mode">
+        <option value="log2">Log₂</option>
+        <option value="canonical">Canónico</option>
+        <option value="fixed">Fijo cada N</option>
+        <option value="manual">Manual</option>
+    </select>
+    <input type="number" id="tl-fixed-n" min="5" max="500" value="50"
+        style="width:36px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);
+        color:rgba(255,255,255,0.4);font-size:7px;font-family:'Courier New',monospace;
+        padding:1px 3px;border-radius:2px;display:none;">
+    <input type="file" id="tl-file-input" accept=".json" style="display:none">
+</div>
+
+
+
+<!-- Live Paper Overlay (contenido generado dinámicamente desde paper.json) -->
+<div id="ft-tooltip"></div>
+
+<div class="lp-overlay" id="lp-overlay">
+  <div class="lp-inner">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-size:9px;letter-spacing:0.15em;color:rgba(255,160,40,0.6);">LIVE PAPER</div>
+        <button id="lp-close" style="background:none;border:1px solid rgba(255,255,255,0.1);
+            color:rgba(255,255,255,0.4);font-size:10px;padding:3px 8px;border-radius:2px;
+            cursor:pointer;font-family:'Courier New',monospace;">✕</button>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <button id="lp-start" style="flex:1;padding:12px;
+          background:rgba(255,160,40,0.08);border:1px solid rgba(255,160,40,0.3);
+          color:rgba(255,160,40,0.7);font-family:'Courier New',monospace;font-size:11px;
+          letter-spacing:0.15em;border-radius:3px;cursor:pointer;">▶ INICIAR SIMULACIÓN</button>
+      <button id="lp-import-btn" title="Cargar snapshots JSON"
+          style="padding:12px 14px;background:rgba(255,255,255,0.03);
+          border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.4);
+          font-size:16px;border-radius:3px;cursor:pointer;">📂</button>
+    </div>
+        <!-- Socket indicator — mismo estilo que el toggle RGB -->
+        <div id="socket-bar" style="display:flex;align-items:center;gap:8px;margin-top:6px;padding-top:5px;border-top:1px solid rgba(100,200,255,0.06);">
+            <span id="socket-dot" style="width:7px;height:7px;border-radius:50%;background:#333;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
+            <span id="socket-label" style="font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">SOCKET</span>
+            <label style="position:relative;display:inline-block;width:28px;height:15px;flex-shrink:0;opacity:0.35;pointer-events:none;transition:opacity 0.2s;" id="socket-toggle-wrap">
+                <input type="checkbox" id="cbSocket" style="opacity:0;width:0;height:0;position:absolute;" disabled>
+                <span id="cbSocket-track" style="position:absolute;inset:0;border-radius:8px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);transition:all 0.2s;cursor:pointer;"></span>
+                <span id="cbSocket-thumb" style="position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all 0.2s;cursor:pointer;"></span>
+            </label>
+            <label for="cbSocket" id="cbSocket-label" style="font-size:7px;letter-spacing:0.1em;color:rgba(100,200,255,0.3);cursor:default;transition:color 0.2s;">Motor remoto</label>
+        </div>
+        <!-- Sound bar — solo visible si el motor declara bloque sound -->
+        <div id="sound-bar" style="display:none;align-items:center;gap:8px;margin-top:6px;padding-top:5px;border-top:1px solid rgba(255,160,40,0.06);">
+            <span id="sound-dot" style="width:7px;height:7px;border-radius:50%;background:#333;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
+            <span style="font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">SONIDO</span>
+            <button id="btn-mute" style="font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(255,160,40,0.08);border:1px solid rgba(255,160,40,0.25);color:rgba(255,160,40,0.7);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">🔊 Suena</button>
+            <span style="font-size:7px;letter-spacing:0.08em;color:rgba(255,160,40,0.3);">tras Iniciar</span>
+        </div>
+
+        <!-- Mic bar — solo visible si el motor declara bloque mic -->
+        <div id="mic-bar" style="display:none;align-items:center;gap:8px;margin-top:6px;padding-top:5px;border-top:1px solid rgba(60,160,255,0.06);">
+            <span id="mic-dot" style="width:7px;height:7px;border-radius:50%;background:#333;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
+            <span style="font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">MICRÓFONO</span>
+            <button id="btn-mic" style="font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(60,160,255,0.08);border:1px solid rgba(60,160,255,0.25);color:rgba(60,160,255,0.7);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">🎤 Escuchar</button>
+            <span style="font-size:7px;letter-spacing:0.08em;color:rgba(60,160,255,0.3);">el campo te oye</span>
+        </div>
+
+        <!-- Gyro bar — solo visible si el motor declara bloque gyro -->
+        <div id="gyro-bar" style="display:none;align-items:center;gap:8px;margin-top:6px;padding-top:5px;border-top:1px solid rgba(180,110,255,0.06);">
+            <span id="gyro-dot" style="width:7px;height:7px;border-radius:50%;background:#333;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
+            <span style="font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">GIROSCOPIO</span>
+            <button id="btn-gyro" style="font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(180,110,255,0.08);border:1px solid rgba(180,110,255,0.25);color:rgba(180,110,255,0.7);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">📱 Sentir</button>
+            <span style="font-size:7px;letter-spacing:0.08em;color:rgba(180,110,255,0.3);">inclina el mundo</span>
+        </div>
+    
+    <div class="lp-title" id="lp-formula-title">▸ La Ecuación del Tejido</div>
+    <div id="lp-formula-wrap" class="formula-wrap"></div>
+    <div id="lp-legend-row" class="legend-row"></div>
+
+
+    <div class="telem-row" id="lp-telem-row">
+      <!-- generado dinámicamente desde config.hud en mountUI -->
+    </div>
+
+    <div class="narrative-box" id="lp-narrative">Cargando motor…</div>
+
+    <div class="lp-title">▸ Rendimiento</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 12px;">
+      <label style="font-size:7px;color:rgba(255,255,255,0.3);letter-spacing:0.06em;white-space:nowrap;">
+        Refresh cada <span id="refresh-rate-val" style="color:rgba(255,255,255,0.5);">1</span> frame(s)
+      </label>
+      <input type="range" id="refresh-rate" min="1" max="10" step="1" value="1"
+        style="flex:1;height:2px;-webkit-appearance:none;appearance:none;
+        background:rgba(255,255,255,0.08);border-radius:1px;cursor:pointer;">
+
+
+    </div>
+
+<!-- Órbita automática — control universal del visor (todos los motores) -->
+<div class="lp-title">▸ Rotación</div>
+<div id="orbit-wrap" style="display:flex;align-items:center;gap:8px;padding:4px 10px;
+     font-family:'Courier New',monospace;">
+    <button class="tl-btn" id="orbit-toggle" title="Órbita automática de la cámara">🔄</button>
+    <span style="font-size:7px;letter-spacing:0.1em;color:rgba(255,255,255,0.3);text-transform:uppercase;min-width:42px;">órbita</span>
+    <input type="range" id="orbit-speed" min="0" max="30" value="5" step="1"
+        style="width:70px;height:2px;-webkit-appearance:none;appearance:none;
+        background:rgba(255,255,255,0.12);border-radius:1px;cursor:pointer;"
+        title="Velocidad de la órbita">
+    <span id="orbit-speed-val" style="font-size:6px;color:rgba(180,200,255,0.5);min-width:28px;">0.5×</span>
+</div>
+
+    <div class="lp-title">▸ Ruedas de entrenamiento</div>
+    <div id="lp-limits"></div>
+
+    <div class="lp-title">▸ Predicciones falsables</div>
+    <div id="lp-predictions"></div>
+
+    <div style="margin-top:20px;font-size:7px;color:rgba(255,255,255,0.1);line-height:1.8;border-top:1px solid rgba(255,255,255,0.04);padding-top:12px;">
+        AtOhmEter — Brujo · Éter · Velvet · Ámbar · 2026<br>
+        Proyecto QCS — Arquitectura del Sacrificio
+    </div>
+  </div>
+</div>
+
+
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.184.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.184.0/examples/jsm/"
+  }
+}
+</script>
+<!-- Three.js importmap -
+
+
+
+<script type="importmap">
+{
+  "imports": {
+    "three":          "./lib/three/build/three.module.js",
+    "three/addons/":  "./lib/three/examples/jsm/"
+  }
+}
+</script>
+
+
+— ajustar ruta según tu servidor -->
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls }   from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer }  from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }      from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass }      from 'three/addons/postprocessing/OutputPass.js';
+import { ShaderPass }      from 'three/addons/postprocessing/ShaderPass.js';
+import { RGBShiftShader }  from 'three/addons/shaders/RGBShiftShader.js';
+
+// ════════════════════════════════════════════════════════════
+//  CONFIGURACIÓN DESDE URL
+// ════════════════════════════════════════════════════════════
+const params  = new URLSearchParams(window.location.search);
+const ENGINE  = params.get('engine') || 'v55';
+const _urlN   = params.get('N');
+const N       = _urlN ? Math.min(64, Math.max(16, +_urlN)) : 32;
+const TOTAL   = N * N * N;
+
+// ════════════════════════════════════════════════════════════
+//  TEXTURAS 3D (compartidas con cualquier motor)
+// ════════════════════════════════════════════════════════════
+const renderVolume = new Float32Array(TOTAL);
+const phaseData    = new Float32Array(TOTAL);
+window._renderVolume = renderVolume;
+window._phaseData    = phaseData;
+
+function makeTexture3D(data) {
+    const t = new THREE.Data3DTexture(data, N, N, N);
+    t.format = THREE.RedFormat;
+    t.type   = THREE.FloatType;
+    t.minFilter = t.magFilter = THREE.LinearFilter;
+    t.wrapS = t.wrapT = t.wrapR = THREE.ClampToEdgeWrapping;
+    t.unpackAlignment = 1;
+    t.needsUpdate = true;
+    return t;
+}
+const texture3D    = makeTexture3D(renderVolume);
+const texturePhase = makeTexture3D(phaseData);
+window._texture3D    = texture3D;
+window._texturePhase = texturePhase;
+
+// ════════════════════════════════════════════════════════════
+//  CARGAR CONFIG + PAPER + ENGINE DINÁMICAMENTE
+// ════════════════════════════════════════════════════════════
+let engineCfg = null;
+let paperCfg  = null;
+let engine    = null;
+
+// Portal — segundo engine opcional (?portal=X)
+const PORTAL = new URLSearchParams(window.location.search).get('portal') || null;
+let engine2  = null;
+const renderVolume2 = new Float32Array(N * N * N);
+const phaseData2    = new Float32Array(N * N * N);
+let texture3D_b     = null;
+let texturePhase_b  = null;
+
+function makeTexture3D_b(data) {
+    const t = new THREE.Data3DTexture(data, N, N, N);
+    t.format  = THREE.RedFormat;
+    t.type    = THREE.FloatType;
+    t.minFilter = t.magFilter = THREE.LinearFilter;
+    t.unpackAlignment = 1;
+    t.needsUpdate = true;
+    return t;
+}
+
+async function loadEngine() {
+    const base = `engines/${ENGINE}`;
+
+    // 1. Cargar config y paper en paralelo
+    const [cfgRes, paperRes] = await Promise.all([
+        fetch(`${base}/config.json`),
+        fetch(`${base}/paper.json`),
+    ]);
+    engineCfg = await cfgRes.json();
+    paperCfg  = await paperRes.json();
+
+    // 2. Cargar shaders
+    // ?shader=X → shaders/X.glsl (biblioteca)
+    // sin parámetro → shader propio del engine (default)
+    const shaderParam = new URLSearchParams(window.location.search).get('shader');
+    let shaderSrc;
+    if (shaderParam) {
+        const libRes = await fetch(`shaders/${shaderParam}.glsl`);
+        if (libRes.ok) {
+            shaderSrc = await libRes.text();
+            console.log(`🎨 Shader de biblioteca: ${shaderParam}`);
+        } else {
+            console.warn(`Shader "${shaderParam}" no encontrado en biblioteca, usando shader del engine`);
+            shaderSrc = await (await fetch(`${base}/shader.glsl`)).text();
+        }
+    } else {
+        shaderSrc = await (await fetch(`${base}/shader.glsl`)).text();
+    }
+
+    // Si hay portal, usar siempre el shader portal
+    let finalShaderSrc = shaderSrc;
+    if (PORTAL) {
+        const portalRes = await fetch(`shaders/portal.glsl`);
+        if (portalRes.ok) {
+            finalShaderSrc = await portalRes.text();
+            console.log(`🌀 Shader portal activo: ${ENGINE} ↔ ${PORTAL}`);
+        }
+    }
+
+    const [vertSrc, fragSrc] = parseShaders(finalShaderSrc);
+
+    // 3. Cargar motor JS principal
+    const motorUrl = new URL(`${base}/motor.js`, import.meta.url).href;
+    const { createEngine } = await import(motorUrl);
+    engine = createEngine(N, renderVolume, phaseData, texture3D, texturePhase);
+
+    // 4. Cargar motor portal si existe
+    if (PORTAL) {
+        try {
+            const base2 = `engines/${PORTAL}`;
+            const motorUrl2 = new URL(`${base2}/motor.js`, import.meta.url).href;
+            const mod2 = await import(motorUrl2);
+            texture3D_b    = makeTexture3D_b(renderVolume2);
+            texturePhase_b = makeTexture3D_b(phaseData2);
+            engine2 = mod2.createEngine(N, renderVolume2, phaseData2, texture3D_b, texturePhase_b);
+            console.log(`🌀 Engine portal cargado: ${PORTAL}`);
+        } catch(e) {
+            console.warn(`Portal engine "${PORTAL}" no pudo cargar:`, e);
+            engine2 = null;
+        }
+    }
+
+    // 5. Montar UI desde config
+    mountUI(engineCfg, paperCfg);
+
+    // 6. Inicializar Three.js con los shaders del engine
+    initThree(vertSrc, fragSrc);
+
+    // 7. Semilla por defecto
+    engine.seed(engineCfg.defaultSeed || engineCfg.seeds[0].id);
+
+    document.getElementById('seed-select').value = engineCfg.defaultSeed || engineCfg.seeds[0].id;
+
+    document.getElementById('engine-name').textContent = engineCfg.name;
+    document.getElementById('lp-narrative').textContent = paperCfg.states.vacuum || 'Listo.';
+
+    // 8. Exponer contexto para Socket
+    window._engine      = engine;
+    window._engineCfg   = engineCfg;
+    window._engineN     = N;
+    window._currentSeed = engineCfg.defaultSeed || engineCfg.seeds[0].id;
+
+    // 8b. Capacidad de sonido: si el motor declaró bloque "sound", crear el
+    // sintetizador (no sonará hasta el gesto de Iniciar). Si no lo declaró,
+    // dispose() deja todo limpio y el shell no toca Web Audio.
+    SoundEngine.dispose();
+    const soundBar = document.getElementById('sound-bar');
+    if (engineCfg.sound && engineCfg.sound.enabled) {
+        SoundEngine.init(engineCfg.sound, () => engine.getParams());
+        if (soundBar) soundBar.style.display = 'flex';
+        const dot = document.getElementById('sound-dot');
+        if (dot) dot.style.background = '#f5a623';
+    } else if (soundBar) {
+        soundBar.style.display = 'none';
+    }
+
+    // 8c. Capacidad de micrófono: si el motor declaró bloque "mic", mostrar
+    // la barra (no escucha hasta que el usuario toque 🎤 — gesto+permiso).
+    // Si no lo declaró, dispose() deja todo limpio y nunca se pide el micro.
+    MicEngine.dispose();
+    const micBar = document.getElementById('mic-bar');
+    if (engineCfg.mic && engineCfg.mic.enabled) {
+        MicEngine.init(engineCfg.mic);
+        if (micBar) micBar.style.display = 'flex';
+        const mbtn = document.getElementById('btn-mic');
+        if (mbtn) { mbtn.textContent = '🎤 Escuchar'; mbtn.style.opacity = '1'; }
+        const mdot = document.getElementById('mic-dot');
+        if (mdot) mdot.style.background = '#333';
+    } else if (micBar) {
+        micBar.style.display = 'none';
+    }
+
+    // 8d. Capacidad de giroscopio: si el motor declaró bloque "gyro", mostrar
+    // la barra (no escucha hasta que el usuario toque 📱). Cero impacto si no.
+    GyroEngine.dispose();
+    const gyroBar = document.getElementById('gyro-bar');
+    if (engineCfg.gyro && engineCfg.gyro.enabled) {
+        GyroEngine.init(engineCfg.gyro);
+        if (gyroBar) gyroBar.style.display = 'flex';
+        const gbtn = document.getElementById('btn-gyro');
+        if (gbtn) { gbtn.textContent = '📱 Sentir'; gbtn.style.opacity = '1'; }
+        const gdot = document.getElementById('gyro-dot');
+        if (gdot) gdot.style.background = '#333';
+    } else if (gyroBar) {
+        gyroBar.style.display = 'none';
+    }
+
+    // 8e. Órbita automática (control universal del visor): la barra está
+    // siempre visible (debajo del timeline). El config solo decide si arranca
+    // encendida (autoOrbit) y a qué velocidad (autoOrbitSpeed). El usuario la
+    // controla con el toggle 🔄 y su slider.
+    if (ctrl) {
+        ctrl.autoRotate = !!(engineCfg.autoOrbit);
+        ctrl.autoRotateSpeed = engineCfg.autoOrbitSpeed || 0.5;
+        // reflejar en el slider (autoRotateSpeed ×10 = valor del slider)
+        const ospeed = document.getElementById('orbit-speed');
+        if (ospeed) ospeed.value = Math.round(ctrl.autoRotateSpeed * 10);
+        if (window._syncOrbitUI) window._syncOrbitUI();
+    }
+
+    // Abrir live paper al inicio, pausado
+    document.getElementById('lp-overlay').classList.add('open');
+    animate(0);
+}
+
+function parseShaders(src) {
+    const vIdx = src.indexOf('// === VERTEX ===\n')   + '// === VERTEX ===\n'.length;
+    const fIdx = src.indexOf('// === FRAGMENT ===\n') + '// === FRAGMENT ===\n'.length;
+    return [src.slice(vIdx, src.indexOf('\n\n// === FRAGMENT')), src.slice(fIdx)];
+}
+
+// ════════════════════════════════════════════════════════════
+//  TOOLTIP FLOTANTE DE FÓRMULA
+// ════════════════════════════════════════════════════════════
+const ftTooltip = document.getElementById('ft-tooltip');
+
+function initFormulaTooltips() {
+    // Re-registrar en cada carga de engine (los spans se regeneran con mountUI)
+    document.querySelectorAll('[data-ft]').forEach(el => {
+        // Clonar para eliminar listeners viejos
+        const fresh = el.cloneNode(true);
+        el.parentNode.replaceChild(fresh, el);
+        fresh.addEventListener('click', e => {
+            const key = fresh.getAttribute('data-ft');
+            const txt = paperCfg?.tooltips?.[key];
+            if(!txt) return;
+            ftTooltip.textContent = txt;
+            ftTooltip.style.display = 'block';
+            // Posicionar relativo a la ventana, no al scroll del overlay
+            const r = fresh.getBoundingClientRect();
+            ftTooltip.style.left = Math.min(r.left, window.innerWidth - 290) + 'px';
+            ftTooltip.style.top  = Math.min(r.bottom + 8, window.innerHeight - 120) + 'px';
+            e.stopPropagation();
+        });
+    });
+    document.addEventListener('click', () => { ftTooltip.style.display = 'none'; }, { once: false });
+}
+
+// Opacidades de fórmula por estado — desde paper.json, con fallback
+const FT_OPACITY_FALLBACK = {
+    vacuum: { kin:0.3, higgs:0.6, snap:0.2, bohm:0.3, phase:0.2 },
+};
+
+function updateFormulaHighlight(state) {
+    const opMap = paperCfg?.formulaOpacity || FT_OPACITY_FALLBACK;
+    const opacities = opMap[state] || opMap.vacuum || {};
+    document.querySelectorAll('[data-ft]').forEach(el => {
+        const key = el.getAttribute('data-ft');
+        if(opacities[key] !== undefined) {
+            el.style.opacity = opacities[key];
+        }
+    });
+}
+
+// ════════════════════════════════════════════════════════════
+//  MONTAR UI DESDE CONFIG.JSON
+// ════════════════════════════════════════════════════════════
+function mountUI(cfg, paper) {
+    // Título dinámico
+    document.getElementById('version-label').textContent = cfg.name;
+
+    // Panel title
+    document.getElementById('panel-title').textContent = cfg.panelTitle || '⚗ MOTOR';
+
+    // Sliders del panel ⚙
+    const grid = document.getElementById('slider-grid');
+    grid.innerHTML = '';
+    const bindings = cfg.uniformBindings || {};
+    for(const [key, def] of Object.entries(cfg.params)) {
+        const div = document.createElement('div');
+        const sliderId = `s_${key}`;
+        const valId    = `v_${key}`;
+        div.innerHTML = `
+            <label>${def.label} <span id="${valId}">${def.default}</span></label>
+            <input type="range" id="${sliderId}"
+                min="${def.min}" max="${def.max}" step="${def.step}" value="${def.default}">`;
+        grid.appendChild(div);
+        // Conectar handler
+        div.querySelector('input').oninput = (e) => {
+            const val = +e.target.value;
+            document.getElementById(valId).textContent = val.toFixed(
+                def.step < 0.001 ? 4 : def.step < 0.01 ? 3 : 2
+            );
+            engine.applyParams({ [key]: val });
+            Socket.configUpdate(key, val);
+            // Si el motor tiene sonido, actualizar la voz correspondiente
+            SoundEngine.onParam(key, val);
+            // Sincronizar uniforms del shader vía uniformBindings
+            const uName = bindings[key];
+            if(uName && window._uniforms?.[uName]) {
+                window._uniforms[uName].value = val;
+            }
+        };
+    }
+
+    // Semillas
+    const seedSel = document.getElementById('seed-select');
+    seedSel.innerHTML = cfg.seeds.map(s => `<option value="${s.id}">${s.label}</option>`).join('');
+
+    // N grid — dinámico desde config.gridOptions
+    const sNEl = document.getElementById('sN');
+    if(cfg.gridOptions) {
+        sNEl.innerHTML = cfg.gridOptions.map(g =>
+            `<option value="${g.value}" ${g.value === N ? 'selected' : ''}>${g.label}</option>`
+        ).join('');
+    }
+    sNEl.value = N;
+
+    // Botones de inyección — dinámicos desde config.injections
+    const injContainer = document.getElementById('injection-buttons');
+    injContainer.innerHTML = '';
+    if(cfg.injections) {
+        cfg.injections.forEach(inj => {
+            const btn = document.createElement('button');
+            btn.className = `btn ${inj.class || ''}`.trim();
+            btn.textContent = inj.label;
+            btn.onclick = () => { engine?.inject(inj.id); Socket.inject(inj.id); };
+            injContainer.appendChild(btn);
+        });
+    }
+
+    // HUD de métricas
+    const hudEl = document.getElementById('hud-metrics');
+    hudEl.innerHTML = cfg.hud.map(h =>
+        `<div>${h.label} &nbsp;<span class="${h.class}" id="${h.id}">0.000</span></div>`
+    ).join('');
+
+    // Label del engine en el panel
+    document.getElementById('engine-id-label').textContent = cfg.id;
+
+    // ── Live Paper ──────────────────────────────────────────
+    // Título de la fórmula
+    document.getElementById('lp-formula-title').textContent = `▸ ${paper.title}`;
+
+    // Fórmula
+    const fwrap = document.getElementById('lp-formula-wrap');
+    fwrap.innerHTML = '';
+    paper.formula.forEach(t => {
+        if(t.op) {
+            const op = document.createElement('span');
+            op.className = 'ft'; op.style.opacity = '0.3'; op.textContent = t.op;
+            fwrap.appendChild(op);
+        }
+        const span = document.createElement('span');
+        span.className = `ft ${t.class}`;
+        span.dataset.ft = t.key;
+        span.innerHTML = t.term;
+        fwrap.appendChild(span);
+    });
+
+    // Leyenda
+    const legend = document.getElementById('lp-legend-row');
+    legend.innerHTML = paper.legend.map(l => `
+        <div class="legend-item" data-ft="${l.key}">
+            <div class="legend-dot" style="background:${l.color}"></div>${l.label}
+        </div>`).join('');
+
+    // Telemetría — generada desde config.hud
+    const telem = document.getElementById('lp-telem-row');
+    telem.innerHTML = cfg.hud.map(h => {
+        const cls = h.class === 'hot' ? 'tv-e' : h.class === 'cool' ? 'tv-h' : 'tv-v';
+        return `<div class="telem-item">${h.label} <span class="${cls}" id="lp-${h.id.replace('s-','')}">—</span></div>`;
+    }).join('');
+
+    // Limitaciones
+    const limEl = document.getElementById('lp-limits');
+    limEl.innerHTML = paper.limits.map(l => `
+        <div class="limit-card lc-${l.status}">
+            <div class="lc-label">${l.label}</div>
+            <div class="lc-text">${l.text}</div>
+        </div>`).join('');
+
+    // Predicciones
+    const predEl = document.getElementById('lp-predictions');
+    predEl.innerHTML = paper.predictions.map(p => `
+        <div class="pred-card">
+            <div class="pred-id">${p.id}</div>
+            <div class="pred-label">${p.label}</div>
+            <div class="pred-text">${p.text}</div>
+        </div>`).join('');
+
+    // Inicializar tooltips DESPUÉS de que todos los spans estén en el DOM
+    initFormulaTooltips();
+}
+
+
+
+// ════════════════════════════════════════════════════════════
+//  THREE.JS — renderer, shader, loop
+// ════════════════════════════════════════════════════════════
+let renderer, scene, camera, ctrl, composer, material, mesh;
+let paused = true;
+let frameCount = 0;
+let maxEnergy = 1;
+let lpPrevState = '';
+
+function initThree(vertSrc, fragSrc) {
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+    renderer.toneMapping = THREE.ReinhardToneMapping;
+    renderer.toneMappingExposure = 1.3;
+    window._renderer = renderer;
+    window._renderer = renderer; // para el slider de exposición
+    document.body.appendChild(renderer.domElement);
+
+    scene  = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.001, 1000);
+    camera.position.set(0, 0, 6);
+    window._camera = camera; // expuesto para motores que detectan dirección de vista (BURBUJA)
+
+    ctrl = new OrbitControls(camera, renderer.domElement);
+    ctrl.enableDamping = true; ctrl.dampingFactor = 0.07;
+    ctrl.minDistance = 0.5;   ctrl.maxDistance = 20;
+    // Órbita automática (capacidad del shell): la cámara gira sola, lento,
+    // para apreciar el volumen desde todos los ángulos — "pieza de museo".
+    // Se activa por bandera "autoOrbit" en el config del motor. Sigue girando
+    // aunque la simulación esté pausada (es la cámara, no la física).
+    ctrl.autoRotate = false;
+    ctrl.autoRotateSpeed = 0.6; // grados/seg suaves
+
+    const bloom = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth * 0.5, window.innerHeight * 0.5), 1.8, 0.6, 0.05);
+    window._bloom = bloom;
+    window._bloom = bloom; // exponer para los sliders del renderer
+    const rgbShift = new ShaderPass(RGBShiftShader);
+    rgbShift.uniforms['amount'].value = 0.0;   // desactivado por defecto
+    rgbShift.uniforms['angle'].value  = 0.0;
+    rgbShift.enabled = false;
+    window._rgbShift = rgbShift;
+
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene, camera));
+    composer.addPass(bloom);
+    composer.addPass(rgbShift);
+    composer.addPass(new OutputPass());
+
+    const BOX_SIZE = 2.5;
+    const uniforms = {
+        uCameraPos:   { value: new THREE.Vector3() },
+        uCameraLocal: { value: new THREE.Vector3() },
+        uBoxSize:     { value: BOX_SIZE },
+        uTime:        { value: 0.0 },
+        uThresh:      { value: 0.15 },
+        uEnergy:      { value: 0.0 },
+        uVolume:      { value: texture3D },
+        uPhase:       { value: texturePhase },
+        // Portal — segundo engine (null si no hay portal)
+        uVolumeB:     { value: texture3D_b    || texture3D },
+        uPhaseB:      { value: texturePhase_b || texturePhase },
+        uPortalMix:   { value: 0.0 },
+        // Raycaster — punto de toque en espacio local [-1,1]³
+        uTouchPos:    { value: new THREE.Vector3(9,9,9) }, // 9=sin toque
+        uTouchActive: { value: 0.0 },   // 1=tocando, 0=no
+        uTouchTime:   { value: 0.0 },   // tiempo desde el último toque
+        uRaySteps:    { value: 96.0 },
+        uStepDiv:     { value: 48.0 },
+    };
+    window._uniforms = uniforms; // para que el motor pueda actualizarlo
+
+    material = new THREE.ShaderMaterial({
+        uniforms, vertexShader: vertSrc, fragmentShader: fragSrc,
+        transparent: true, side: THREE.DoubleSide,
+        depthWrite: false, blending: THREE.NormalBlending,
+    });
+
+    mesh = new THREE.Mesh(
+        new THREE.BoxGeometry(BOX_SIZE * 2, BOX_SIZE * 2, BOX_SIZE * 2), material);
+    scene.add(mesh);
+
+    // Estrellas de fondo
+    const sp = new Float32Array(600 * 3);
+    for(let i = 0; i < 600 * 3; i++) sp[i] = (Math.random() - 0.5) * 30;
+    const sg = new THREE.BufferGeometry();
+    sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+    scene.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: 0x0a0a1a, size: 0.04 })));
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ── Raycaster — interacción táctil con el campo ───────────
+    const raycaster = new THREE.Raycaster();
+    const touchNDC  = new THREE.Vector2();
+    let   touchActive = false;
+
+    function onTouchStart(e) {
+        e.preventDefault();
+        const t = e.touches ? e.touches[0] : e;
+        touchNDC.set(
+            (t.clientX / window.innerWidth)  *  2 - 1,
+            (t.clientY / window.innerHeight) * -2 + 1
+        );
+        raycaster.setFromCamera(touchNDC, camera);
+        const hits = raycaster.intersectObject(mesh);
+        if (hits.length > 0) {
+            // Punto de intersección en espacio local del cubo [-1,1]³
+            const localPt = mesh.worldToLocal(hits[0].point.clone());
+            // Normalizar a [-1,1] (BOX_SIZE=2.5, mitad=1.25)
+            const lx = localPt.x / 1.25;
+            const ly = localPt.y / 1.25;
+            const lz = localPt.z / 1.25;
+
+            // Pasar al shader
+            if (window._uniforms?.uTouchPos) {
+                window._uniforms.uTouchPos.value.set(lx, ly, lz);
+                window._uniforms.uTouchActive.value = 1.0;
+                window._uniforms.uTouchTime.value = 0.0;
+            }
+
+            // Pasar al motor — inject con posición
+            if (engine?.inject) {
+                engine.inject('touch', { x: lx, y: ly, z: lz });
+            }
+            touchActive = true;
+        }
+    }
+
+    function onTouchEnd(e) {
+        touchActive = false;
+        if (window._uniforms?.uTouchActive) {
+            window._uniforms.uTouchActive.value = 0.0;
+        }
+    }
+
+    // Touch
+    renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+    renderer.domElement.addEventListener('touchend',   onTouchEnd,   { passive: false });
+    // Mouse (desktop)
+    renderer.domElement.addEventListener('mousedown',  onTouchStart);
+    renderer.domElement.addEventListener('mouseup',    onTouchEnd);
+    renderer.domElement.addEventListener('mousemove', (e) => {
+        if (e.buttons > 0) onTouchStart(e);
+    });
+}
+
+// ════════════════════════════════════════════════════════════
+//  TIMELINE + SNAPSHOTS
+// ════════════════════════════════════════════════════════════
+const tlSnapshots = [];
+let tlMode = 'log2';
+let tlFixedInterval = 50;
+let tlNextLog2 = 1;
+let refreshRate = 1;
+
+// Playback mode — reproducir snapshots sin simular
+let playbackActive = false;
+let playbackIdx = 0;
+let playbackSpeed = 30; // snapshots por segundo (configurable)
+let playbackAccum = 0;  // acumulador temporal para interpolar
+
+function saveSnapshot(tag = 'auto') {
+    if(!engine) return;
+    const p = engine.getParams();
+
+    let s, m;
+    if(Socket.isActive() && window._renderVolume && window._phaseData) {
+        // Cuando el servidor está activo, capturar los buffers recibidos
+        s = {
+            renderVolume: new Float32Array(window._renderVolume),
+            phaseData:    new Float32Array(window._phaseData),
+            _fromServer:  true,
+        };
+        // Métricas REALES del servidor (no el motor JS local, que está congelado).
+        // Si aún no llegó ningún meta, caemos a getMetrics() como último recurso.
+        m = window._lastRemoteMeta?.metrics ?? engine.getMetrics();
+        if(window._lastRemoteMeta?.state) s._state = window._lastRemoteMeta.state;
+    } else {
+        s = engine.getState();
+        m = engine.getMetrics();
+    }
+
+    tlSnapshots.push({ frame: frameCount, tag, ...m, ...p, ...s });
+    updateTimelineUI();
+}
+
+function updateTimelineUI() {
+    const sl = document.getElementById('timeline-slider');
+    sl.max = Math.max(0, tlSnapshots.length - 1);
+    sl.value = tlSnapshots.length - 1;
+    if(tlSnapshots.length > 0) {
+        const s = tlSnapshots[tlSnapshots.length - 1];
+        document.getElementById('timeline-label').textContent =
+            `${s.tag} f${s.frame}`;
+    }
+}
+
+function loadSnapshot(idx) {
+    const s = tlSnapshots[idx];
+    if(!s || !engine) return;
+
+    if(s._fromServer && window._renderVolume && window._phaseData) {
+        // Snapshot capturado desde el servidor — restaurar buffers directamente
+        window._renderVolume.set(s.renderVolume);
+        window._phaseData.set(s.phaseData);
+        texture3D.needsUpdate    = true;
+        texturePhase.needsUpdate = true;
+    } else {
+        engine.setState(s);
+        engine.applyParams(s);
+        texture3D.needsUpdate    = true;
+        texturePhase.needsUpdate = true;
+    }
+    syncSlidersToParams(s);
+    document.getElementById('timeline-label').textContent =
+        `${s.tag} f${s.frame}`;
+}
+
+// Sincronizar sliders UI con los params de un snapshot
+function syncSlidersToParams(p) {
+    if(!engineCfg) return;
+    for(const key of Object.keys(engineCfg.params)) {
+        const val = p[key];
+        if(val === undefined) continue;
+        const slider = document.getElementById(`s_${key}`);
+        const label  = document.getElementById(`v_${key}`);
+        if(slider) {
+            slider.value = Math.min(+slider.max, Math.max(+slider.min, val));
+        }
+        if(label) {
+            const def = engineCfg.params[key];
+            label.textContent = val.toFixed(def.step < 0.001 ? 4 : def.step < 0.01 ? 3 : 2);
+        }
+    }
+}
+
+function shouldSaveFrame() {
+    if(tlMode === 'manual') return false;
+    if(tlMode === 'log2') {
+        if(frameCount >= tlNextLog2) {
+            tlNextLog2 = Math.max(frameCount + 1, Math.ceil(tlNextLog2 * 2));
+            return true;
+        }
+        return false;
+    }
+    if(tlMode === 'fixed') return frameCount > 0 && frameCount % tlFixedInterval === 0;
+    return false;
+}
+
+function exportSnapshots() {
+    if(tlSnapshots.length === 0) { alert('Sin snapshots'); return; }
+    const data = tlSnapshots.map(s => {
+        const out = { frame: s.frame, tag: s.tag };
+        // Copiar todo excepto los Float32Arrays (los convertimos)
+        for(const [k, v] of Object.entries(s)) {
+            if(v instanceof Float32Array) out[k] = Array.from(v);
+            else out[k] = v;
+        }
+        return out;
+    });
+    const blob = new Blob([JSON.stringify({
+        version: `AtOhmEter_${ENGINE}`,
+        engine: ENGINE,
+        N,
+        exported: new Date().toISOString(),
+        count: data.length,
+        snapshots: data,
+    })], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `atohmeter_${ENGINE}_${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+function importSnapshots(file) {
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            const data = JSON.parse(e.target.result);
+            if(!data.snapshots?.length) { alert('JSON vacío'); return; }
+            const first = data.snapshots[0];
+            if(first.N && first.N !== N) {
+                alert(`Resolución incompatible: archivo N=${first.N}, simulador N=${N}`);
+                return;
+            }
+            tlSnapshots.length = 0;
+            data.snapshots.forEach(s => {
+                const snap = { ...s };
+                // Convertir arrays numéricos planos a Float32Array genéricamente
+                for(const key of Object.keys(snap)) {
+                    if(Array.isArray(snap[key]) && snap[key].length > 0 && typeof snap[key][0] === 'number') {
+                        snap[key] = new Float32Array(snap[key]);
+                    }
+                }
+                tlSnapshots.push(snap);
+            });
+            updateTimelineUI();
+            paused = true;
+            document.getElementById('btn-pause').textContent = '▶ Reanudar';
+            document.getElementById('timeline-wrap').classList.add('visible');
+            loadSnapshot(tlSnapshots.length - 1);
+            alert(`${tlSnapshots.length} snapshots importados`);
+        } catch(err) {
+            alert('Error: ' + err.message);
+        }
+    };
+    reader.readAsText(file);
+}
+
+// ════════════════════════════════════════════════════════════
+//  LIVE PAPER — narrativa contextual
+// ════════════════════════════════════════════════════════════
+function updateNarrative(metrics, remoteState) {
+    if(!paperCfg) return;
+
+    // Estado: si el servidor lo manda (modo socket), lo usamos directo.
+    // Si no, lo clasifica el motor JS local.
+    let state = 'vacuum';
+    if(remoteState) {
+        state = remoteState;
+    } else if(engine?.classifyState) {
+        state = engine.classifyState(metrics);
+    }
+
+    if(state === lpPrevState) return;
+    lpPrevState = state;
+    const stateText = paperCfg.states[state] || 'Simulación en curso.';
+    document.getElementById('lp-narrative').textContent = stateText;
+    updateFormulaHighlight(state);
+
+    // Actualizar field-display en el HUD — desde paper.stateLabels
+    const fd = document.getElementById('field-display');
+    if(fd) {
+        const labels = paperCfg.stateLabels || {};
+        fd.textContent = labels[state] || 'ψ emergente';
+    }
+
+    if(tlMode === 'canonical') saveSnapshot(`⚡ ${state}`);
+}
+
+// ════════════════════════════════════════════════════════════
+//  ANIMATE LOOP
+// ════════════════════════════════════════════════════════════
+let lastT = 0;
+
+function animate(t) {
+    requestAnimationFrame(animate);
+    const dt = Math.min((t - lastT) / 1000, 0.05);
+    lastT = t;
+
+    const u = window._uniforms;
+    if(u) {
+        u.uTime.value += dt;
+        u.uCameraPos.value.copy(camera.position);
+        u.uCameraLocal.value.copy(camera.position).divideScalar(2.5);
+        // Incrementar tiempo de toque — para que el efecto se desvanezca
+        if(u.uTouchTime) u.uTouchTime.value += dt;
+    }
+
+    if(!paused && engine && !playbackActive) {
+        // Guardar estado previo para coherencia
+        if(frameCount % Math.max(1, refreshRate) === 0) engine.savePrev();
+
+        if(Socket.isActive()) {
+            Socket.step(); // motor remoto — frame llega async via onFrame
+        } else {
+            // Micrófono: leer el mundo y aplicar bindings (modular params /
+            // disparar inyecciones) antes de avanzar la física.
+            if(MicEngine.isActive()) {
+                MicEngine.tick();
+                MicEngine.apply(engine);
+                const mdot = document.getElementById('mic-dot');
+                if(mdot) {
+                    const v = MicEngine.getFeatures().volume;
+                    mdot.style.boxShadow = `0 0 ${Math.round(v*12)}px rgba(60,160,255,${0.4+v*0.6})`;
+                }
+            }
+            // Giroscopio: sentir la orientación y aplicar bindings.
+            if(GyroEngine.isActive()) {
+                GyroEngine.tick();
+                GyroEngine.apply(engine);
+                const gdot = document.getElementById('gyro-dot');
+                if(gdot) {
+                    const f = GyroEngine.getFeatures();
+                    const mag = Math.min(1, Math.hypot(f.tiltX, f.tiltY));
+                    gdot.style.boxShadow = `0 0 ${Math.round(mag*12)}px rgba(180,110,255,${0.4+mag*0.6})`;
+                }
+            }
+            engine.step();
+            if(engine2) engine2.step();
+        }
+        frameCount++;
+
+        // Refresh texturas + métricas cada N frames (configurable)
+        if(frameCount % Math.max(1, refreshRate) === 0) {
+            // Solo refresh local si el servidor NO está activo
+            // Cuando está activo, el onFrame del WS ya hace needsUpdate
+            if(!Socket.isActive()) {
+                engine.refresh();
+                texture3D.needsUpdate    = true;
+                texturePhase.needsUpdate = true;
+                // Refresh portal engine
+                if(engine2) {
+                    engine2.refresh();
+                    if(texture3D_b)    texture3D_b.needsUpdate    = true;
+                    if(texturePhase_b) texturePhase_b.needsUpdate = true;
+                    // Animar mezcla portal — oscila suavemente
+                    if(window._uniforms?.uPortalMix) {
+                        window._uniforms.uPortalMix.value = 0.5 + 0.5*Math.sin(Date.now()*0.0005);
+                    }
+                }
+            }
+
+            // Métricas: en modo local las leemos del motor JS aquí.
+            // En modo socket NO — onFrame las pinta desde el frame remoto,
+            // atómicas y reales. Llamarlas aquí machacaría con datos congelados.
+            if(!Socket.isActive()) {
+                const m = engine.getMetrics();
+                paintMetrics(m);
+            }
+        }
+
+        if(shouldSaveFrame()) saveSnapshot('auto');
+    }
+
+    // ── Playback de snapshots — corre dentro del rAF ────────
+    if(playbackActive && tlSnapshots.length > 0) {
+        playbackAccum += dt;
+        const interval = 1 / playbackSpeed;
+        while(playbackAccum >= interval) {
+            playbackAccum -= interval;
+            if(playbackIdx >= tlSnapshots.length) {
+                stopPlayback();
+                break;
+            }
+            loadSnapshot(playbackIdx);
+            document.getElementById('timeline-slider').value = playbackIdx;
+            texture3D.needsUpdate    = true;
+            texturePhase.needsUpdate = true;
+            // Pintar las métricas que el snapshot ya guardó (el ...m de saveSnapshot).
+            // Cero recálculo: reproduce los stats exactos de la pasada real.
+            const snap = tlSnapshots[playbackIdx];
+            if(snap) paintMetrics(snap, snap._state);
+            playbackIdx++;
+        }
+    }
+
+    document.getElementById('s-frame').textContent = frameCount;
+    const d = camera.position.length();
+    let zoomLabel = 'campo';
+    if(engineCfg?.zoomLabels) {
+        for(const z of engineCfg.zoomLabels) {
+            if(d > z.min) { zoomLabel = z.label; break; }
+        }
+    }
+    document.getElementById('s-zoom').textContent = zoomLabel;
+
+    ctrl.update();
+    if(composer) composer.render();
+}
+
+// Pinta HUD + telemetría LP + narrativa desde un objeto de métricas.
+// Fuente única para ambos modos: local (engine.getMetrics) y remoto (frame del socket).
+// remoteState: si viene (modo socket), se usa en vez de classifyState local.
+function paintMetrics(m, remoteState) {
+    updateHUD(m);
+    updateNarrative(m, remoteState);
+
+    if(engineCfg) {
+        engineCfg.hud.forEach(h => {
+            const el = document.getElementById(`lp-${h.id.replace('s-','')}`);
+            if(!el) return;
+            const key = h.id.replace('s-','').replace(/-/g,'_');
+            const metricMap = {
+                etotal: m.E_total, ekin: m.E_kin,
+                ehiggs: m.E_higgs, etorsion: m.E_torsion,
+                ephase: m.E_phase,
+                thmax: m.thMax ?? m.th_max,
+                umax: m.uMax ?? m.u_max,
+                pump: m.pump,
+                helic: m.helicity,
+                psimax: m.psiMax ?? m.u_max,
+                coher: m.coherence,
+                vortex: m.vortices,
+                boundary: m.boundary !== undefined ? (m.boundary*100).toFixed(0)+'%' : '—',
+            };
+            const val = metricMap[key];
+            el.textContent = val !== undefined ?
+                (typeof val === 'string' ? val : (val||0).toFixed(3)) : '—';
+        });
+    }
+}
+
+// Actualizar HUD con las métricas del engine
+function updateHUD(m) {
+    if(!engineCfg) return;
+    for(const h of engineCfg.hud) {
+        const el = document.getElementById(h.id);
+        if(!el) continue;
+        // Buscar la métrica por nombre de ID
+        const key = h.id.replace('s-', '').replace(/-/g, '_');
+        const map = {
+            'frame': frameCount,
+            'etotal': m.E_total, 'ekin': m.E_kin ?? m.E_kin_u,
+            'ehiggs': m.E_higgs, 'etorsion': m.E_torsion,
+            'ephase': m.E_phase,
+            'thmax': m.thMax ?? m.th_max,
+            'umax': m.uMax ?? m.u_max,
+            'pump': m.pump,
+            'boundary': m.boundary !== undefined ? (m.boundary * 100).toFixed(0) + '%' : '—',
+            'helic': m.helicity,
+            'psimax': m.psiMax ?? m.u_max,
+            'coher': m.coherence,
+            'vortex': m.vortices,
+        };
+        const val = map[key];
+        if(val !== undefined) {
+            el.textContent = typeof val === 'string' ? val :
+                             (val || 0).toFixed(key === 'boundary' ? 0 : 4);
+        }
+    }
+    // Barra de energía
+    if(m.E_total > maxEnergy) maxEnergy = m.E_total;
+    document.getElementById('energy-fill').style.width =
+        Math.min(100, (m.E_total / maxEnergy) * 100).toFixed(1) + '%';
+}
+
+// ════════════════════════════════════════════════════════════
+//  BOTONES Y HANDLERS
+// ════════════════════════════════════════════════════════════
+document.getElementById('render-btn').onclick = () => {
+    document.getElementById('render-panel').classList.toggle('open');
+    document.getElementById('params').classList.remove('open'); // cerrar el otro
+};
+document.getElementById('gear-btn').onclick = () => {
+    document.getElementById('params').classList.toggle('open');
+    document.getElementById('render-panel').classList.remove('open'); // cerrar el otro
+};
+
+// Sliders del renderer
+document.getElementById('sBloom').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vBloom').textContent = v.toFixed(1);
+    if(window._bloom) window._bloom.strength = v;
+};
+document.getElementById('sBRadius').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vBRadius').textContent = v.toFixed(2);
+    if(window._bloom) window._bloom.radius = v;
+};
+document.getElementById('sBThresh').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vBThresh').textContent = v.toFixed(2);
+    if(window._bloom) window._bloom.threshold = v;
+};
+document.getElementById('sExpo').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vExpo').textContent = v.toFixed(1);
+    if(window._renderer) window._renderer.toneMappingExposure = v;
+};
+document.getElementById('sSteps').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vSteps').textContent = v;
+    if(window._uniforms) window._uniforms.uRaySteps.value = v;
+};
+document.getElementById('sStep').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vStep').textContent = v;
+    if(window._uniforms) window._uniforms.uStepDiv.value = v;
+};
+
+// ── RGB Shift ──────────────────────────────────────────────
+document.getElementById('cbRGB').onchange = e => {
+    if(window._rgbShift) window._rgbShift.enabled = e.target.checked;
+    const track=document.getElementById('cbRGB-track');
+    const thumb=document.getElementById('cbRGB-thumb');
+    if(e.target.checked){
+        track.style.background='rgba(100,200,255,0.25)';
+        track.style.borderColor='rgba(100,200,255,0.5)';
+        thumb.style.left='15px';
+        thumb.style.background='rgba(100,200,255,0.9)';
+    } else {
+        track.style.background='rgba(255,255,255,0.08)';
+        track.style.borderColor='rgba(255,255,255,0.12)';
+        thumb.style.left='2px';
+        thumb.style.background='rgba(255,255,255,0.3)';
+    }
+};
+document.getElementById('sRGBAmt').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vRGBAmt').textContent = v.toFixed(3);
+    if(window._rgbShift) window._rgbShift.uniforms['amount'].value = v;
+};
+document.getElementById('sRGBAng').oninput = e => {
+    const v = +e.target.value;
+    document.getElementById('vRGBAng').textContent = v.toFixed(2);
+    if(window._rgbShift) window._rgbShift.uniforms['angle'].value = v;
+};
+
+// ── Handler original del gear ──────────────────────────────
+// (reemplazado arriba, esta línea es solo el cierre)
+
+
+document.getElementById('btn-paper').onclick = () =>
+    document.getElementById('lp-overlay').classList.toggle('open');
+document.getElementById('lp-close').onclick = () =>
+    document.getElementById('lp-overlay').classList.remove('open');
+
+document.getElementById('btn-pause').onclick = function() {
+    paused = !paused;
+    this.textContent = paused ? '▶ Reanudar' : '‖ Pausar';
+    document.getElementById('timeline-wrap').classList.toggle('visible', paused);
+    // Sincronizar con el servidor
+    if(paused) Socket.pause();
+    else        Socket.resume();
+    // Sincronizar botón del live paper
+    const lpBtn = document.getElementById('lp-start');
+    if(lpBtn) {
+        lpBtn.textContent = paused ? '▶ REANUDAR SIMULACIÓN' : '‖ PAUSAR SIMULACIÓN';
+        lpBtn.style.borderColor = paused ? 'rgba(255,160,40,0.3)' : 'rgba(60,200,255,0.3)';
+        lpBtn.style.color = paused ? 'rgba(255,160,40,0.7)' : 'rgba(60,200,255,0.6)';
+    }
+};
+
+// ══════════════════════════════════════════════════════════════
+//  CAPACIDAD DE SONIDO — genérica del shell
+//
+//  Cualquier motor puede pedir audio declarando un bloque "sound"
+//  en su config.json:
+//
+//    "sound": {
+//      "enabled": true,
+//      "voices": 3,
+//      "startOn": "simulation",
+//      "bindings": [ { "freq": "S1_PITCH", "wave": "S1_WAVE", "gain": "S1_GAIN" }, ... ],
+//      "freqRange": [80, 880]
+//    }
+//
+//  Si el bloque NO existe, el shell jamás toca Web Audio — cero
+//  cambios para los motores que no piden sonido. El sintetizador
+//  lee los MISMOS parámetros del motor que mueven la física, así
+//  lo que oyes corresponde a lo que ves.
+//
+//  Política de navegador: el audio solo arranca tras un gesto del
+//  usuario. "Iniciar simulación" es ese gesto.
+// ══════════════════════════════════════════════════════════════
+const SoundEngine = (() => {
+    let ctx = null;          // AudioContext
+    let voices = [];         // [{ osc, gain, filter }]
+    let cfg = null;          // bloque sound del config
+    let active = false;
+    let muted = false;
+
+    // ── Interpolación de forma de onda por series de Fourier ──────
+    // Web Audio no interpola formas en un oscilador, pero sí acepta una
+    // forma arbitraria vía PeriodicWave (coeficientes de Fourier). Sine, saw
+    // y square SON series de Fourier conocidas:
+    //   sine   → solo el fundamental
+    //   saw    → todos los armónicos, amplitud ~1/n
+    //   square → solo armónicos impares, amplitud ~1/n
+    // Interpolamos los coeficientes entre las tres zonas igual que la función
+    // waveShape() del motor — así la onda MORFEA de verdad (una sola onda que
+    // se transforma), coherente con lo que el campo calcula, y la síntesis la
+    // hace el motor de audio nativo (no carga el hilo de JS ni el render).
+    const _waveCache = new Map(); // w redondeado → PeriodicWave (evita recalcular)
+    function buildWave(w, nHarm = 32) {
+        const wq = Math.round(w * 50) / 50; // cuantizar a 50 pasos: cachea y evita recalcular en cada pixel del slider
+        if (_waveCache.has(wq)) return _waveCache.get(wq);
+
+        const real = new Float32Array(nHarm); // cosenos — los dejamos en 0
+        const imag = new Float32Array(nHarm); // senos — aquí va la forma
+        for (let n = 1; n < nHarm; n++) {
+            const sineH   = (n === 1) ? 1 : 0;
+            const sawH    = 1 / n;
+            const squareH = (n % 2 === 1) ? 1 / n : 0;
+            let amp;
+            if (wq < 0.5) {
+                const t = wq * 2;
+                amp = sineH * (1 - t) + sawH * t;
+            } else {
+                const t = (wq - 0.5) * 2;
+                amp = sawH * (1 - t) + squareH * t;
+            }
+            imag[n] = amp;
+        }
+        const pw = ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+        _waveCache.set(wq, pw);
+        return pw;
+    }
+
+    // Mapear el PITCH del motor (rango ~1-12, modos de la caja) a Hz audibles.
+    function pitchToHz(pitch, range) {
+        const [lo, hi] = range || [80, 880];
+        const t = Math.max(0, Math.min(1, (pitch - 1) / 11)); // 1-12 → 0-1
+        return lo + t * (hi - lo);
+    }
+
+    // Crear el grafo de audio según el bloque sound del config.
+    // No suena hasta resume() (gesto de usuario).
+    function init(soundCfg, getParams) {
+        if (!soundCfg || !soundCfg.enabled) return false;
+        cfg = soundCfg;
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            ctx = new AC();
+            const master = ctx.createGain();
+            master.gain.value = 0.15; // volumen general modesto
+            master.connect(ctx.destination);
+
+            const params = getParams ? getParams() : {};
+            voices = (cfg.bindings || []).map(b => {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 4000;
+
+                const freq = params[b.freq] ?? 4.0;
+                const wave = params[b.wave] ?? 0.0;
+                const g    = params[b.gain] ?? 0.0;
+
+                osc.setPeriodicWave(buildWave(wave));
+                osc.frequency.value = pitchToHz(freq, cfg.freqRange);
+                gain.gain.value = Math.min(1, g) * 0.33; // repartir entre voces
+
+                osc.connect(filter); filter.connect(gain); gain.connect(master);
+                osc.start();
+                return { osc, gain, filter, binding: b };
+            });
+            active = true;
+            return true;
+        } catch(e) {
+            console.warn('[Sound] no disponible:', e);
+            ctx = null; active = false;
+            return false;
+        }
+    }
+
+    // Despertar el audio (gesto de usuario). Idempotente.
+    function resume() {
+        if (ctx && ctx.state === 'suspended') ctx.resume();
+    }
+
+    // Actualizar una voz cuando cambia un parámetro del motor.
+    // El shell llama esto desde el handler de sliders.
+    function onParam(key, val) {
+        if (!active || muted) return;
+        for (const v of voices) {
+            const b = v.binding;
+            if (key === b.freq) {
+                v.osc.frequency.setTargetAtTime(pitchToHz(val, cfg.freqRange), ctx.currentTime, 0.02);
+            } else if (key === b.wave) {
+                v.osc.setPeriodicWave(buildWave(val));
+            } else if (key === b.gain) {
+                v.gain.gain.setTargetAtTime(Math.min(1, val) * 0.33, ctx.currentTime, 0.02);
+            }
+        }
+    }
+
+    function toggleMute() {
+        muted = !muted;
+        if (!ctx) return muted;
+        for (const v of voices) {
+            v.gain.gain.setTargetAtTime(muted ? 0 : Math.min(1,
+                (window._engine?.getParams?.()[v.binding.gain] ?? 0)) * 0.33,
+                ctx.currentTime, 0.02);
+        }
+        return muted;
+    }
+
+    // Destruir el grafo al cambiar de motor.
+    function dispose() {
+        if (ctx) { try { ctx.close(); } catch(e){} }
+        ctx = null; voices = []; cfg = null; active = false; muted = false;
+        _waveCache.clear(); // las PeriodicWave estaban atadas al ctx viejo
+    }
+
+    function isActive() { return active; }
+
+    return { init, resume, onParam, toggleMute, dispose, isActive };
+})();
+
+// ══════════════════════════════════════════════════════════════
+//  MicEngine — el shell ESCUCHA el mundo (gemelo del SoundEngine)
+//
+//  Si SoundEngine emite, MicEngine percibe. Cualquier motor puede
+//  pedir entrada de micrófono declarando un bloque "mic" en su config:
+//
+//    "mic": {
+//      "enabled": true,
+//      "bindings": [
+//        { "feature": "bass",   "inject": "krunch", "threshold": 0.55, "cooldown": 8 },
+//        { "feature": "volume", "param": "PRESION", "min": 0.5, "max": 2.5 },
+//        { "feature": "treble", "param": "RAMIFICA", "min": 0.05, "max": 0.4 }
+//      ]
+//    }
+//
+//  features disponibles (todas 0..1): volume (RMS global), bass (graves),
+//  mid (medios), treble (agudos).
+//  - binding con "param": MODULA ese parámetro entre min..max según el feature.
+//  - binding con "inject": DISPARA esa inyección cuando el feature cruza
+//    threshold (con cooldown en frames para no spamear).
+//
+//  Si el bloque NO existe, el shell jamás pide micrófono — cero cambios
+//  para los 25+ motores que no lo declaran. Permiso vía gesto de usuario
+//  (el botón 🎤 de la barra), igual que el audio con "Iniciar".
+// ══════════════════════════════════════════════════════════════
+const MicEngine = (() => {
+    let ctx = null, analyser = null, micStream = null, src = null;
+    let freqData = null;
+    let cfg = null;
+    let active = false;     // grafo creado y escuchando
+    let enabled = false;    // el motor lo pidió
+    const features = { volume: 0, bass: 0, mid: 0, treble: 0 };
+    const _cooldowns = {};  // por binding index → frames restantes
+
+    // Declarar intención (no pide permiso aún — eso es en start()).
+    function init(micCfg) {
+        dispose();
+        if (!micCfg || !micCfg.enabled) { enabled = false; return false; }
+        cfg = micCfg; enabled = true; return true;
+    }
+
+    // Pedir el micrófono (requiere gesto de usuario). Idempotente.
+    async function start() {
+        if (!enabled || active) return active;
+        try {
+            const AC = window.AudioContext || window.webkitAudioContext;
+            ctx = new AC();
+            micStream = await navigator.mediaDevices.getUserMedia({ audio: {
+                echoCancellation: false, noiseSuppression: false, autoGainControl: false
+            }});
+            src = ctx.createMediaStreamSource(micStream);
+            analyser = ctx.createAnalyser();
+            analyser.fftSize = 512;
+            analyser.smoothingTimeConstant = 0.7;
+            src.connect(analyser);
+            freqData = new Uint8Array(analyser.frequencyBinCount); // 256 bins
+            active = true;
+            return true;
+        } catch(e) {
+            console.warn('[Mic] no disponible / permiso denegado:', e);
+            active = false; return false;
+        }
+    }
+
+    // Leer el micro y actualizar features. Llamado una vez por frame.
+    function tick() {
+        if (!active || !analyser) return null;
+        analyser.getByteFrequencyData(freqData);
+        const n = freqData.length;            // 256 bins (~0..24kHz)
+        // bandas aproximadas: bass 0-8%, mid 8-40%, treble 40-100%
+        const bEnd = Math.floor(n * 0.08);
+        const mEnd = Math.floor(n * 0.40);
+        let bS=0, mS=0, tS=0, all=0;
+        for (let i=0;i<n;i++) {
+            const v = freqData[i] / 255;
+            all += v;
+            if (i < bEnd) bS += v;
+            else if (i < mEnd) mS += v;
+            else tS += v;
+        }
+        features.volume = all / n;
+        features.bass   = bS / Math.max(1, bEnd);
+        features.mid    = mS / Math.max(1, mEnd - bEnd);
+        features.treble = tS / Math.max(1, n - mEnd);
+        return features;
+    }
+
+    // Aplicar los bindings: modular params y disparar inyecciones.
+    // Recibe el engine para poder llamar applyParams/inject.
+    function apply(engine) {
+        if (!active || !cfg || !engine) return;
+        (cfg.bindings || []).forEach((b, i) => {
+            const f = features[b.feature];
+            if (f === undefined) return;
+            if (b.param) {
+                // MODULAR: feature 0..1 → param min..max
+                const lo = b.min ?? 0, hi = b.max ?? 1;
+                const val = lo + f * (hi - lo);
+                try { engine.applyParams({ [b.param]: val }); } catch(e){}
+            } else if (b.inject) {
+                // DISPARAR: si cruza umbral y no está en cooldown
+                if (_cooldowns[i] > 0) { _cooldowns[i]--; return; }
+                const th = b.threshold ?? 0.5;
+                if (f > th) {
+                    // passStrength: pasar la intensidad del feature al motor
+                    // (p.ej. soplar más fuerte = burbuja más grande)
+                    try {
+                        if (b.passStrength) engine.inject(b.inject, { strength: f });
+                        else engine.inject(b.inject);
+                    } catch(e){}
+                    _cooldowns[i] = b.cooldown ?? 6;
+                }
+            }
+        });
+    }
+
+    function getFeatures() { return features; }
+    function isEnabled() { return enabled; }
+    function isActive() { return active; }
+
+    function dispose() {
+        try { if (micStream) micStream.getTracks().forEach(t => t.stop()); } catch(e){}
+        try { if (ctx) ctx.close(); } catch(e){}
+        ctx = null; analyser = null; micStream = null; src = null; freqData = null;
+        cfg = null; active = false; enabled = false;
+        for (const k in _cooldowns) delete _cooldowns[k];
+    }
+
+    return { init, start, tick, apply, getFeatures, isEnabled, isActive, dispose };
+})();
+
+// ══════════════════════════════════════════════════════════════
+//  GyroEngine — el shell SIENTE su orientación (gemelo del MicEngine)
+//
+//  Si MicEngine escucha, GyroEngine siente cómo sostienes el teléfono.
+//  Cualquier motor puede pedir giroscopio declarando un bloque "gyro":
+//
+//    "gyro": {
+//      "enabled": true,
+//      "bindings": [
+//        { "feature": "tiltX", "param": "GRAVEDAD_X", "min": -1, "max": 1 },
+//        { "feature": "tiltY", "param": "GRAVEDAD_Y", "min": -1, "max": 1 }
+//      ]
+//    }
+//
+//  features (todas -1..1, centradas en plano):
+//    tiltX = gamma (inclinar izq/der, como volante) — CONFIABLE
+//    tiltY = beta  (inclinar adelante/atrás)        — CONFIABLE
+//    tiltZ = alpha (girar como tornamesa, brújula)  — INESTABLE: depende
+//            del magnetómetro, necesita calibración, deriva, y puede no
+//            estar disponible. Úsalo solo para efectos no críticos.
+//
+//  Patrón de Velvet (bloom.html): gamma/beta escalados a un vector. En
+//  Android (Poco, Moto G24) funciona sin requestPermission; en iOS haría
+//  falta el gesto — lo intentamos y si falla, fallback a 0 (sin romper).
+//
+//  Si el bloque NO existe, el shell jamás escucha el sensor — cero impacto.
+// ══════════════════════════════════════════════════════════════
+const GyroEngine = (() => {
+    let cfg = null;
+    let enabled = false, active = false;
+    let listener = null;
+    const features = { tiltX: 0, tiltY: 0, tiltZ: 0 };
+    // suavizado para que no tiemble (los sensores son ruidosos)
+    const smooth = { tiltX: 0, tiltY: 0, tiltZ: 0 };
+    const SMOOTH = 0.15;
+
+    function init(gyroCfg) {
+        dispose();
+        if (!gyroCfg || !gyroCfg.enabled) { enabled = false; return false; }
+        cfg = gyroCfg; enabled = true; return true;
+    }
+
+    // Activar la escucha del sensor (gesto de usuario por el botón).
+    async function start() {
+        if (!enabled || active) return active;
+        try {
+            // iOS 13+ exige permiso explícito; Android no. Intentamos ambos.
+            const DOE = window.DeviceOrientationEvent;
+            if (DOE && typeof DOE.requestPermission === 'function') {
+                const res = await DOE.requestPermission();
+                if (res !== 'granted') { active = false; return false; }
+            }
+            listener = (e) => {
+                // gamma: -90..90 (izq/der), beta: -180..180 (ad/atrás), alpha: 0..360
+                const gx = (e.gamma || 0) / 90;          // -1..1
+                const gy = (e.beta  || 0) / 90;          // ~-1..1 (clamp luego)
+                const gz = ((e.alpha || 0) / 180) - 1;   // -1..1 (brújula, inestable)
+                smooth.tiltX = gx;
+                smooth.tiltY = Math.max(-1, Math.min(1, gy));
+                smooth.tiltZ = gz;
+            };
+            window.addEventListener('deviceorientation', listener);
+            active = true;
+            return true;
+        } catch(e) {
+            console.warn('[Gyro] no disponible:', e);
+            active = false; return false;
+        }
+    }
+
+    // Suavizar features hacia el último valor leído. Una vez por frame.
+    function tick() {
+        if (!active) return null;
+        features.tiltX += (smooth.tiltX - features.tiltX) * SMOOTH;
+        features.tiltY += (smooth.tiltY - features.tiltY) * SMOOTH;
+        features.tiltZ += (smooth.tiltZ - features.tiltZ) * SMOOTH;
+        return features;
+    }
+
+    // Aplicar bindings: igual que el micro, pero las features son -1..1.
+    function apply(engine) {
+        if (!active || !cfg || !engine) return;
+        (cfg.bindings || []).forEach((b) => {
+            const f = features[b.feature];
+            if (f === undefined) return;
+            if (b.param) {
+                // mapear -1..1 → min..max (por defecto pasa el valor directo)
+                const lo = b.min ?? -1, hi = b.max ?? 1;
+                const t = (f + 1) / 2; // -1..1 → 0..1
+                const val = lo + t * (hi - lo);
+                try { engine.applyParams({ [b.param]: val }); } catch(e){}
+            }
+        });
+    }
+
+    function getFeatures() { return features; }
+    function isEnabled() { return enabled; }
+    function isActive() { return active; }
+
+    function dispose() {
+        if (listener) { try { window.removeEventListener('deviceorientation', listener); } catch(e){} }
+        listener = null; cfg = null; enabled = false; active = false;
+        features.tiltX = features.tiltY = features.tiltZ = 0;
+        smooth.tiltX = smooth.tiltY = smooth.tiltZ = 0;
+    }
+
+    return { init, start, tick, apply, getFeatures, isEnabled, isActive, dispose };
+})();
+
+document.getElementById('lp-start').onclick = function() {
+    // Gesto de usuario: despierta el audio si el motor lo pidió.
+    SoundEngine.resume();
+    document.getElementById('btn-pause').click();
+};
+
+// Botón de mute del audio
+document.getElementById('btn-mute').onclick = function() {
+    const muted = SoundEngine.toggleMute();
+    this.textContent = muted ? '🔇 Mudo' : '🔊 Suena';
+    this.style.opacity = muted ? '0.5' : '1';
+};
+
+// Botón de micrófono — pide permiso y activa la escucha (gesto de usuario)
+document.getElementById('btn-mic').onclick = async function() {
+    if (MicEngine.isActive()) return;
+    this.textContent = '🎤 ...';
+    const ok = await MicEngine.start();
+    this.textContent = ok ? '🎤 Escucha' : '🎤 Denegado';
+    this.style.opacity = ok ? '1' : '0.5';
+    const dot = document.getElementById('mic-dot');
+    if (dot && ok) dot.style.background = '#3fa9ff';
+};
+
+// Botón de giroscopio — activa la escucha del sensor de orientación
+document.getElementById('btn-gyro').onclick = async function() {
+    if (GyroEngine.isActive()) return;
+    this.textContent = '📱 ...';
+    const ok = await GyroEngine.start();
+    this.textContent = ok ? '📱 Siente' : '📱 No disp.';
+    this.style.opacity = ok ? '1' : '0.5';
+    const dot = document.getElementById('gyro-dot');
+    if (dot && ok) dot.style.background = '#b56bff';
+};
+
+document.getElementById('btn-snap').onclick    = () => saveSnapshot('📸 manual');
+
+// ── Órbita automática — control universal del visor ──
+// El toggle prende/apaga; el slider ajusta la velocidad. Funciona en TODOS
+// los motores (la órbita es del visor, no del motor). El config solo decide
+// si arranca encendida (autoOrbit) y a qué velocidad (autoOrbitSpeed).
+(function initOrbitControls(){
+    const toggle = document.getElementById('orbit-toggle');
+    const speed  = document.getElementById('orbit-speed');
+    const speedVal = document.getElementById('orbit-speed-val');
+    if (!toggle || !speed) return;
+
+    function syncToggle(){
+        const on = ctrl && ctrl.autoRotate;
+        toggle.textContent = on ? '🔄' : '⏸';
+        toggle.style.opacity = on ? '1' : '0.45';
+    }
+    function syncSpeed(){
+        // slider 0..30 → autoRotateSpeed 0..3.0 (mostramos ×)
+        const v = parseInt(speed.value) / 10;
+        if (ctrl) ctrl.autoRotateSpeed = v;
+        if (speedVal) speedVal.textContent = v.toFixed(1) + '×';
+    }
+    toggle.onclick = function(){
+        if (!ctrl) return;
+        ctrl.autoRotate = !ctrl.autoRotate;
+        syncToggle();
+    };
+    speed.oninput = syncSpeed;
+    // exponer para que loadEngine refleje el estado del config al cargar motor
+    window._syncOrbitUI = function(){ syncToggle(); syncSpeed(); };
+    syncSpeed();
+    syncToggle();
+})();
+
+document.getElementById('btn-fullscreen').onclick = () => {
+    if(!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+        document.exitFullscreen();
+    }
+};
+
+document.getElementById('btn-reset').onclick = () => {
+    if(playbackActive) stopPlayback();
+    const seed = document.getElementById('seed-select').value;
+    engine?.seed(seed);
+    engine?.refresh();
+    texture3D.needsUpdate    = true;
+    texturePhase.needsUpdate = true;
+    frameCount = 0; maxEnergy = 1;
+    tlSnapshots.length = 0; tlNextLog2 = 1;
+    updateTimelineUI();
+    // Notificar al servidor: resembrar y pausar
+    Socket.seed(seed);
+    Socket.pause();
+    // Volver a pausar en el shell
+    paused = true;
+    document.getElementById('btn-pause').textContent = '▶ Iniciar';
+};
+
+document.getElementById('seed-select').onchange = e => {
+    const seedId = e.target.value;
+    engine?.seed(seedId);
+    Socket.seed(seedId);
+    window._currentSeed = seedId;
+    frameCount = 0;
+    // La semilla puede haber cambiado params internos del motor (p.ej. los
+    // gains de las fuentes en chladni). Resincronizar sliders y audio.
+    syncControlsToParams();
+};
+
+// Reflejar el estado actual de params del motor en los sliders del panel,
+// y empujar cada uno al audio. Útil tras un seed que cambia params internos.
+function syncControlsToParams() {
+    if (!engine || !engineCfg) return;
+    const params = engine.getParams();
+    for (const key of Object.keys(engineCfg.params)) {
+        const val = params[key];
+        if (val === undefined) continue;
+        const slider = document.getElementById(`s_${key}`);
+        const valEl  = document.getElementById(`v_${key}`);
+        if (slider) slider.value = val;
+        if (valEl) {
+            const def = engineCfg.params[key];
+            valEl.textContent = (typeof val === 'number')
+                ? val.toFixed(def.step < 0.001 ? 4 : def.step < 0.01 ? 3 : 2)
+                : val;
+        }
+        SoundEngine.onParam(key, val);
+    }
+}
+
+document.getElementById('sN').onchange = e => {
+    const newN = +e.target.value;
+    if(newN === N) return;
+    if(!confirm(`Cambiar a N=${newN}³ reiniciará. ¿Continuar?`)) { e.target.value = N; return; }
+    const url = new URL(window.location);
+    url.searchParams.set('N', newN);
+    window.location = url;
+};
+
+document.getElementById('timeline-slider').oninput = e => {
+    if(playbackActive) stopPlayback();
+    if(!paused) return;
+    const idx = +e.target.value;
+    loadSnapshot(idx);
+    // Mostrar también los stats guardados de ese snapshot al hacer scrubbing.
+    const snap = tlSnapshots[idx];
+    if(snap) paintMetrics(snap, snap._state);
+};
+document.getElementById('tl-snap').onclick   = () => saveSnapshot('📸 manual');
+document.getElementById('tl-export').onclick  = exportSnapshots;
+document.getElementById('tl-import').onclick  = () =>
+    document.getElementById('tl-file-input').click();
+document.getElementById('lp-import-btn').onclick = () =>
+    document.getElementById('tl-file-input').click();
+document.getElementById('tl-file-input').onchange = e => {
+    if(e.target.files[0]) importSnapshots(e.target.files[0]);
+    e.target.value = '';
+};
+document.getElementById('tl-mode').onchange = e => {
+    tlMode = e.target.value;
+    if(tlMode === 'log2') tlNextLog2 = Math.max(frameCount + 1, 1);
+    document.getElementById('tl-fixed-n').style.display =
+        tlMode === 'fixed' ? 'inline-block' : 'none';
+};
+document.getElementById('tl-fixed-n').onchange = e => {
+    tlFixedInterval = Math.max(5, +e.target.value);
+    e.target.value = tlFixedInterval;
+};
+
+// ── Refresh rate slider ─────────────────────────────────────
+document.getElementById('refresh-rate').oninput = e => {
+    refreshRate = +e.target.value;
+    document.getElementById('refresh-rate-val').textContent = refreshRate;
+};
+
+// ── Playback speed slider ───────────────────────────────────
+document.getElementById('tl-speed').oninput = e => {
+    playbackSpeed = +e.target.value;
+    document.getElementById('tl-speed-val').textContent = playbackSpeed + '/s';
+};
+
+// ── Playback de snapshots ───────────────────────────────────
+function startPlayback() {
+    if(tlSnapshots.length < 2) return;
+    playbackActive = true;
+    paused = true; // la simulación no avanza durante playback
+    playbackIdx = 0;
+    playbackAccum = 0;
+    const btn = document.getElementById('tl-play');
+    btn.textContent = '⏹';
+    btn.classList.add('playing');
+    document.getElementById('btn-pause').textContent = '▶ Reanudar';
+    document.getElementById('timeline-wrap').classList.add('visible');
+}
+
+function stopPlayback() {
+    playbackActive = false;
+    playbackAccum = 0;
+    const btn = document.getElementById('tl-play');
+    btn.textContent = '▶';
+    btn.classList.remove('playing');
+}
+
+document.getElementById('tl-play').onclick = () => {
+    if(playbackActive) { stopPlayback(); }
+    else { startPlayback(); }
+};
+
+// Si el usuario reanuda la simulación durante playback, detener playback
+const _origPauseHandler = document.getElementById('btn-pause').onclick;
+document.getElementById('btn-pause').onclick = function() {
+    if(playbackActive) stopPlayback();
+    _origPauseHandler.call(this);
+    // Sincronizar pausa con el servidor
+    if(paused) Socket.pause();
+    else        Socket.resume();
+};
+
+// ════════════════════════════════════════════════════════════
+//  SOCKET MANAGER — Motor remoto opcional
+// ════════════════════════════════════════════════════════════
+const Socket = (() => {
+    const WS_URL  = 'ws://localhost:8765';
+    const RETRY   = 4000;
+
+    // UI elements
+    const dot         = document.getElementById('socket-dot');
+    const lbl         = document.getElementById('socket-label');
+    const toggleWrap  = document.getElementById('socket-toggle-wrap');
+    const cb          = document.getElementById('cbSocket');
+    const track       = document.getElementById('cbSocket-track');
+    const thumb       = document.getElementById('cbSocket-thumb');
+    const cbLbl       = document.getElementById('cbSocket-label');
+
+    let ws          = null;
+    let active      = false;
+    let connected   = false;
+    let _onFrame    = null;
+    let _T          = 0;
+    let _probeTimer = null;
+
+    // ── Animación del toggle — idéntica al RGB shift ──────────
+    function _setToggleOn(on) {
+        if(on) {
+            track.style.background   = 'rgba(100,200,255,0.25)';
+            track.style.borderColor  = 'rgba(100,200,255,0.5)';
+            thumb.style.left         = '15px';
+            thumb.style.background   = 'rgba(100,200,255,0.9)';
+        } else {
+            track.style.background   = 'rgba(255,255,255,0.08)';
+            track.style.borderColor  = 'rgba(255,255,255,0.12)';
+            thumb.style.left         = '2px';
+            thumb.style.background   = 'rgba(255,255,255,0.3)';
+        }
+    }
+
+    function _setDot(state) {
+        const colors = { off:'#333', probing:'rgba(200,150,60,0.8)', on:'rgba(64,220,255,0.9)' };
+        dot.style.background = colors[state] || '#333';
+        lbl.style.color = state === 'on'
+            ? 'rgba(64,220,255,0.7)'
+            : state === 'probing'
+                ? 'rgba(200,150,60,0.6)'
+                : 'rgba(255,255,255,0.2)';
+    }
+
+    function _enableToggle(yes) {
+        cb.disabled = !yes;
+        toggleWrap.style.opacity      = yes ? '1'    : '0.35';
+        toggleWrap.style.pointerEvents = yes ? 'auto' : 'none';
+        cbLbl.style.color  = yes ? 'rgba(100,200,255,0.6)' : 'rgba(100,200,255,0.3)';
+        cbLbl.style.cursor = yes ? 'pointer' : 'default';
+    }
+
+    // ── Probe silencioso ──────────────────────────────────────
+    function _probe() {
+        if(connected) return;
+        _setDot('probing');
+        const t = new WebSocket(WS_URL);
+        t.onopen  = () => { t.close(); connected=true; _setDot('on'); _enableToggle(true); clearInterval(_probeTimer); };
+        t.onerror = () => { t.close(); _setDot('off'); };
+    }
+
+    function startProbing() {
+        _probe();
+        _probeTimer = setInterval(_probe, RETRY);
+    }
+
+    // ── Conexión activa ───────────────────────────────────────
+    function _connect(payload, onFrame, onAck) {
+        if(ws) ws.close();
+        _onFrame = onFrame;
+        ws = new WebSocket(WS_URL);
+        ws.binaryType = 'arraybuffer';
+
+        ws.onopen = () => ws.send(JSON.stringify({ type:'init', ...payload }));
+
+        ws.onmessage = ev => {
+            if(ev.data instanceof ArrayBuffer) {
+                const view   = new DataView(ev.data);
+                // Layout: [MAGIC 4B][frameN u32][T u32][metaLen u32][meta][vol][phase]
+                const frameN  = view.getUint32(4,  true);
+                const T       = view.getUint32(8,  true);
+                const metaLen = view.getUint32(12, true);
+                const dataOff = 16 + metaLen;       // header(16) + bloque meta
+                let meta = null;
+                if(metaLen > 0) {
+                    const metaBytes = new Uint8Array(ev.data, 16, metaLen);
+                    try { meta = JSON.parse(new TextDecoder().decode(metaBytes)); }
+                    catch(e) { console.warn('[Socket] meta ilegible:', e); }
+                }
+                const rv = new Float32Array(ev.data, dataOff,         T);
+                const rp = new Float32Array(ev.data, dataOff + T*4,   T);
+                if(_onFrame) _onFrame(rv, rp, frameN, meta);
+            } else {
+                const msg = JSON.parse(ev.data);
+                if(msg.type === 'ready') _T = payload.N ** 3;
+                if(onAck) onAck(msg);
+            }
+        };
+
+        ws.onerror = ws.onclose = () => {
+            if(!active) return;
+            active = false; connected = false;
+            cb.checked = false;
+            _setToggleOn(false);
+            _setDot('off');
+            _enableToggle(false);
+            startProbing();
+        };
+    }
+
+    // ── Toggle handler ────────────────────────────────────────
+    cb.onchange = e => {
+        active = e.target.checked;
+        _setToggleOn(active);
+        if(active) {
+            const payload = _buildPayload();
+            if(!payload) { cb.checked=false; _setToggleOn(false); active=false; return; }
+            _connect(payload,
+                (rv, rp, frameN, meta) => {
+                    if(window._renderVolume) window._renderVolume.set(rv);
+                    if(window._phaseData)    window._phaseData.set(rp);
+                    if(window._texture3D)    window._texture3D.needsUpdate    = true;
+                    if(window._texturePhase) window._texturePhase.needsUpdate = true;
+                    // Sincronizar contador de frames con el servidor
+                    if(frameN !== undefined) frameCount = frameN;
+                    // Métricas remotas — atómicas con este frame.
+                    // Las pintamos por la MISMA tubería que el modo local.
+                    if(meta && meta.metrics) {
+                        window._lastRemoteMeta = meta;   // para snapshots
+                        paintMetrics(meta.metrics, meta.state);
+                    }
+                },
+                msg => console.log('[Socket] ACK:', msg)
+            );
+        } else {
+            if(ws) { ws.onclose=null; ws.close(); ws=null; }
+        }
+    };
+
+    function _buildPayload() {
+        if(!window._engineCfg || !window._engine) return null;
+        const cfg = window._engineCfg;
+        const configValues = {};
+        if(cfg.params) Object.keys(cfg.params).forEach(k => {
+            const el = document.getElementById('s_'+k);
+            configValues[k] = el ? parseFloat(el.value) : cfg.params[k].default;
+        });
+        return {
+            engine:      cfg.id,
+            N:           window._engineN   || 32,
+            config:      configValues,
+            injections:  cfg.injections    || [],
+            seeds:       cfg.seeds         || [],
+            currentSeed: window._currentSeed || cfg.defaultSeed || '',
+        };
+    }
+
+    // ── API pública ───────────────────────────────────────────
+    function _send(cmd) {
+        if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(cmd));
+    }
+
+    return {
+        startProbing,
+        isActive:     () => active,
+        step:         ()    => { if(active) _send({ type:'step', n:1 }); },
+        inject:       id    => { if(active) _send({ type:'inject', id }); },
+        seed:         id    => { if(active) _send({ type:'seed', id }); },
+        configUpdate: (k,v) => { if(active) _send({ type:'config_update', param:k, value:v }); },
+        pause:        ()    => { if(active) _send({ type:'pause' }); },
+        resume:       ()    => { if(active) _send({ type:'resume' }); },
+    };
+})();
+
+Socket.startProbing();
+
+// ════════════════════════════════════════════════════════════
+//  ARRANQUE
+// ════════════════════════════════════════════════════════════
+loadEngine().catch(err => {
+    console.error('Error cargando engine:', err);
+    document.getElementById('engine-name').textContent = '⚠ Error: ' + err.message;
+});
+</script>
+</body>
+</html>
