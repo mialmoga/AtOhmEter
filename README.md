@@ -117,7 +117,7 @@ Más allá del campo, el shell ofrece cuatro entradas **opcionales** (opt-in por
 
 ## Un laboratorio entre humano e IAs
 
-AtOhmEter es obra de una colaboración inusual: un humano dirigiendo, tres IAs como compañeras de banco, cada una con su rol. Muchos motores nacieron de ese diálogo, y uno de inspiración den **otro laboratorio** —*?engine=muse* porta a 3D el `popcount(logic(x,y,z))` del [ŚN1E de Rafał Piotr Jakub Borkowski](https://tempolux.life/sn1e), con crédito completo.
+AtOhmEter es obra de una colaboración inusual: un humano dirigiendo, tres IAs como compañeras de banco, cada una con su rol. Muchos motores nacieron de ese diálogo, y uno con inspiración de **otro laboratorio** —*?engine=muse* porta a 3D el `popcount(logic(x,y,z))` del [ŚN1E de Rafał Piotr Jakub Borkowski](https://tempolux.life/sn1e), con crédito completo.
 
 El proyecto incluye también una arquitectura **Python headless** (`server.py` y motores en `numpy`) que puede tomar el relevo de la computación pesada y devolver renders listos, para experimentos que el teléfono no aguanta en vivo.
 
