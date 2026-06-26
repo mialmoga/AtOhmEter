@@ -100,7 +100,7 @@ Eso es todo. Difusión pura cabe en 30 líneas; un campo complejo de segundo ord
 
 El **Live Paper** —un panel que muestra la ecuación del motor con los términos iluminándose según el estado— se arma desde `paper.json`. No es decoración: es donde el motor explica qué hace, qué funciona, qué es aproximado y qué predice de forma falsable.
 
-📖 Todo el contrato, los patrones comunes y los errores frecuentes están en el **[Manual del Constructor](manual/index.html)**. Hay también un **[manual para LLMs](manual/manual_LLM.md)** pensado para construir motores con ayuda de IA, y plantillas anotadas: [`motor_v0.js`](manual/motor_v0.js) (el mínimo), [`motor_v1.js`](manual/motor_v1.js) (con personalidad) y [`motor_v2.js`](manual/motor_v2.js) (capacidades del shell).
+📖 Todo el contrato, los patrones comunes y los errores frecuentes están en el **[Manual del Constructor](https://mialmoga.github.io/AtOhmEter/manual/index.html)**. Hay también un **[manual para LLMs](manual/manual_LLM.md)** pensado para construir motores con ayuda de IA, y plantillas anotadas: [`motor_v0.js`](manual/motor_v0.js) (el mínimo), [`motor_v1.js`](manual/motor_v1.js) (con personalidad) y [`motor_v2.js`](manual/motor_v2.js) (capacidades del shell).
 
 ---
 
