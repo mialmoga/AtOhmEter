@@ -1,0 +1,59 @@
+{
+  "title": "La Mano en el Tejido",
+  "formula": [
+    { "term": "iℏ ∂ψ/∂t = −½∇²ψ", "class": "ft-kin",   "key": "kin",   "op": null },
+    { "term": "2λ(|ψ|²−φ₀²)ψ",      "class": "ft-higgs", "key": "higgs", "op": "+"  },
+    { "term": "η∇×[ψ×(∇×ψ)]",       "class": "ft-snap",  "key": "snap",  "op": "+"  },
+    { "term": "Q(ρ)ψ",               "class": "ft-bohm",  "key": "bohm",  "op": "+"  },
+    { "term": "γe⁻ⁱᶿ⁰ψ",            "class": "ft-phase", "key": "phase", "op": "+"  }
+  ],
+  "legend": [
+    { "key": "kin",   "label": "Inercia", "color": "rgba(255,255,255,0.6)" },
+    { "key": "higgs", "label": "Higgs",   "color": "rgba(60,200,255,0.7)"  },
+    { "key": "snap",  "label": "Snap",    "color": "rgba(255,80,120,0.7)"  },
+    { "key": "bohm",  "label": "Bohm",    "color": "rgba(100,255,180,0.7)" },
+    { "key": "phase", "label": "Fase",    "color": "rgba(255,200,60,0.7)"  }
+  ],
+  "tooltips": {
+    "kin":   "iℏ ∂ψ/∂t = −½∇²ψ — Schrödinger modificada, primer orden temporal. El campo evoluciona como fluido cuántico. Misma base que V5.5; los snapshots son intercambiables.",
+    "higgs": "2λ(|ψ|²−φ₀²)ψ — Autointeracción Ginzburg-Landau. En esta rama λ=0.3 (alto): el potencial es fuerte y mantiene tensión, no deja que el campo se apague.",
+    "snap":  "η·∇×[ψ×(∇×ψ)] — Operador snap variacional. Aquí NO hay feedback helicoidal ni damping protector: el snap puede poblar el campo de torsión hasta saturar. Esa es la diferencia con V5.5.",
+    "bohm":  "Q(ρ)ψ via log(ρ) — Presión cuántica de Bohm. En esta rama es cruda (no atenuada por densidad). Evita colapso en vacío pero deja crecer el núcleo.",
+    "phase": "γe⁻ⁱᶿ⁰ψ — Acoplamiento de fase global con el vacío. θ₀=0 en estado base. Idéntico a V5.5."
+  },
+  "states": {
+    "vacuum":     "Vacío. Campo en reposo (o solo respondiendo a la mano). El potencial Higgs sostiene una tensión de fondo mínima, esperando una perturbación.",
+    "nucleating": "Nucleando. Una semilla helicoidal — o un dedo — enrolla el campo. La helicidad se acumula antes de que aparezca estructura discreta.",
+    "active":     "Campo activo, torsión creciente. El snap está amplificando lo que la semilla o la mano sembró. El attractor aún no se fija.",
+    "stable":     "Estructura sostenida. El campo se pobló de torsión y encontró una meseta. C(x,t)≈1: persiste, aunque sea densa y turbulenta (no es reposo).",
+    "collapse":   "Saturación. |ψ|_max diverge — el snap inyectó más de lo que el grid aguanta. Bajar HAND_GAIN, ETA o DT, o subir la resolución."
+  },
+  "stateLabels": {
+    "vacuum":     "ψ + mano — vacío en espera",
+    "nucleating": "ψ + mano — nucleando",
+    "active":     "ψ + mano — torsión creciente",
+    "stable":     "ψ + mano — estructura sostenida",
+    "collapse":   "ψ + mano — saturación"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "kin":0.3, "higgs":0.6, "snap":0.2, "bohm":0.3, "phase":0.2 },
+    "nucleating": { "kin":0.5, "higgs":0.5, "snap":1.0, "bohm":0.4, "phase":0.3 },
+    "active":     { "kin":0.7, "higgs":0.7, "snap":1.0, "bohm":0.6, "phase":0.5 },
+    "stable":     { "kin":0.4, "higgs":1.0, "snap":0.8, "bohm":1.0, "phase":0.4 },
+    "collapse":   { "kin":1.0, "higgs":0.2, "snap":1.0, "bohm":0.2, "phase":0.5 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Snapshots compatibles con V5.5", "text": "El estado es ψ ∈ ℂ³ (U/Ui/V/Vi/W/Wi). Un snapshot guardado aquí carga en V5.5 y viceversa: misma ecuación base, distinta calibración." },
+    { "status": "ok",   "label": "✓ Mano = primer consumidor de cámara", "text": "El motor recibe 21 landmarks crudos del shell (setHand). Decide él mismo qué hacer: los dibuja como plasma volumétrico y los inyecta al campo." },
+    { "status": "warn", "label": "⚠ El campo no decae a vacío", "text": "Sin feedback ni damping protector, el snap tiende a poblar el campo de torsión hasta saturar. Es el carácter de esta rama, no un error. V5.5 lo amortigua." },
+    { "status": "warn", "label": "⚠ Dependiente de resolución", "text": "Con N mayor, el snap (dos curls anidados) amplifica gradientes finos más rápido. La progresión es más lenta en 32³ que en 48³/64³." },
+    { "status": "open", "label": "○ Mano sin profundidad real", "text": "La z de MediaPipe Hands es relativa a la muñeca y de baja precisión. La mano vive en una loncha del volumen, no en profundidad métrica." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "La mano siembra, el snap amplifica", "text": "Con HAND_GAIN bajo (~0.15) la mano acaricia el campo sin colapsar (|ψ|_max acotado). Subir HAND_GAIN hacia 1.0 lleva a collapse en decenas de frames. Falsable: si NO crece con la ganancia, la inyección no acopla." },
+    { "id": "P2", "label": "Intercambio V5.5↔V56", "text": "Un snapshot de V56 cargado en V5.5 debe seguir evolucionando coherentemente (y al revés). Si el estado se corrompe, las ramas divergieron en el formato, no solo en la física." },
+    { "id": "P3", "label": "Modo manos-only despierta vacío", "text": "Partiendo de la semilla 'vacío', solo la mano debe encender el campo: E_total pasa de ~0 a >0 al mover los dedos. Sin mano, permanece en reposo." },
+    { "id": "P4", "label": "Helicidad precede a vórtices", "text": "H = Re(ψ*·∇×ψ) acumula ANTES de que aparezcan vórtices contables, igual que en donita.py. Heredado de la rama." },
+    { "id": "P5", "label": "Falsificación estructural", "text": "Si aparecen estructuras persistentes SIN coherencia (C→0) o SIN alineación ψ∥∇×ψ, el mecanismo snap no es el responsable de la estructura." }
+  ]
+}
