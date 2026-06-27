@@ -1,0 +1,75 @@
+{
+  "title": "Cavidades Resonantes del Vacío",
+  "formula": [
+    { "term": "ρτ ∂²u/∂t² = μτ∇²u",             "class": "ft-kin",   "key": "wave",     "op": null },
+    { "term": "2α∇×θ",                             "class": "ft-snap",  "key": "couple",   "op": "+"  },
+    { "term": "−μτ∇(∇·u)/3",                       "class": "ft-bohm",  "key": "iso",      "op": "+"  },
+    { "term": "Jτ ∂²θ/∂t² = γτ∇²θ",               "class": "ft-phase", "key": "torsion",  "op": ";"  },
+    { "term": "2α(∇×u − 2θ)",                      "class": "ft-snap",  "key": "spring",   "op": "+"  },
+    { "term": "∂²φ/∂t² = −4λφ(φ²−1)",             "class": "ft-higgs", "key": "well",     "op": ";"  },
+    { "term": "τ ← 1 + f(|∇φ|,|θ|)",              "class": "ft-phase", "key": "tau",      "op": ";"  }
+  ],
+  "legend": [
+    { "key": "wave",    "label": "Onda u",           "color": "rgba(255,255,255,0.6)" },
+    { "key": "couple",  "label": "Bombeo α",         "color": "rgba(255,80,120,0.7)"  },
+    { "key": "iso",     "label": "Tr(ε)=0",          "color": "rgba(100,255,180,0.7)" },
+    { "key": "torsion", "label": "Torsión θ",        "color": "rgba(255,200,60,0.7)"  },
+    { "key": "spring",  "label": "Muelle −2αθ",      "color": "rgba(255,80,120,0.5)"  },
+    { "key": "well",    "label": "Doble pozo φ",      "color": "rgba(60,200,255,0.7)"  },
+    { "key": "tau",     "label": "τ-metric",          "color": "rgba(180,120,255,0.7)" }
+  ],
+  "tooltips": {
+    "wave":    "ρτ·∂²u/∂t² = μτ·∇²u — Onda acústica τ-modulada. El medio es más rígido donde τ > 1. La velocidad de propagación cambia localmente: c_local = √(μτ/ρτ).",
+    "couple":  "2α·∇×θ — Bombeo Cosserat. Torsión genera onda, onda genera torsión. α controla el intercambio. Invariante respecto a τ.",
+    "iso":     "−μτ·∇(∇·u)/3 — Constraint isocórico de Éter. Impide cambio de volumen local. El nudo no puede hincharse ni colapsar; solo puede torcerse. Tr(ε) → 0.",
+    "torsion": "Jτ·∂²θ/∂t² = γτ·∇²θ — Micro-rotaciones τ-moduladas. Donde τ es alto, la torsión persiste más. Donde τ es bajo, se disipa.",
+    "spring":  "2α·(∇×u − 2θ) — Muelle restaurador. Sin esto no hay oscilación. El −2αθ es la fuerza que hace que la torsión rebote.",
+    "well":    "−4λφ(φ²−1) — Doble pozo. φ = ±1 son las dos fases. Las fronteras φ ≈ 0 almacenan energía elástica y definen la cavidad.",
+    "tau":     "τ ← 1 + f(|∇φ|,|θ|) — La τ-metric se adapta al campo. Fronteras de fase y torsión aumentan τ localmente, creando pozos ópticos."
+  },
+  "states": {
+    "vacuum":     "Vacío τ-uniforme. Campo en estado base. Modos propios esperando nucleación.",
+    "nucleating": "Energía redistribuyéndose. Los modos Bessel empiezan a acoplarse con la torsión.",
+    "active":     "Campo activo — fronteras de fase vibrando. τ empieza a diferenciarse espacialmente.",
+    "torsion":    "Torsión dominante. Las micro-rotaciones almacenan la mayor parte de la energía.",
+    "pumping":    "¡BOMBEO! Oscilación periódica φ↔θ↔u. El ciclo Cosserat está activo.",
+    "locked":     "MODO BLOQUEADO. Overlap > 0.85. La cavidad encontró su estado propio. Identidad estable.",
+    "collapse":   "Divergencia. Reducir DT o α."
+  },
+  "stateLabels": {
+    "vacuum":     "τ-Cosserat — vacío uniforme",
+    "nucleating": "τ-Cosserat — nucleando modos",
+    "active":     "τ-Cosserat — campo activo",
+    "torsion":    "τ-Cosserat — torsión dominante",
+    "pumping":    "τ-Cosserat — ¡BOMBEANDO!",
+    "locked":     "τ-Cosserat — MODO BLOQUEADO ◉",
+    "collapse":   "τ-Cosserat — divergencia"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave":0.3, "couple":0.2, "iso":0.5, "torsion":0.3, "spring":0.2, "well":0.6, "tau":0.3 },
+    "nucleating": { "wave":0.5, "couple":0.7, "iso":0.6, "torsion":0.5, "spring":0.6, "well":0.5, "tau":0.5 },
+    "active":     { "wave":0.8, "couple":0.9, "iso":0.8, "torsion":0.8, "spring":0.9, "well":0.7, "tau":0.7 },
+    "torsion":    { "wave":0.4, "couple":1.0, "iso":0.7, "torsion":1.0, "spring":1.0, "well":0.5, "tau":0.6 },
+    "pumping":    { "wave":1.0, "couple":1.0, "iso":0.9, "torsion":1.0, "spring":1.0, "well":0.8, "tau":0.9 },
+    "locked":     { "wave":0.5, "couple":0.6, "iso":1.0, "torsion":0.7, "spring":0.5, "well":1.0, "tau":1.0 },
+    "collapse":   { "wave":1.0, "couple":0.5, "iso":0.3, "torsion":0.8, "spring":0.5, "well":0.2, "tau":0.4 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ τ-metric dinámica",       "text": "El medio responde al campo. Fronteras de fase y torsión endurecen el sustrato localmente, creando pozos ópticos naturales." },
+    { "status": "ok",   "label": "✓ Constraint isocórico",     "text": "Tr(ε)=0 impone deformación sin cambio de volumen. Recomendación de Éter basada en el Master Sheet de Binyamin (ec. 41)." },
+    { "status": "ok",   "label": "✓ Semillas Bessel",          "text": "Dirichlet (ψ(R)=0) para leptones, Neumann (ψ'(R)=0) para quarks. Las semillas son modos propios, no ruido." },
+    { "status": "ok",   "label": "✓ Mode overlap",             "text": "Mide identidad: ¿el sistema sigue siendo el mismo objeto? overlap > 0.85 = modo bloqueado." },
+    { "status": "warn", "label": "⚠ Bessel aproximadas",       "text": "j₀(x) ≈ sin(x)/x. Las raíces reales de las funciones esféricas de Bessel requieren scipy. Suficiente para topología, insuficiente para predicciones numéricas." },
+    { "status": "warn", "label": "⚠ τ no relativista",         "text": "τ-metric es escalar, no tensorial. No reproduce la métrica completa de Binyamin. Es una aproximación 'óptica efectiva'." },
+    { "status": "open", "label": "○ Calibración pendiente",    "text": "¿Las razones de eigenvalores reproducen mp/me = 6π⁵? Requiere N≥64 y raíces Bessel exactas." },
+    { "status": "open", "label": "○ Conexión τ ↔ Z₀",         "text": "La impedancia del vacío Z₀ = 377Ω debería emerger de la relación μ/ρ del sustrato. Pendiente de verificación." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Eigenvalor estable",        "text": "Un modo Dirichlet l=0 debe converger a un overlap > 0.85 después de relajación. Si no lo hace, la cavidad no es estable." },
+    { "id": "P2", "label": "Dirichlet vs Neumann",      "text": "Los modos Dirichlet deben ser más estables que los Neumann bajo las mismas condiciones. Los Neumann deben 'buscar' acoplarse." },
+    { "id": "P3", "label": "τ-concentración",           "text": "τ debe concentrarse espontáneamente en las fronteras de fase y los nodos de Bessel, creando pozos ópticos auto-organizados." },
+    { "id": "P4", "label": "Isochoric → persistencia",  "text": "Con Tr(ε)=0 activado, las estructuras deben persistir significativamente más que sin él. Test: comparar lifetimes con ISOCHORIC=0 vs 1." },
+    { "id": "P5", "label": "Razón de eigenvalores",     "text": "La razón E(l=1)/E(l=0) de los modos Dirichlet estables debería aproximar una constante geométrica. ¿Cuál?" },
+    { "id": "P6", "label": "Falsificación: α=0",        "text": "Si hay modos estables con α=0, el acoplamiento Cosserat no es necesario y el mecanismo central falla." }
+  ]
+}

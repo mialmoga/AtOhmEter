@@ -1,0 +1,47 @@
+{
+  "title": "Dinámica de Fluidos Cromáticos",
+  "formula": [
+    { "term": "∂u/∂t = −(u·∇)u", "class": "ft-kin",   "key": "adv",  "op": null },
+    { "term": "+ ν∇²u",           "class": "ft-higgs",  "key": "visc", "op": "+"  },
+    { "term": "− ∇p",             "class": "ft-snap",   "key": "pres", "op": "−"  },
+    { "term": "∇·u = 0",          "class": "ft-bohm",   "key": "inc",  "op": null },
+    { "term": "∂c/∂t = −(u·∇)c", "class": "ft-phase",  "key": "col",  "op": null },
+    { "term": "+ D∇²c",           "class": "ft-higgs",  "key": "diff", "op": "+"  }
+  ],
+  "legend": [
+    { "key": "adv",  "label": "Advección",       "color": "rgba(255,255,255,0.6)"  },
+    { "key": "visc", "label": "Viscosidad",       "color": "rgba(60,200,255,0.7)"   },
+    { "key": "pres", "label": "Presión",          "color": "rgba(255,80,120,0.7)"   },
+    { "key": "inc",  "label": "Incompresible",    "color": "rgba(100,255,180,0.7)"  },
+    { "key": "col",  "label": "Color advectado",  "color": "rgba(255,200,60,0.7)"   },
+    { "key": "diff", "label": "Difusión de tinta","color": "rgba(60,200,255,0.7)"   }
+  ],
+  "tooltips": {
+    "adv":  "−(u·∇)u — Autoadvección: el fluido se arrastra a sí mismo. El término no-lineal responsable de turbulencia y vórtices.",
+    "visc": "ν∇²u — Difusión viscosa. ν pequeño = fluido casi invíscido (agua). ν grande = fluido espeso (miel). Disipa la energía cinética.",
+    "pres": "−∇p — La presión redistribuye el momento para mantener incompresibilidad. La proyección de Hodge garantiza ∇·u=0.",
+    "inc":  "∇·u = 0 — Incompresibilidad: el volumen del fluido se conserva. Se impone via proyección de presión (Helmholtz-Hodge).",
+    "col":  "∂c/∂t = −(u·∇)c — El campo de color es arrastrado por la velocidad. No afecta la dinámica del fluido — es un trazador pasivo.",
+    "diff": "D∇²c — La tinta se difunde independientemente del flujo. D pequeño = tinta que no se dispersa. D=0 = tinta perfectamente pasiva."
+  },
+  "states": {
+    "vacuum":     "Fluido en reposo. Sin velocidad, sin tinta. Esperando perturbación.",
+    "nucleating": "Tinta inyectada, difundiéndose. El fluido empieza a moverse por gradientes de densidad.",
+    "active":     "Flujo activo. La advección arrastra la tinta formando filamentos y espirales. Donde los colores se superponen surge el blanco.",
+    "stable":     "Patrones persistentes. El fluido encontró un estado de baja disipación. La tinta forma estructuras coherentes.",
+    "collapse":   "Fluido saturado. Reducir velocidad o aumentar decay."
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Navier-Stokes incompresible", "text": "Proyección de Hodge garantiza ∇·u=0. Gauss-Seidel iterativo para difusión y presión." },
+    { "status": "ok",   "label": "✓ Advección semi-Lagrangiana",  "text": "Estable para cualquier DT. Sin restricción CFL. Interpolación trilineal." },
+    { "status": "ok",   "label": "✓ Mezcla aditiva RGB",          "text": "R+G+B→blanco en superposición. Conexión directa con síntesis de luz." },
+    { "status": "warn", "label": "⚠ Sin turbulencia real",        "text": "N=32 es insuficiente para cascada de energía de Kolmogorov. Las escalas pequeñas se disipan antes de formarse." },
+    { "status": "warn", "label": "⚠ Interacción táctil 2D",       "text": "El raycaster proyecta el toque en el plano Z=0. La profundidad del toque no se controla." },
+    { "status": "open", "label": "○ Sin tensión superficial",     "text": "Para simular tinta real se necesita la ecuación de Cahn-Hilliard para la interfaz tinta-agua." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Mezcla aditiva emergente", "text": "Donde dos corrientes de color distinto se encuentran debe aparecer el color suma. Verificable visualmente." },
+    { "id": "P2", "label": "Filamentos de Kelvin-Helmholtz", "text": "En la interfaz entre fluidos de velocidad distinta deben aparecer enrollamientos. Verificable con semilla swirl + perturbación." },
+    { "id": "P3", "label": "Conservación de color", "text": "La integral del campo de color debe conservarse excepto por decay. Si decay=1, el color total debe ser constante." }
+  ]
+}

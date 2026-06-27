@@ -1,0 +1,81 @@
+{
+  "title": "Enjambre con peso: ATRACCIÓN vs REPULSIÓN   ·   convocas y se aglutinan en células   ·   inclinas y ruedan",
+  "formula": [
+    { "term": "partículas(peso, color)",          "class": "ft-kin",   "key": "part",  "op": null },
+    { "term": "+ ATRACCIÓN (toque / giro)",        "class": "ft-snap",  "key": "attr",  "op": "+"  },
+    { "term": "− REPULSIÓN (de cerca)",            "class": "ft-bohm",  "key": "repul", "op": "−"  },
+    { "term": "→ CÉLULAS (cúmulos con frontera)",  "class": "ft-phase", "key": "cells", "op": "→"  },
+    { "term": "color = velocidad (reactivas)",     "class": "ft-higgs", "key": "vel",   "op": "·"  }
+  ],
+  "legend": [
+    { "key": "part",  "label": "Partículas — cada una con su peso y su color (ligero/pesado/reactivo)", "color": "rgba(120,220,255,0.7)" },
+    { "key": "attr",  "label": "Atracción — el toque y el giro las convocan a un punto", "color": "rgba(255,180,60,0.8)" },
+    { "key": "repul", "label": "Repulsión — de cerca se empujan, no se traspasan", "color": "rgba(120,220,160,0.8)" },
+    { "key": "cells", "label": "Células — de atracción + repulsión nacen cúmulos con frontera", "color": "rgba(200,150,255,0.8)" },
+    { "key": "vel",   "label": "Velocidad → color — las reactivas cambian de tono con su rapidez", "color": "rgba(255,100,120,0.8)" }
+  ],
+  "tooltips": {
+    "part": "Cada partícula tiene un peso y un tipo. Ligero: cae lento, cian estático. Pesado: acelera más al caer, naranja/magma estático. Reactivo: su color cambia con la velocidad. Mezcla de los tres, como en el bloom de Velvet.",
+    "attr": "ATRACCIÓN — una de las dos fuerzas. Tocas la pantalla y las partículas se convocan a ese punto (reutiliza el toque del shell). Y al inclinar el teléfono, la gravedad las hace rodar — los pesados aceleran más. Es el dedo y el pulso que las junta.",
+    "repul": "REPULSIÓN — la fuerza opuesta. De cerca las partículas se empujan y no se traspasan. Sin ella, todo colapsa en una masa (modo Mercurio). Con ella, los cúmulos mantienen fronteras nítidas: nacen las células. El slider REPULSIÓN ajusta la fuerza.",
+    "cells": "De la tensión atracción-repulsión emergen CÉLULAS: cúmulos que se aglutinan sin fundirse del todo, como el cian que no se mezcla con el dorado en el render de Velvet. Hay un punto dulce de repulsión que da más células; muy poca las funde, demasiada las dispersa.",
+    "vel": "El color no siempre es fijo: las partículas reactivas (cromo) cambian de tono según su velocidad — lentas tiran a azul, rápidas a rojo. Ves la energía cinética como color. Las otras (ligero, pesado) mantienen su color estático."
+  },
+  "states": {
+    "vacuum":     "Quietud — las partículas casi no se mueven. Toca para convocarlas o inclina el teléfono.",
+    "nucleating": "Las primeras se ponen en movimiento, empezando a buscarse.",
+    "active":     "El enjambre se mueve: partículas rodando, atrayéndose y empujándose.",
+    "pumping":    "Convocatoria activa ✛ — tu toque (o el giro) las está juntando hacia un punto.",
+    "stable":     "Células formadas: varios cúmulos con frontera flotando, sin fundirse.",
+    "locked":     "Todo aglutinado en una masa cohesionada — atracción dominando.",
+    "collapse":   "¡División! Un cúmulo saturado se parte (mitosis) y reparte sus mitades."
+  },
+  "stateLabels": {
+    "vacuum":     "bloom — quietud, toca para convocar",
+    "nucleating": "bloom — empezando a buscarse",
+    "active":     "bloom — el enjambre rueda",
+    "pumping":    "bloom — CONVOCANDO ✛",
+    "stable":     "bloom — células con frontera",
+    "locked":     "bloom — masa cohesionada ◉",
+    "collapse":   "bloom — ¡MITOSIS! ⊟"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "part": 0.4, "attr": 0.2, "repul": 0.3, "cells": 0.2, "vel": 0.2 },
+    "nucleating": { "part": 0.7, "attr": 0.5, "repul": 0.5, "cells": 0.3, "vel": 0.5 },
+    "active":     { "part": 0.9, "attr": 0.6, "repul": 0.7, "cells": 0.6, "vel": 0.8 },
+    "pumping":    { "part": 0.8, "attr": 1.0, "repul": 0.5, "cells": 0.6, "vel": 0.7 },
+    "stable":     { "part": 0.9, "attr": 0.5, "repul": 0.9, "cells": 1.0, "vel": 0.8 },
+    "locked":     { "part": 0.9, "attr": 0.9, "repul": 0.4, "cells": 0.7, "vel": 0.7 },
+    "collapse":   { "part": 0.7, "attr": 0.5, "repul": 1.0, "cells": 0.8, "vel": 0.9 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Atracción y repulsión forman células",  "text": "Verificado headless: la tensión entre atracción (al toque/centro) y repulsión local genera cúmulos con frontera. Sin repulsión (modo Mercurio) todo colapsa en una sola masa; con repulsión aparecen varias células separadas — como el cian que no se mezcla con el dorado en el bloom de Velvet." },
+    { "status": "ok",   "label": "✓ Los pesados aceleran más",              "text": "Cada tipo tiene su peso: con gravedad activa (inclinando el teléfono), las partículas pesadas (w1.8) alcanzan más velocidad que las ligeras (w0.5). Verificado: 0.18 vs 0.12 de velocidad media bajo la misma gravedad." },
+    { "status": "ok",   "label": "✓ Mitosis: aglutina y se divide",         "text": "En modo Mitosis, los cúmulos que superan ~8 vecinos cercanos se parten empujando sus mitades. Verificado: el nº de células oscila en el tiempo (2→4→8→6) — aglutinación y división alternándose, sin asentarse." },
+    { "status": "warn", "label": "⚠ Predicción AFINADA: hay un punto dulce", "text": "El diseño suponía 'más repulsión = más células' de forma monótona. Headless mostró un PUNTO DULCE: repulsión 0 → 1 masa (mercurio); repulsión media (~0.6-1.0) → máximas células (~3); repulsión muy alta → vuelve a bajar porque las partículas se dispersan y el clustering las cuenta sueltas. La relación tiene una joroba, no una recta. Ver P1." },
+    { "status": "warn", "label": "⚠ Partículas como entidades, no campo",   "text": "Las partículas son entidades (posición, velocidad, peso, tipo) que se pintan como metaballs gaussianos en el campo en cada refresh. La repulsión es O(n²) entre partículas — barato porque n≤140. No es un fluido continuo; es un enjambre de cuerpos con glow que se funden visualmente al solaparse." },
+    { "status": "open", "label": "○ Homenaje a Velvet + estreno del giro",  "text": "BLOOM nace del bloom de partículas de Velvet (su idea: pesos, color por velocidad, atracción al toque, glow líquido) llevado a campo volumétrico. Es el primer motor que estrena el GIROSCOPIO del shell (inclina → gravedad) y el primero que combina toque + giro como dos interacciones físicas simultáneas." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "La repulsión tiene un punto dulce para las células (afinada)",
+      "text": "El nº de células no crece monótono con la repulsión: hay una joroba. Verificado: repulsión 0 → 1 sola masa (fusión, mercurio); repulsión 0.6-1.0 → ~3 células (máximo); repulsión 1.5 → ~2 (las partículas se dispersan demasiado). Atracción y repulsión deben equilibrarse para que las células sean nítidas y estables."
+    },
+    {
+      "id": "P2",
+      "label": "Mercurio = una sola masa",
+      "text": "Con repulsión cero (modo Mercurio) las partículas no se separan: colapsan en un solo cúmulo que se funde como metaball. Verificado: modo Mercurio da consistentemente 1 célula tras asentarse, frente a 2-3 de los modos con repulsión."
+    },
+    {
+      "id": "P3",
+      "label": "El peso determina la aceleración bajo gravedad",
+      "text": "Si los pesos son reales, bajo la misma gravedad (giroscopio) los tipos pesados deben alcanzar más velocidad que los ligeros. Verificado: pesado (w1.8) 0.18 vs ligero (w0.5) 0.12. Inclina el teléfono y los magma caen primero."
+    },
+    {
+      "id": "P4",
+      "label": "El color de las reactivas sigue a la velocidad",
+      "text": "Las partículas reactivas cambian de tono con su rapidez: azules en reposo, rojas al acelerar. Falsable observando si su color responde al movimiento (al convocar o dispersar) o se queda fijo. Las ligeras y pesadas, en cambio, no deben cambiar de color."
+    }
+  ]
+}

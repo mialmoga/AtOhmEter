@@ -1,0 +1,80 @@
+{
+  "title": "Superficie ⇄ Fractura   ·   borde = Mandelbulb z→z^p + c   ·   inversión al cruzar el umbral",
+  "formula": [
+    { "term": "realidad lisa (superficie)",        "class": "ft-kin",   "key": "surf", "op": null },
+    { "term": "− curación·∂(cerrar grieta)",        "class": "ft-higgs", "key": "cura", "op": "−"  },
+    { "term": "+ presión·fractura(membrana)",       "class": "ft-snap",  "key": "frac", "op": "+"  },
+    { "term": "membrana = |Mandelbulb z→zᵖ+c|",     "class": "ft-phase", "key": "memb", "op": "·"  },
+    { "term": "↺ inversión cuando área > umbral",   "class": "ft-bohm",  "key": "inv",  "op": "·"  }
+  ],
+  "legend": [
+    { "key": "surf", "label": "Superficie — la realidad de arriba, lisa y entera", "color": "rgba(255,255,255,0.6)" },
+    { "key": "cura", "label": "Curación — la superficie resiste y cierra la grieta", "color": "rgba(60,200,255,0.7)" },
+    { "key": "frac", "label": "Fractura — la realidad de abajo empuja por la grieta", "color": "rgba(255,80,120,0.8)" },
+    { "key": "memb", "label": "Membrana fractal — el borde de caballito de mar (Mandelbulb)", "color": "rgba(255,200,60,0.8)" },
+    { "key": "inv",  "label": "Inversión — lo oculto se vuelve superficie", "color": "rgba(120,220,160,0.8)" }
+  ],
+  "tooltips": {
+    "surf": "La realidad de arriba: un campo de color liso, casi sin brillo. Quiere mantenerse entera. Es lo que ves antes del primer krank, y lo que vuelve a cubrir todo tras cada inversión — pero ya con otro color.",
+    "cura": "La fuerza de la SUPERFICIE: la curación cierra las grietas poco a poco. Si la subes, la superficie resiste más y la fractura cuesta crecer (puede incluso curarse del todo). Es la mitad de la tensión de oro.",
+    "frac": "La fuerza de la FRACTURA: la presión con que la realidad de abajo empuja por la grieta. Si la subes, los quiebres devoran la superficie rápido. La otra mitad de la tensión. Curación vs Presión deciden el ritmo de la respiración.",
+    "memb": "El borde no es liso: es un Mandelbulb (z→zᵖ+c en 3D), que enrosca colas de caballito de mar. La grieta se ramifica siguiendo esta membrana fractal — por eso el quiebre tiene filo de fractal y no de vidrio. El slider FRACTAL cambia el power (2..8); FORMA mueve la constante c.",
+    "inv": "Cuando la fractura ocupa demasiado volumen, ocurre la INVERSIÓN: la realidad que asomaba por las grietas se vuelve la nueva superficie, y la antigua superficie pasa a ser la realidad oculta. Nace un puntito nuevo y todo recomienza con los colores intercambiados. Biestable: nadie gana para siempre."
+  },
+  "states": {
+    "vacuum":     "Superficie intacta. La realidad de arriba, lisa y entera. En modo Sísmico, esperando que provoques el krank.",
+    "nucleating": "¡Krank! El puntito acaba de quebrarse. Una grieta diminuta de borde fractal se abre — la otra realidad asoma por primera vez.",
+    "active":     "La grieta crece y se ramifica con su filo de caballito de mar. La otra realidad gana terreno por las fracturas.",
+    "pumping":    "La fractura devora la superficie con fuerza — máxima velocidad de quiebre. En Babel, varias realidades compiten ferozmente por el territorio.",
+    "stable":     "Equilibrio momentáneo entre curación y presión — la grieta crece y se cierra a la vez, en tensión.",
+    "locked":     "Tensión crítica ◉ — la fractura roza el umbral de inversión. La realidad está a punto de darse la vuelta.",
+    "collapse":   "Punto de inversión: el umbral se cruzó. Lo oculto se vuelve superficie. (Transitorio — al instante siguiente nace un nuevo puntito.)"
+  },
+  "stateLabels": {
+    "vacuum":     "krank — superficie intacta",
+    "nucleating": "krank — ¡primer quiebre!",
+    "active":     "krank — la grieta crece",
+    "pumping":    "krank — la fractura devora ◉",
+    "stable":     "krank — tensión en equilibrio",
+    "locked":     "krank — TENSIÓN CRÍTICA ◉",
+    "collapse":   "krank — ↺ INVERSIÓN"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "surf": 0.9, "cura": 0.5, "frac": 0.1, "memb": 0.2, "inv": 0.1 },
+    "nucleating": { "surf": 0.7, "cura": 0.5, "frac": 0.5, "memb": 0.7, "inv": 0.2 },
+    "active":     { "surf": 0.5, "cura": 0.5, "frac": 0.8, "memb": 0.9, "inv": 0.3 },
+    "pumping":    { "surf": 0.3, "cura": 0.4, "frac": 1.0, "memb": 1.0, "inv": 0.5 },
+    "stable":     { "surf": 0.6, "cura": 0.8, "frac": 0.7, "memb": 0.7, "inv": 0.3 },
+    "locked":     { "surf": 0.3, "cura": 0.5, "frac": 0.9, "memb": 0.8, "inv": 0.9 },
+    "collapse":   { "surf": 0.4, "cura": 0.2, "frac": 0.6, "memb": 0.5, "inv": 1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ El ciclo de inversión es real",      "text": "Verificado headless: en modo Vigilia la fractura crece, cruza el umbral, invierte (lo oculto se vuelve superficie), y reinicia con colores rotados. Las realidades rotan azul→naranja→verde→... en cada inversión. Respiración biestable confirmada." },
+    { "status": "ok",   "label": "✓ El borde se ramifica por la membrana", "text": "La fractura no crece como una mancha redonda: se propaga más fuerte donde la membrana de Mandelbulb es alta, así que el frente de la grieta hereda el filo fractal — colas de caballito de mar enroscándose en 3D. El slider FRACTAL (power 2..8) cambia la firma del quiebre." },
+    { "status": "warn", "label": "⚠ Predicción CORREGIDA: campana, no salto", "text": "El ejercicio mental supuso una curva-S con salto abrupto al 50%. Headless mostró otra cosa: la velocidad de fractura es una CAMPANA — acelera hasta la mitad del camino (el borde fractal expone más perímetro) y luego la curación la frena cerca del umbral, creando tensión antes de invertir. El paper lleva la versión verificada (P1)." },
+    { "status": "warn", "label": "⚠ Mandelbulb es caro",                   "text": "Calcular el Mandelbulb por celda es pesado: a 48³/64³ el cómputo inicial es lento en móvil. Mitigación: la membrana es estática (solo se recalcula al mover FRACTAL/FORMA/DETALLE), y el flujo real de trabajo es explorar→capturar semilla→reproducir. Computar lento, revivir fluido." },
+    { "status": "open", "label": "○ Babel necesita equilibrio fino",       "text": "En modo Babel, que una realidad conquiste depende del balance presión/curación: con demasiada curación nadie llega al umbral (se bloquean). El umbral de conquista se ajustó a 35% del volumen (o mayoría darwiniana clara con >55% fracturado) para que el modo siempre resuelva. Sigue siendo sensible a los parámetros." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "La velocidad de fractura es una campana (corregida)",
+      "text": "La tasa de crecimiento del área fracturada NO es un salto abrupto: acelera desde el quiebre hasta ~50% del camino al umbral (donde el perímetro fractal ramificado es máximo), luego desacelera porque la curación global frena el frente. Verificado headless: pico de velocidad a mitad de camino. La predicción original (curva-S con salto) fue falsificada."
+    },
+    {
+      "id": "P2",
+      "label": "Inversión recurrente y rotación de color",
+      "text": "En modo Vigilia el sistema nunca se asienta: invierte de forma recurrente (cada ~150-170 frames con presión media), y la realidad-superficie rota de color en cada inversión. Ninguna realidad permanece como superficie indefinidamente — es estrictamente biestable/multiestable."
+    },
+    {
+      "id": "P3",
+      "label": "El power del fractal cambia la firma del quiebre",
+      "text": "Al variar FRACTAL (power del Mandelbulb), el patrón del borde de la grieta debe cambiar de forma reconocible: power bajo (2-3) da bordes más simples; power alto (7-8) da el Mandelbulb clásico con más lóbulos y colas. El frente de fractura debe seguir visiblemente esos lóbulos."
+    },
+    {
+      "id": "P4",
+      "label": "Darwinismo dimensional en Babel",
+      "text": "En modo Babel, partiendo de varias realidades de igual fuerza, una termina conquistando el volumen — no por azar puro sino por una ventaja inicial de territorio que se amplifica (el que más perímetro fractal tiene crece más rápido). Verificable: la realidad con mayor área temprana tiende a ser la que conquista."
+    }
+  ]
+}

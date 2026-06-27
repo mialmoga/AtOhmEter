@@ -1,0 +1,58 @@
+{
+  "title": "Óptica de un Cubo de Agua",
+  "formula": [
+    { "term": "∂²f/∂t² = c²∇²f − λf³",     "class": "ft-kin",   "key": "wave",   "op": null },
+    { "term": "− σ∇²f·|f|",                  "class": "ft-bohm",  "key": "tens",   "op": "+"  },
+    { "term": "L = Σ Lᵢ·exp(−αf)",           "class": "ft-snap",  "key": "light",  "op": ";"  },
+    { "term": "sono → flash(t)·δ(r−r₀)",    "class": "ft-higgs", "key": "sono",   "op": ";"  }
+  ],
+  "legend": [
+    { "key": "wave",  "label": "Onda fluido",      "color": "rgba(120,200,255,0.7)" },
+    { "key": "tens",  "label": "Tensión sup. σ",   "color": "rgba(255,255,255,0.5)" },
+    { "key": "light", "label": "Luces RGB",         "color": "rgba(255,150,80,0.8)"  },
+    { "key": "sono",  "label": "Sonoluminiscencia", "color": "rgba(255,255,200,0.9)" }
+  ],
+  "tooltips": {
+    "wave":  "∂²f/∂t² = c²∇²f − λf³ — Ecuación de ondas con no-linealidad cúbica. El término λf³ varía el índice de refracción local, produciendo cáustics — los patrones de luz concentrada visibles en el fondo de una piscina.",
+    "tens":  "−σ∇²f·|f| — Tensión superficial. Amortigua las frecuencias espaciales altas, evitando que las ondas se vuelvan demasiado puntiagudas. Es lo que le da al fluido su apariencia suave y líquida.",
+    "light": "Lᵢ = proyección volumétrica desde (xᵢ, ytop). Cada lámpara baña el cubo desde arriba. La densidad del fluido dispersa la luz (scattering). Donde R+G+B se suman → luz blanca aditiva.",
+    "sono":  "Sonoluminiscencia — cavitación acústica. Una burbuja de vapor colapsa bajo presión y libera un destello de luz de temperatura equivalente al sol. El modelo: burbuja (t<1s) → colapso + onda de choque → destello blanco (t~1.15s) → decaimiento."
+  },
+  "states": {
+    "vacuum":     "Fluido en calma. Las luces R/G/B empiezan a propagarse.",
+    "nucleating": "Primeras ondas. La luz empieza a refractarse en el fluido.",
+    "active":     "Ondas activas. Los cáustics son visibles — patrones de luz concentrada.",
+    "pumping":    "Alta velocidad. Zonas de mezcla RGB → luz blanca emergiendo.",
+    "locked":     "⚡ SONOLUMINISCENCIA ACTIVA. Destello de colapso de burbuja.",
+    "collapse":   "Turbulencia extrema."
+  },
+  "stateLabels": {
+    "vacuum":     "colors — en calma",
+    "nucleating": "colors — ondas iniciales",
+    "active":     "colors — cáustics activos",
+    "pumping":    "colors — mezcla RGB",
+    "locked":     "colors — ⚡ SONO",
+    "collapse":   "colors — turbulencia"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave":0.3, "tens":0.2, "light":0.6, "sono":0.1 },
+    "nucleating": { "wave":0.6, "tens":0.4, "light":0.7, "sono":0.1 },
+    "active":     { "wave":0.9, "tens":0.6, "light":0.8, "sono":0.2 },
+    "pumping":    { "wave":0.8, "tens":0.5, "light":1.0, "sono":0.3 },
+    "locked":     { "wave":0.5, "tens":0.3, "light":0.8, "sono":1.0 },
+    "collapse":   { "wave":1.0, "tens":0.8, "light":0.6, "sono":0.4 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Mezcla aditiva RGB",     "text": "R+G+B → blanco. La mezcla es aditiva como la luz real — no sustractiva como la pintura. Cyan=G+B, Magenta=R+B, Amarillo=R+G." },
+    { "status": "ok",   "label": "✓ Cáustics emergentes",    "text": "El término λf³ no simula cáustics directamente — los produce como efecto secundario de la variación no-lineal del índice de refracción." },
+    { "status": "ok",   "label": "✓ Touch reactivo",         "text": "El raycaster calcula la intersección ray→cubo y pasa las coordenadas locales al motor. El fluido responde con una perturbación gaussiana." },
+    { "status": "warn", "label": "⚠ Luz simplificada",       "text": "La propagación de luz es top-down (columnas Y). No es un raytracer real — es scattering volumétrico unidireccional. Suficiente para el efecto visual." },
+    { "status": "open", "label": "○ Sombras CMYK",           "text": "Las sombras proyectadas por objetos deberían ser CMYK (complementarias del RGB). Pendiente de implementar — requiere detección de oclusión." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Mezcla blanca",       "text": "Mover las tres luces al mismo X debe producir una columna de luz blanca central. Separadas → colores distintos que se mezclan en las intersecciones." },
+    { "id": "P2", "label": "Cáustics oscilantes", "text": "Con ondas activas, los cáustics deben oscilar al ritmo del fluido — los patrones de luz concentrada se mueven con las crestas de las ondas." },
+    { "id": "P3", "label": "Destello sono",       "text": "La inyección sono debe producir un destello blanco puntual seguido de una onda de choque radial visible en el fluido." },
+    { "id": "P4", "label": "Touch perturba luz",  "text": "Tocar el cubo debe crear una perturbación que dispersa las luces localmente — la zona tocada pierde color temporalmente." }
+  ]
+}

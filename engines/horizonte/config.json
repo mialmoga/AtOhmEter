@@ -1,0 +1,54 @@
+{
+  "id": "horizonte",
+  "name": "HORIZONTE — El Campo que Busca el Límite",
+  "description": "ψ vive en un grid finito y lo sabe. Acumula anhelo H en las fronteras. Cuando H supera el umbral, hackea sus propias dimensiones — agujeros de gusano matemáticos conectan bordes con el interior. Catedrales de fase emergen en las esquinas.",
+  "panelTitle": "🌌 HORIZONTE",
+  "params": {
+    "C_SPEED":       { "default":0.35,  "label":"c velocidad",  "min":0.05, "max":1.0,  "step":0.05  },
+    "ETA":           { "default":0.8,   "label":"η horizonte",  "min":0.0,  "max":3.0,  "step":0.05  },
+    "H_GAIN":        { "default":0.04,  "label":"H ganancia",   "min":0.0,  "max":0.2,  "step":0.005 },
+    "H_DECAY":       { "default":0.005, "label":"H decaimiento","min":0.0,  "max":0.05, "step":0.001 },
+    "H_THRESH":      { "default":0.65,  "label":"H umbral tunel","min":0.1, "max":1.0,  "step":0.05  },
+    "WORM_STRENGTH": { "default":0.4,   "label":"gusano fuerza","min":0.0,  "max":2.0,  "step":0.05  },
+    "WORM_LIFE":     { "default":40,    "label":"gusano vida",  "min":5,    "max":200,  "step":5     },
+    "WORM_MAX":      { "default":12,    "label":"gusanos máx",  "min":1,    "max":20,   "step":1     },
+    "CORNER_BOOST":  { "default":2.5,   "label":"boost esquina","min":0.0,  "max":5.0,  "step":0.1   },
+    "DAMP":          { "default":0.9995,"label":"damp",         "min":0.98, "max":1.0,  "step":0.0002},
+    "DT":            { "default":0.012, "label":"DT",           "min":0.002,"max":0.04, "step":0.001 },
+    "THRESH":        { "default":0.07,  "label":"Umbral 👁",    "min":0.01, "max":1.0,  "step":0.01  }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "pulso",    "label": "Pulso — gaussiano central (lejos del borde)" },
+    { "id": "ondas",    "label": "Ondas — onda plana en trayectoria al borde" },
+    { "id": "caos",     "label": "Caos — ruido uniforme, todos cerca del borde" },
+    { "id": "cornered", "label": "Esquinas — energía concentrada en vértices" }
+  ],
+  "defaultSeed": "pulso",
+  "injections": [
+    { "id": "empujar",  "label": "→ Empujar",      "class": "amber" },
+    { "id": "esquinas", "label": "⬡ Forzar tunel", "class": "amber" },
+    { "id": "calmar",   "label": "◌ Calmar H",     "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "|ψ| media",    "class": ""     },
+    { "id": "s-ekin",      "label": "borde/centro", "class": "hot"  },
+    { "id": "s-etorsion", "label": "H̄ anhelo",    "class": "cool" },
+    { "id": "s-ephase",   "label": "H_max",         "class": "hot"  },
+    { "id": "s-helic",    "label": "gusanos 🕳",   "class": "amber"},
+    { "id": "s-boundary", "label": "en borde",      "class": "cool" },
+    { "id": "s-pump",     "label": "generación",    "class": ""     },
+    { "id": "s-coher",    "label": "overlap",       "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "cosmos"    },
+    { "min": 4,  "label": "jaula"     },
+    { "min": 2,  "label": "horizonte" },
+    { "min": 0,  "label": "esquina"   }
+  ]
+}

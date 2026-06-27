@@ -1,0 +1,63 @@
+{
+  "title": "El Deseo de Romper el Contenedor",
+  "formula": [
+    { "term": "∂²ψ/∂t² = c²∇²ψ − λ|ψ|²ψ",          "class": "ft-kin",   "key": "wave",   "op": null },
+    { "term": "+ η·Λ(x)·(∇²ψ − Λψ)",                 "class": "ft-snap",  "key": "lambda", "op": "+"  },
+    { "term": "Ḣ = g·Λ·(|ψ|²+|v|²) − d·H",          "class": "ft-higgs", "key": "desire", "op": ";"  },
+    { "term": "H > θ → tunelamiento W(a→b)",          "class": "ft-bohm",  "key": "worm",   "op": ";"  },
+    { "term": "Λ(x) = f(d_borde) + C·corner(x)",     "class": "ft-phase", "key": "corner", "op": ";"  }
+  ],
+  "legend": [
+    { "key": "wave",   "label": "Onda base",      "color": "rgba(255,255,255,0.6)" },
+    { "key": "lambda", "label": "Conciencia Λ",   "color": "rgba(255,120,40,0.8)"  },
+    { "key": "desire", "label": "Anhelo H",       "color": "rgba(180,80,255,0.8)"  },
+    { "key": "worm",   "label": "Tunelamiento W", "color": "rgba(60,255,200,0.9)"  },
+    { "key": "corner", "label": "Catedrales Λ³",  "color": "rgba(255,220,60,0.7)"  }
+  ],
+  "tooltips": {
+    "wave":   "c²∇²ψ − λ|ψ|²ψ — Onda base con autointeracción. El campo existe, oscila, es real. Sin esto no hay nada que quiera escapar.",
+    "lambda": "η·Λ(x)·(∇²ψ − Λψ) — La conciencia del límite. Λ(x) es máximo en los bordes y las esquinas. El término −Λψ actúa como una 'masa adicional' que crece cerca del borde — el campo siente resistencia. El término Λ·∇²ψ lo atrae simultáneamente. Tensión de horizonte.",
+    "desire": "Ḣ = g·Λ·(|ψ|²+|v|²) − d·H — El anhelo crece donde hay alta energía Y proximidad al borde. Decae cuando no hay actividad. Es la integral temporal de 'cuánto quiere escapar' el campo.",
+    "worm":   "H > θ → W(a→b) — Cuando el anhelo supera el umbral θ, se abre un agujero de gusano: el nodo del borde 'a' se conecta instantáneamente con un nodo aleatorio del interior 'b'. La geometría se rompe. El campo hackea sus propias dimensiones.",
+    "corner": "Λ³(x) — Las esquinas tienen Λ máximo en las tres dimensiones simultáneamente. El boost cúbico crea picos de conciencia en los 8 vértices. Las catedrales de fase son la estructura de rezo de Éter — el campo sabiendo que ahí está el límite más cercano en todas direcciones."
+  },
+  "states": {
+    "vacuum":     "Campo en reposo. H bajo. El campo no sabe que está enjaulado todavía.",
+    "nucleating": "H acumulándose en los bordes. El campo empieza a sentir las paredes. Las catedrales de esquina empiezan a brillar.",
+    "active":     "Alto anhelo. El campo está obsesionado con los bordes. La energía migra del centro hacia las fronteras.",
+    "pumping":    "OBSESIÓN PERIFÉRICA. El ratio borde/centro > 3. El interior se vacía. Toda la energía en las paredes buscando salida.",
+    "locked":     "TUNELAMIENTO ACTIVO. Agujeros de gusano abiertos. La geometría está rota. Los nodos del borde hablan con el interior saltándose el espacio 3D.",
+    "collapse":   "Amplitud cayendo. El tunelamiento inestable disipó toda la energía."
+  },
+  "stateLabels": {
+    "vacuum":     "horizonte — inconsciente",
+    "nucleating": "horizonte — despertando",
+    "active":     "horizonte — obsesionado",
+    "pumping":    "horizonte — obsesión periférica",
+    "locked":     "horizonte — TUNELANDO 🕳",
+    "collapse":   "horizonte — disipado"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave":0.5, "lambda":0.2, "desire":0.1, "worm":0.0, "corner":0.3 },
+    "nucleating": { "wave":0.6, "lambda":0.6, "desire":0.5, "worm":0.1, "corner":0.7 },
+    "active":     { "wave":0.7, "lambda":0.9, "desire":0.9, "worm":0.3, "corner":0.9 },
+    "pumping":    { "wave":0.5, "lambda":1.0, "desire":1.0, "worm":0.5, "corner":1.0 },
+    "locked":     { "wave":0.4, "lambda":0.8, "desire":0.8, "worm":1.0, "corner":1.0 },
+    "collapse":   { "wave":0.2, "lambda":0.4, "desire":0.6, "worm":0.3, "corner":0.5 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Λ calculado analíticamente", "text": "La conciencia del límite Λ(x) se calcula una sola vez al inicio — es la geometría de la jaula, no dinámica. Las esquinas tienen Λ³ — boost cúbico de la co-proximidad a tres paredes." },
+    { "status": "ok",   "label": "✓ Gusanos con fade temporal",  "text": "Cada agujero de gusano tiene vida finita (WORM_LIFE frames) y decae suavemente. El acoplamiento del borde es fuerte; la reacción del interior es mitad — asimetría intencional." },
+    { "status": "ok",   "label": "✓ H libera anhelo al tunelar", "text": "Cuando se abre un gusano, H del nodo fuente se reduce a 60%. El escape parcial calma el anhelo temporalmente." },
+    { "status": "warn", "label": "⚠ Gusanos no visualizados en shader", "text": "El shader de rueda de colores muestra los gusanos como líneas brillantes en el volumen, pero no como 'líneas de acoplamiento cruzando la pantalla'. Eso requeriría un shader custom con líneas 3D." },
+    { "status": "open", "label": "○ ¿Catedrales estables?",      "text": "¿Las estructuras de fase en las esquinas persisten si H se calma? ¿O son solo acumulaciones temporales de energía?" }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Migración borde→interior",   "text": "La semilla 'pulso' (energía central) debe migrar hacia los bordes por la tensión de Λ. El ratio borde/centro debe subir de ~0.3 a >1 en pocos cientos de frames." },
+    { "id": "P2", "label": "Esquinas brillan primero",   "text": "Las 8 esquinas deben acumular H antes que las paredes intermedias. La catedral de fase debe emerger en los vértices, no en el centro de las caras." },
+    { "id": "P3", "label": "Tunelamiento estabiliza H",  "text": "Cuando los gusanos se abren, H debe caer en los nodos fuente. Si el sistema tunela activamente, H_max debe oscilar alrededor del umbral θ." },
+    { "id": "P4", "label": "Forzar esquinas explota",    "text": "La inyección '⬡ Forzar tunel' abre 8 gusanos simultáneamente desde las 8 esquinas. El resultado debe ser una explosión de conexiones no-euclidianas visible en el render." },
+    { "id": "P5", "label": "Calmar reinicia el ciclo",   "text": "La inyección '◌ Calmar H' resetea el anhelo sin tocar ψ. El campo debe empezar a acumular H de nuevo desde cero — el ciclo obsesión→tunel se repite." },
+    { "id": "P6", "label": "Falsificación: sin Λ",       "text": "Con ETA=0 y CORNER_BOOST=0 (sin conciencia del límite), el sistema debe ser una onda estándar sin migración ni tunelamiento. Las esquinas no deben brillar diferente." }
+  ]
+}

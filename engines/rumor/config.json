@@ -1,0 +1,52 @@
+{
+  "id": "rumor",
+  "name": "RUMOR — Autómata de Consenso",
+  "description": "Un autómata celular cuántico sin ecuaciones diferenciales. Cada generación, cada celda pregunta a sus vecinos qué piensan. El orden emerge del consenso. El caos vive en las fronteras del disenso.",
+  "panelTitle": "📣 RUMOR",
+  "params": {
+    "CONFORMITY":   { "default":0.65, "label":"conformidad",  "min":0.0,  "max":1.0,  "step":0.01 },
+    "INTERFERENCE": { "default":0.8,  "label":"interferencia","min":0.0,  "max":2.0,  "step":0.05 },
+    "REBELLION":    { "default":0.04, "label":"rebeldía",     "min":0.0,  "max":0.3,  "step":0.005},
+    "AMPLITUDE":    { "default":0.92, "label":"decaimiento",  "min":0.7,  "max":1.0,  "step":0.005},
+    "STUBBORNNESS": { "default":0.3,  "label":"terquedad",    "min":0.0,  "max":1.0,  "step":0.01 },
+    "REACH":        { "default":1,    "label":"alcance",      "min":1,    "max":3,    "step":1    },
+    "POLARITY":     { "default":1.0,  "label":"polaridad",    "min":-1.0, "max":1.0,  "step":0.1  },
+    "THRESH":       { "default":0.08, "label":"Umbral 👁",    "min":0.01, "max":1.0,  "step":0.01 }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "gossip",    "label": "Chisme — un grito en el silencio" },
+    { "id": "facciones", "label": "Facciones — 8 grupos en desacuerdo" },
+    { "id": "consenso",  "label": "Consenso — todos de acuerdo (¿aguanta?)" },
+    { "id": "antiferro", "label": "Antiferro — vecinos siempre opuestos" },
+    { "id": "espiral",   "label": "Espiral — vórtice de opinión" },
+    { "id": "ruido",     "label": "Ruido — caos puro" }
+  ],
+  "defaultSeed": "gossip",
+  "injections": [
+    { "id": "chisme",        "label": "📣 Chisme",       "class": "amber" },
+    { "id": "contradiccion", "label": "⊗ Contradicción", "class": "amber" },
+    { "id": "silencio",      "label": "◌ Silencio",      "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "amplitud",    "class": "hot"  },
+    { "id": "s-ekin",      "label": "cambio/gen",  "class": ""     },
+    { "id": "s-etorsion", "label": "disenso",     "class": "hot"  },
+    { "id": "s-ephase",   "label": "consenso",    "class": "cool" },
+    { "id": "s-boundary", "label": "frontera",    "class": "amber"},
+    { "id": "s-pump",     "label": "generación",  "class": ""     },
+    { "id": "s-umax",     "label": "|ψ|_max",    "class": ""     },
+    { "id": "s-coher",    "label": "overlap",     "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "red"        },
+    { "min": 4,  "label": "facción"    },
+    { "min": 2,  "label": "frontera"   },
+    { "min": 0,  "label": "celda"      }
+  ]
+}

@@ -1,0 +1,98 @@
+{
+  "id": "muse",
+  "name": "MUSE — El campo que nos inspiró otro laboratorio",
+  "description": "Un campo cuyo voltaje no se calcula con física: se genera con lógica booleana sobre las coordenadas (popcount de un operador entre ejes discretizados). El patrón ya vive en la aritmética. MUSE pregunta lo que su inspiración no preguntaba: ¿qué pasa cuando el tiempo toca ese campo eterno? Tres modos: revelarlo (Atlas), habitarlo (Terreno), o dejarlo derivar (Deriva). Inspirado por ŚN1E de Rafał P. J. Borkowski — https://tempolux.life/sn1e",
+  "panelTitle": "🜂 MUSE",
+  "params": {
+    "RULE": {
+      "default": 6,
+      "label": "regla (DNA)",
+      "min": 0,
+      "max": 15,
+      "step": 1
+    },
+    "GEOM": {
+      "default": 0,
+      "label": "geometría i/ii",
+      "min": 0,
+      "max": 1,
+      "step": 1
+    },
+    "BITS": {
+      "default": 5,
+      "label": "bits (zoom)",
+      "min": 2,
+      "max": 8,
+      "step": 1
+    },
+    "ATRACCION": {
+      "default": 0.6,
+      "label": "atracción (B)",
+      "min": 0.0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    "DIFUSION": {
+      "default": 0.15,
+      "label": "difusión (B)",
+      "min": 0.0,
+      "max": 0.6,
+      "step": 0.02
+    },
+    "MUTACION": {
+      "default": 0.01,
+      "label": "mutación (C)",
+      "min": 0.002,
+      "max": 0.2,
+      "step": 0.002
+    },
+    "DT": {
+      "default": 0.5,
+      "label": "DT",
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "THRESH": {
+      "default": 0.05,
+      "label": "Umbral 👁",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "seeds": [
+    { "id": "atlas",   "label": "A · Atlas — el patrón lógico puro (revelación)" },
+    { "id": "terreno", "label": "B · Terreno — polvo que cae al patrón (habitar)" },
+    { "id": "deriva",  "label": "C · Deriva — la regla muta en el tiempo" }
+  ],
+  "defaultSeed": "atlas",
+  "injections": [
+    { "id": "transmutar", "label": "⟳ Transmutar", "class": "amber" },
+    { "id": "sembrar",    "label": "⊕ Sembrar (B)", "class": "" },
+    { "id": "cuantizar",  "label": "▦ Cuantizar",   "class": "" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "intensidad",  "class": "hot"  },
+    { "id": "s-etorsion", "label": "estructura",  "class": "cool" },
+    { "id": "s-ephase",   "label": "contraste",   "class": ""     },
+    { "id": "s-boundary", "label": "concentr./estr.", "class": "cool" },
+    { "id": "s-thmax",    "label": "operador",    "class": "amber" },
+    { "id": "s-pump",     "label": "regla (deriva)", "class": "amber" },
+    { "id": "s-umax",     "label": "campo max",   "class": ""     }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "el atlas"     },
+    { "min": 4, "label": "el operador"  },
+    { "min": 2, "label": "los bits"     },
+    { "min": 0, "label": "la regla"     }
+  ]
+}

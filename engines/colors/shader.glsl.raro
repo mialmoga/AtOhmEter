@@ -1,0 +1,273 @@
+// === VERTEX ===
+    varying vec3 vWorldPos;
+    varying vec3 vLocalPos;
+    uniform float uBoxSize;
+    void main(){
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        vLocalPos = position / uBoxSize;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+
+
+// === FRAGMENT ===
+// ══════════════════════════════════════════════════════════════
+//  COLORS — Cubo de Agua con Luces RGB
+//
+//  renderVolume → brillo total (fluido + luz + sono)
+//  phaseData    → color dominante codificado en [0,1]
+//                 0.0=rojo, 0.33=verde, 0.66=azul, 0.5=blanco
+//
+//  El shader decodifica phaseData para reconstruir el color RGB
+//  y añade: iridiscencia, cáustics, fresnel, sonoluminiscencia
+// ══════════════════════════════════════════════════════════════
+
+precision highp float;
+precision highp sampler3D;
+
+varying vec3 vWorldPos;
+varying vec3 vLocalPos;
+
+uniform vec3      uCameraPos;
+uniform vec3      uCameraLocal;
+uniform float     uTime;
+uniform float     uThresh;
+uniform float     uEnergy;
+uniform sampler3D uVolume;
+uniform sampler3D uPhase;
+// Raycaster
+uniform vec3      uTouchPos;
+uniform float     uTouchActive;
+uniform float     uTouchTime;
+
+float sampleVol(vec3 p){
+    vec3 uvw=p*0.5+0.5;
+    if(any(lessThan(uvw,vec3(0.0)))||any(greaterThan(uvw,vec3(1.0)))) return 0.0;
+    return texture(uVolume,uvw).r;
+}
+float samplePhase(vec3 p){
+    vec3 uvw=p*0.5+0.5;
+    if(any(lessThan(uvw,vec3(0.0)))||any(greaterThan(uvw,vec3(1.0)))) return 0.5;
+    return texture(uPhase,uvw).r;
+}
+
+// Decodificar phase → color RGB
+// Rueda de cosenos: transiciones suaves entre R(0) → G(0.33) → B(0.66) → R(1)
+// ph=0.5 produce blanco natural por suma de los tres canales
+vec3 decodeColor(float ph){
+    float a = ph * 6.28318; // una vuelta completa
+    float r = clamp(0.5 + 0.5*cos(a),              0.0, 1.0);
+    float g = clamp(0.5 + 0.5*cos(a - 2.09440),    0.0, 1.0); // 120°
+    float b = clamp(0.5 + 0.5*cos(a - 4.18879),    0.0, 1.0); // 240°
+    return clamp(vec3(r, g, b), 0.0, 1.0);
+}
+
+// Iridiscencia — thin-film interference con split cromático real
+// Cada canal RGB tiene frecuencia de interferencia distinta,
+// lo que produce el efecto arcoíris dependiente del ángulo
+// similar a alas de mariposa o superficies de burbuja de jabón
+vec3 iridescence(vec3 rd, vec3 normal, float thickness, float ph){
+    float cosA = abs(dot(-rd, normal));
+
+    // Frecuencias distintas por canal: simula longitudes de onda reales
+    // R ~ 700nm, G ~ 550nm, B ~ 440nm → ratio ~1.0 : 1.27 : 1.59
+    float phR = thickness * cosA * 6.0  + uTime * 0.18;
+    float phG = thickness * cosA * 7.6  + uTime * 0.14;
+    float phB = thickness * cosA * 9.5  + uTime * 0.22;
+
+    // Interferencia constructiva/destructiva independiente por canal
+    vec3 iri = vec3(
+        0.5 + 0.5 * sin(phR),
+        0.5 + 0.5 * sin(phG + ph * 2.0),  // phase data modula el verde
+        0.5 + 0.5 * sin(phB)
+    );
+
+    // Segunda capa de interferencia — crea los filamentos finos
+    float phR2 = thickness * cosA * 18.0 - uTime * 0.11;
+    float phB2 = thickness * cosA * 22.0 + uTime * 0.09;
+    iri.r += 0.3 * sin(phR2);
+    iri.b += 0.3 * sin(phB2);
+
+    return clamp(iri, 0.0, 1.0);
+}
+
+// Normal aproximada del fluido
+vec3 fluidNormal(vec3 pos){
+    float eps=0.04;
+    float dx=sampleVol(pos+vec3(eps,0,0))-sampleVol(pos-vec3(eps,0,0));
+    float dy=sampleVol(pos+vec3(0,eps,0))-sampleVol(pos-vec3(0,eps,0));
+    float dz=sampleVol(pos+vec3(0,0,eps))-sampleVol(pos-vec3(0,0,eps));
+    return normalize(vec3(dx,dy,dz)+0.001);
+}
+
+// Cáustics tipo filamentos — redes de luz en las caras del cubo
+// Inspirado en cáustics reales de superficie de agua
+float causticFilaments(vec3 pos, float t){
+    // Múltiples capas de ruido sinusoidal que crean filamentos
+    vec3 p = pos * 8.0;
+    float c1 = sin(p.x*1.3 + t*0.8) * sin(p.z*1.1 - t*0.6);
+    float c2 = sin(p.x*0.7 - p.z*1.4 + t*1.1) * sin(p.y*0.9 + t*0.4);
+    float c3 = sin(p.x*2.1 + p.y*0.8 - t*0.7) * sin(p.z*1.7 + t*0.5);
+    // Los filamentos emergen donde los cosenos se cruzan cerca de 1
+    float caustic = c1*c1 + c2*c2 + c3*c3;
+    // Umbral muy alto → filamentos delgados y brillantes como la referencia
+    return smoothstep(0.88, 1.0, caustic) * 4.0;
+}
+
+// Efecto de toque — ondas que emanan del punto tocado
+float touchRipple(vec3 pos){
+    if(uTouchPos.x > 5.0) return 0.0; // sin toque activo
+    float dist = length(pos - uTouchPos);
+    float t = uTouchTime;
+    // Onda que se expande desde el punto de toque
+    float wave = sin(dist*15.0 - t*8.0) * exp(-dist*3.0) * exp(-t*1.5);
+    return max(0.0, wave) * (1.0 - smoothstep(0.0, 0.3, t));
+}
+
+// Sonoluminiscencia — destello puntual de luz blanca
+float sonoFlash(vec3 pos){
+    // El sono está codificado en el volumen como alta densidad puntual
+    // Lo detectamos con un sample local
+    float s = sampleVol(pos);
+    return s > 0.8 ? (s - 0.8) * 5.0 : 0.0;
+}
+
+float boxExit(vec3 ro,vec3 rd,float hs){
+    vec3 invD=1.0/rd;
+    vec3 t0=(-hs-ro)*invD,t1=(hs-ro)*invD;
+    vec3 tm=max(t0,t1);
+    return min(min(tm.x,tm.y),tm.z);
+}
+
+void main(){
+    vec3 ro=uCameraLocal;
+    vec3 rd=normalize(vLocalPos-ro);
+    float tMax=boxExit(ro,rd,1.0);
+    if(tMax<0.0) discard;
+
+    float tStart=0.001;
+    if(!all(greaterThan(ro,vec3(-1.0)))||!all(lessThan(ro,vec3(1.0)))){
+        vec3 invD=1.0/rd;
+        vec3 t0=(-1.0-ro)*invD,t1=(1.0-ro)*invD;
+        vec3 tm=min(t0,t1);
+        tStart=max(max(tm.x,tm.y),tm.z);
+        if(tStart<0.0) tStart=0.001;
+    }
+
+    float stepSize=2.0/80.0;
+    int steps=int(min((tMax-tStart)/stepSize,128.0));
+    vec4 acc=vec4(0.0);
+
+    for(int i=0;i<128;i++){
+        if(i>=steps) break;
+        float t=tStart+(float(i)+0.5)*stepSize;
+        vec3 pos=ro+rd*t;
+        float d=sampleVol(pos);
+        float ph=samplePhase(pos);
+
+        // Umbral más bajo para ver el fluido tenue
+        if(d < uThresh*0.3) continue;
+
+        float density=smoothstep(uThresh*0.3, uThresh*4.0, d);
+
+        // ── Color base desde phaseData ────────────────────────
+        vec3 baseCol = decodeColor(ph);
+
+        // ── Normal del fluido ──────────────────────────────────
+        vec3 normal = fluidNormal(pos);
+
+        // ── Fresnel — más iridiscencia en ángulos rasantes ────
+        float cosV    = abs(dot(-rd, normal));
+        float fresnel = pow(1.0 - cosV, 3.0); // más pronunciado que ^2
+
+        // ── Iridiscencia — thin-film con split cromático ───────
+        // thickness varía con posición y tiempo para animar los filamentos
+        float thickness = 0.4 + 0.25*sin(pos.x*3.0 + uTime*0.3)
+                              + 0.25*sin(pos.z*2.5 - uTime*0.2)
+                              + 0.15*sin(pos.y*2.0 + uTime*0.15);
+        vec3 iri = iridescence(rd, normal, thickness, ph);
+
+        // En ángulos rasantes domina iridiscencia, frontal domina color base
+        vec3 col = mix(baseCol, iri, fresnel * 0.85 + 0.15);
+
+        // ── Cáustics — filamentos iridiscentes ────────────────
+        float caust = causticFilaments(pos, uTime);
+        // Los filamentos toman el color iridiscente, no solo el base
+        vec3 caustCol = mix(baseCol, iri, 0.7);
+        col += caustCol * caust * 0.8 * density;
+
+        // ── Especular — tres luces R G B desde arriba ─────────
+        // Direcciones aproximadas a la orientación de las lámparas del motor
+        vec3 lR = normalize(vec3(-0.7,  1.0, 0.0));
+        vec3 lG = normalize(vec3( 0.0,  1.0, 0.0));
+        vec3 lB = normalize(vec3( 0.7,  1.0, 0.0));
+        vec3 refl = reflect(rd, normal);
+        float sR = pow(max(0.0, dot(refl, lR)), 64.0);
+        float sG = pow(max(0.0, dot(refl, lG)), 64.0);
+        float sB = pow(max(0.0, dot(refl, lB)), 64.0);
+        // Cada luz aporta su color al especular
+        vec3 specCol = vec3(sR, sG, sB);
+        float spec   = sR + sG + sB;
+        col += specCol * 1.2;
+
+        // ── Ripple de toque ────────────────────────────────────
+        float ripple = touchRipple(pos);
+        col += vec3(0.8, 0.9, 1.0) * ripple * 0.5;
+
+        // ── Sonoluminiscencia ──────────────────────────────────
+        float sono = sonoFlash(pos);
+        col += vec3(1.0, 0.97, 0.9) * sono * 3.0; // destello blanco cálido
+
+        // ── Profundidad — el fluido es translúcido ─────────────
+        float depth = (t - tStart) / (tMax - tStart);
+        col *= 0.6 + 0.4*depth;
+
+        // Alpha bajo para que el volumen sea oscuro entre filamentos
+        // El especular y las cáustics son los protagonistas
+        float alpha = density * 0.025 + spec * 0.12 + sono * 0.2 + caust * 0.03;
+        acc.rgb += col * alpha * (1.0 - acc.a);
+        acc.a   += alpha       * (1.0 - acc.a);
+        if(acc.a > 0.95) break;
+    }
+
+    // ── Cáustics proyectados en las caras del cubo ────────────
+    // Filamentos iridiscentes en las paredes del cubo
+    // Se vuelven más intensos cuanto más cerca de la cara
+    float face_dist = 1.0 - min(
+        min(abs(abs(vLocalPos.x)-0.95), abs(abs(vLocalPos.y)-0.95)),
+        abs(abs(vLocalPos.z)-0.95)
+    );
+    float face_caust = causticFilaments(vLocalPos*2.0, uTime*0.8) * face_dist;
+
+    // Color iridiscente en las caras — varía con posición y tiempo
+    float facePh  = fract(vLocalPos.x*1.5 + vLocalPos.z*1.2 + uTime*0.07);
+    float facePhB = fract(vLocalPos.x*1.7 + vLocalPos.y*1.3 - uTime*0.05);
+    // Split cromático en las caras: R y B ligeramente desplazados
+    vec3 faceIri = vec3(
+        0.5 + 0.5*sin(facePh  * 6.28318),
+        0.5 + 0.5*sin(facePh  * 6.28318 * 1.27 + 1.0),
+        0.5 + 0.5*sin(facePhB * 6.28318 * 1.59)
+    );
+
+    // Borde del cubo — reflexión interna iridiscente
+    float edgeMask = max(max(abs(vLocalPos.x), abs(vLocalPos.y)), abs(vLocalPos.z));
+    float edge     = smoothstep(0.80, 0.99, edgeMask);
+
+    // Las caras siempre reciben algo de cáustics iridiscentes
+    acc.rgb += faceIri * face_caust * (0.6 + edge * 0.6);
+    acc.a   += face_caust * 0.15;
+
+    // Borde brillante — reflexión interna fuerte en las aristas
+    if(edge > 0.0){
+        float edgePh2 = fract(vLocalPos.x*2.5 + vLocalPos.y*2.0 + vLocalPos.z*1.8 + uTime*0.12);
+        vec3 edgeCol  = vec3(
+            0.5 + 0.5*sin(edgePh2 * 6.28318),
+            0.5 + 0.5*sin(edgePh2 * 6.28318 + 2.094),
+            0.5 + 0.5*sin(edgePh2 * 6.28318 + 4.189)
+        );
+        acc.rgb += edgeCol * edge * 0.4;
+        acc.a   += edge * 0.25;
+    }
+
+    gl_FragColor = clamp(acc, 0.0, 1.0);
+}

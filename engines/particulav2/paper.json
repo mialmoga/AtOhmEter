@@ -1,0 +1,56 @@
+{
+  "title": "La Tabla de las Relaciones",
+  "formula": [
+    { "term": "F_ab = T[tₐ][t_b] · f(d)",    "class": "ft-kin",   "key": "table",   "op": null },
+    { "term": "f(d) = perfil suave [Rmin,Rmax]","class": "ft-higgs", "key": "profile", "op": "×"  },
+    { "term": "v ← (v + F·Δ) · μ",            "class": "ft-snap",  "key": "integrate","op": ";"  }
+  ],
+  "legend": [
+    { "key": "table",    "label": "Tabla T[i][j]",  "color": "rgba(255,255,255,0.6)" },
+    { "key": "profile",  "label": "Perfil f(d)",     "color": "rgba(60,200,255,0.7)"  },
+    { "key": "integrate","label": "Integración",     "color": "rgba(255,200,60,0.7)"  }
+  ],
+  "tooltips": {
+    "table":    "T[i][j] — La tabla de fuerzas. T[i][j]>0: tipo i es atraído por tipo j. T[i][j]<0: se repele. La tabla NO tiene que ser simétrica — i puede querer estar cerca de j aunque j huya de i. Ahí está la riqueza.",
+    "profile":  "f(d) — Perfil de fuerza suavizado. En d<Rmin: repulsión dura (evita superposición). Entre Rmin y 0.3·Rmax: la fuerza sube hasta su máximo. Luego decae a 0 en Rmax. Sin fricción: caos. Con fricción: estructuras.",
+    "integrate": "v ← (v + F·Δ)·μ — Euler simple. La fricción μ < 1 es lo que permite estructuras estables — sin ella el sistema explota. Con μ≈1 las partículas tienen inercia y forman órbitas."
+  },
+  "states": {
+    "vacuum":    "Sin partículas activas.",
+    "nucleating": "Sistema organizándose. Las fuerzas están empujando los tipos hacia sus configuraciones preferidas.",
+    "active":    "Alta velocidad. Las partículas están en movimiento activo — aún no convergieron a estructuras.",
+    "pumping":   "Velocidad media. Estructuras moviéndose — clusters orbitando, depredadores persiguiendo.",
+    "stable":    "Baja velocidad. Estructuras cristalizadas. La tabla encontró su configuración de mínima energía.",
+    "locked":    "Sistema casi estático. Equilibrio encontrado.",
+    "collapse":  "Sin partículas."
+  },
+  "stateLabels": {
+    "vacuum":     "partícula — vacío",
+    "nucleating": "partícula — organizando",
+    "active":     "partícula — activo",
+    "pumping":    "partícula — orbitando",
+    "stable":     "partícula — estructuras",
+    "locked":     "partícula — cristalizado",
+    "collapse":   "partícula — colapso"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "table":0.2, "profile":0.2, "integrate":0.2 },
+    "nucleating": { "table":0.8, "profile":0.6, "integrate":0.5 },
+    "active":     { "table":1.0, "profile":0.8, "integrate":0.8 },
+    "pumping":    { "table":0.8, "profile":0.6, "integrate":1.0 },
+    "stable":     { "table":0.5, "profile":0.4, "integrate":0.5 },
+    "locked":     { "table":0.3, "profile":0.2, "integrate":0.3 },
+    "collapse":   { "table":0.1, "profile":0.1, "integrate":0.1 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Tabla asimétrica",      "text": "T[i][j] ≠ T[j][i] — la atracción puede no ser mutua. Depredador-presa, simbiosis unidireccional, parasitismo." },
+    { "status": "ok",   "label": "✓ Periodicidad",           "text": "Caja periódica [-1,1]³ — las partículas que salen por un lado entran por el otro. Sin bordes artificiales." },
+    { "status": "warn", "label": "⚠ O(n²) por step",        "text": "Todos los pares. Con N=600 son 360,000 comparaciones/step. En N=32 es fluido. En N=64 puede ser lento en móvil." },
+    { "status": "open", "label": "○ Tabla editable",         "text": "La tabla FORCES en config.json es editable. Próxima versión: sliders para cada entrada T[i][j] en el panel ⚙." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Segregación espontánea",  "text": "La semilla 'mix' debe separarse en clusters por tipo en < 200 steps, dependiendo de la tabla de fuerzas." },
+    { "id": "P2", "label": "Inversión = caos",         "text": "Inyectar 'invertir F' debe desintegrar todas las estructuras existentes — lo que se atraía ahora se repele." },
+    { "id": "P3", "label": "Órbitas estables",         "text": "Con fricción alta (μ > 0.95) deben aparecer órbitas estables entre tipos con T[i][j] > 0 y T[j][i] < 0." }
+  ]
+}

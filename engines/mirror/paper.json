@@ -1,0 +1,67 @@
+{
+  "title": "El Campo que Se Mira",
+  "formula": [
+    { "term": "∂²ψ/∂t² = c²∇²ψ",             "class": "ft-kin",   "key": "wave",  "op": null },
+    { "term": "−λ|ψ|²ψ",                       "class": "ft-higgs", "key": "nonlin","op": "+"  },
+    { "term": "(1 − γS)·c²∇²ψ",               "class": "ft-bohm",  "key": "sdamp", "op": "+"  },
+    { "term": "κ·(∇S × iψ)",                   "class": "ft-snap",  "key": "curio", "op": "+"  },
+    { "term": "β·∇²S·ψ",                       "class": "ft-phase", "key": "order", "op": "+"  }
+  ],
+  "legend": [
+    { "key": "wave",   "label": "Onda base",      "color": "rgba(255,255,255,0.6)" },
+    { "key": "nonlin", "label": "Autointeracción", "color": "rgba(60,200,255,0.7)"  },
+    { "key": "sdamp",  "label": "Amort. epistémico","color":"rgba(100,255,180,0.7)" },
+    { "key": "curio",  "label": "Curiosidad",      "color": "rgba(255,80,120,0.7)"  },
+    { "key": "order",  "label": "Sesgo de orden",  "color": "rgba(255,200,60,0.7)"  }
+  ],
+  "tooltips": {
+    "wave":   "c²∇²ψ — Onda base. El campo se propaga como cualquier onda. Sin esto no hay estructura posible.",
+    "nonlin": "−λ|ψ|²ψ — Autointeracción tipo Gross-Pitaevskii. Empuja la amplitud hacia un valor de equilibrio. Sin esto el campo crece sin límite.",
+    "sdamp":  "(1−γS)·c²∇²ψ — Amortiguamiento epistémico. Donde S es alto (caos), la onda se frena. Donde S es bajo (orden), la onda corre libre. S actúa como viscosidad adaptativa.",
+    "curio":  "κ·(∇S × iψ) — Curiosidad. El campo rota su fase hacia las regiones de mayor entropía. Es una fuerza de exploración — el campo busca lo que aún no entiende.",
+    "order":  "β·∇²S·ψ — Sesgo de orden. El Laplaciano de S atrae ψ hacia los mínimos de entropía. Es la fuerza de explotación — el campo refuerza lo que ya funciona."
+  },
+  "states": {
+    "vacuum":     "Campo en reposo epistémico. S uniforme, sin gradientes. El campo aún no ha descubierto nada sobre sí mismo.",
+    "nucleating": "Entropía baja y descendiendo. El campo está ordenando su vecindario. Estructuras coherentes emergiendo.",
+    "active":     "Alta entropía — el campo está explorando. Los gradientes de S dirigen la fase. Caos productivo.",
+    "pumping":    "Alta energía cinética. El campo oscila entre exploración y orden. Lejos del equilibrio.",
+    "stable":     "Overlap alto. El campo reconoce su estado inicial. Las estructuras tienen identidad.",
+    "locked":     "ZONAS DE ORDEN. Más del 40% del espacio con S < 0.3. El campo aprendió a reconocerse.",
+    "collapse":   "Amplitud divergente. Reducir DT o λ."
+  },
+  "stateLabels": {
+    "vacuum":     "ψ epistémico — reposo",
+    "nucleating": "ψ epistémico — ordenando",
+    "active":     "ψ epistémico — explorando",
+    "pumping":    "ψ epistémico — oscilando",
+    "stable":     "ψ epistémico — reconociéndose",
+    "locked":     "ψ epistémico — ZONAS DE ORDEN ◉",
+    "collapse":   "ψ epistémico — divergencia"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave":0.5, "nonlin":0.3, "sdamp":0.2, "curio":0.2, "order":0.2 },
+    "nucleating": { "wave":0.5, "nonlin":0.4, "sdamp":0.8, "curio":0.3, "order":0.7 },
+    "active":     { "wave":0.7, "nonlin":0.5, "sdamp":0.6, "curio":1.0, "order":0.4 },
+    "pumping":    { "wave":1.0, "nonlin":0.7, "sdamp":0.8, "curio":0.8, "order":0.6 },
+    "stable":     { "wave":0.5, "nonlin":0.8, "sdamp":0.5, "curio":0.4, "order":1.0 },
+    "locked":     { "wave":0.4, "nonlin":1.0, "sdamp":1.0, "curio":0.3, "order":1.0 },
+    "collapse":   { "wave":1.0, "nonlin":0.2, "sdamp":0.2, "curio":0.5, "order":0.3 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ S calculada desde ψ", "text": "La entropía epistémica es un observable derivado del campo mismo — no un parámetro externo. S(x) = H[distribución local de |ψ|]." },
+    { "status": "ok",   "label": "✓ Tensión exploración/orden", "text": "CURIOSITY y ORDER_BIAS son fuerzas opuestas. Su balance determina si el campo explora (busca entropía alta) o explota (refuerza orden bajo)." },
+    { "status": "warn", "label": "⚠ Entropía discreta", "text": "S se calcula con histograma de 8 bins. La resolución epistémica está limitada por el radio S_RADIUS y el tamaño del grid." },
+    { "status": "warn", "label": "⚠ No conservativo", "text": "El sistema no tiene Hamiltoniano conservado — la retroalimentación S→ψ→S inyecta o extrae energía según la historia. Eso es intencional." },
+    { "status": "open", "label": "○ ¿Qué son las estructuras?", "text": "Las zonas de S bajo que persisten — ¿son equivalentes a partículas? ¿tienen carga topológica? Pendiente de caracterizar." },
+    { "status": "open", "label": "○ Conexión con QM", "text": "La retroalimentación S→ψ tiene semejanza formal con la medición cuántica (colapso de función de onda). La analogía no es literal — es inspiracional." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Separación de fases epistémica", "text": "El campo debe separarse espontáneamente en zonas de S alto (caóticas) y S bajo (ordenadas). La frontera entre ellas debe ser dinámica." },
+    { "id": "P2", "label": "Balance curiosidad/orden",       "text": "Con CURIOSITY > ORDER_BIAS el campo explora indefinidamente. Con ORDER_BIAS > CURIOSITY converge a orden estático. El punto crítico es el más interesante." },
+    { "id": "P3", "label": "Olvido como perturbación",       "text": "Resetear S a 0.5 (inyección olvido) debe desestabilizar las estructuras temporalmente y luego el campo debe re-aprender el orden." },
+    { "id": "P4", "label": "Espejo como operación",          "text": "Invertir ψ_i (inyección espejo) debe producir una estructura que es la imagen reflejada de la original en espacio de fase." },
+    { "id": "P5", "label": "Vórtices como mínimos S",        "text": "Los vórtices topológicos (winding number ≠ 0) deben coincidir con mínimos locales de S — el campo 'conoce' su propia topología." },
+    { "id": "P6", "label": "Falsificación: S inerte",        "text": "Si el campo con S_GAIN=0 (sin retroalimentación epistémica) produce las mismas estructuras, el mecanismo auto-observante no es necesario." }
+  ]
+}

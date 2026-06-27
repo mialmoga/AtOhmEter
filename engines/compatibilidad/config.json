@@ -1,0 +1,91 @@
+{
+  "id": "compatibilidad",
+  "name": "COMPATIBILIDAD — Dimensión Emergente",
+  "description": "Experimento sobre la aparición de estructura persistente a partir de compatibilidad local, memoria y realimentación.",
+  "panelTitle": "⚗ COMPATIBILIDAD",
+
+  "params": {
+    "DIFFUSION": {
+      "default": 0.18,
+      "label": "Difusión",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    "ALIGN": {
+      "default": 0.55,
+      "label": "Compatibilidad",
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.01
+    },
+    "MEMORY": {
+      "default": 0.12,
+      "label": "Memoria",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.01
+    },
+    "SATURATION": {
+      "default": 0.45,
+      "label": "Saturación",
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.01
+    },
+    "DT": {
+      "default": 0.04,
+      "label": "dt",
+      "min": 0.001,
+      "max": 0.1,
+      "step": 0.001
+    },
+    "THRESH": {
+      "default": 0.06,
+      "label": "Umbral",
+      "min": 0.0,
+      "max": 0.5,
+      "step": 0.01
+    }
+  },
+
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+
+  "seeds": [
+    { "id": "ruido", "label": "Ruido primordial" },
+    { "id": "tribus", "label": "Dos tribus incompatibles" },
+    { "id": "isla", "label": "Isla coherente" },
+    { "id": "fractura", "label": "Fractura gradual" }
+  ],
+
+  "defaultSeed": "ruido",
+
+  "injections": [
+    { "id": "puente", "label": "⊕ Puente", "class": "amber" },
+    { "id": "choque", "label": "⊕ Choque", "class": "" },
+    { "id": "amnesia", "label": "⊕ Amnesia", "class": "" },
+    { "id": "ruido", "label": "⊕ Ruido", "class": "red" }
+  ],
+
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+
+  "hud": [
+    { "id": "s-etotal", "label": "actividad", "class": "hot" },
+    { "id": "s-coher", "label": "coherencia", "class": "cool" },
+    { "id": "s-boundary", "label": "compat", "class": "amber" },
+    { "id": "s-vortex", "label": "clusters", "class": "" },
+    { "id": "s-phimax", "label": "dim", "class": "cool" }
+  ],
+
+  "zoomLabels": [
+    { "min": 8, "label": "red global" },
+    { "min": 4, "label": "dominios" },
+    { "min": 0, "label": "vecindad" }
+  ]
+}

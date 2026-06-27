@@ -1,0 +1,67 @@
+{
+  "title": "El Campo que Recuerda",
+  "formula": [
+    { "term": "∂²ψ/∂t² = c²∇²ψ − λ|ψ|²ψ",       "class": "ft-kin",   "key": "wave",    "op": null },
+    { "term": "+ γ(1+A)·(M−ψ)",                    "class": "ft-bohm",  "key": "gravity", "op": "+"  },
+    { "term": "− ν|ψ−M|²·(ψ−M)",                  "class": "ft-snap",  "key": "novelty", "op": "+"  },
+    { "term": "Ṁ = w·(ψ−M) − f·M",                "class": "ft-higgs", "key": "memory",  "op": ";"  },
+    { "term": "Ȧ ∝ Θ(|ψ−M|<ε) − A·|ψ−M|",        "class": "ft-phase", "key": "age",     "op": ";"  }
+  ],
+  "legend": [
+    { "key": "wave",    "label": "Onda base",         "color": "rgba(255,255,255,0.6)" },
+    { "key": "gravity", "label": "Gravedad mnémica",  "color": "rgba(60,200,255,0.7)"  },
+    { "key": "novelty", "label": "Repulsión por eco", "color": "rgba(255,80,120,0.7)"  },
+    { "key": "memory",  "label": "Escritura M",       "color": "rgba(255,200,60,0.7)"  },
+    { "key": "age",     "label": "Antigüedad A",      "color": "rgba(100,255,180,0.7)" }
+  ],
+  "tooltips": {
+    "wave":    "c²∇²ψ − λ|ψ|²ψ — Onda base con autointeracción. Sin esto no hay estructura posible. La autointeracción evita que la amplitud crezca sin límite.",
+    "gravity": "γ(1+A)·(M−ψ) — Gravedad mnémica. La memoria atrae al presente. La fuerza es proporcional a la antigüedad A — los surcos más viejos atraen más fuerte, como hábitos profundos.",
+    "novelty": "−ν|ψ−M|²·(ψ−M) — Repulsión por eco. Cuando el presente se aleja mucho de la memoria (eco alto), hay una fuerza de retorno. El campo 'siente' que está perdiendo su historia.",
+    "memory":  "Ṁ = w·(ψ−M) − f·M — Escritura de memoria. M se actualiza lentamente hacia ψ (w=WRITE_RATE). Pero también decae espontáneamente (f=FORGET) — especialmente donde el eco es alto.",
+    "age":     "Ȧ ∝ Θ(|ψ−M|<ε) − A·|ψ−M| — Antigüedad. Crece donde el presente ≈ memoria (persistencia refuerza el surco). Decae donde el presente ≠ memoria. A=1 = cicatriz inamovible."
+  },
+  "states": {
+    "vacuum":     "Campo y memoria en reposo. Sin historia activa. El sustrato espera.",
+    "nucleating": "Escritura inicial. El campo está comenzando a dejar huella en M. La antigüedad está en cero — todo es nuevo.",
+    "active":     "Alto eco. El presente está lejos de la memoria. Lucha entre lo que es y lo que fue. Máxima tensión.",
+    "pumping":    "Alta antigüedad. Los surcos están grabados. La gravedad mnémica domina — el campo orbita su propio pasado.",
+    "stable":     "Overlap alto. El presente reproduce el pasado. Identidad preservada — o trampa del pasado.",
+    "locked":     "MEMORIA PROFUNDA extensa. Más del 40% del sustrato tiene A>0.5. El campo está atrapado en sus propios surcos.",
+    "collapse":   "Amplitud divergente. Reducir DT o GRAVITY."
+  },
+  "stateLabels": {
+    "vacuum":     "palimpsesto — sin historia",
+    "nucleating": "palimpsesto — grabando",
+    "active":     "palimpsesto — en tensión",
+    "pumping":    "palimpsesto — orbitando el pasado",
+    "stable":     "palimpsesto — identidad estable",
+    "locked":     "palimpsesto — ATRAPADO EN SURCOS ◉",
+    "collapse":   "palimpsesto — divergencia"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave":0.5, "gravity":0.1, "novelty":0.1, "memory":0.3, "age":0.2 },
+    "nucleating": { "wave":0.6, "gravity":0.2, "novelty":0.2, "memory":0.8, "age":0.5 },
+    "active":     { "wave":0.7, "gravity":0.5, "novelty":1.0, "memory":0.6, "age":0.4 },
+    "pumping":    { "wave":0.5, "gravity":1.0, "novelty":0.5, "memory":0.5, "age":1.0 },
+    "stable":     { "wave":0.4, "gravity":0.8, "novelty":0.3, "memory":0.4, "age":0.9 },
+    "locked":     { "wave":0.3, "gravity":1.0, "novelty":0.2, "memory":0.3, "age":1.0 },
+    "collapse":   { "wave":1.0, "gravity":0.8, "novelty":0.5, "memory":0.2, "age":0.3 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Memoria emergente",       "text": "M no es un parámetro — se construye dinámicamente desde la historia de ψ. Cada estado de M es único para cada run." },
+    { "status": "ok",   "label": "✓ Antigüedad como profundidad", "text": "A mide cuánto tiempo lleva algo grabado. Los surcos profundos (A≈1) atraen con más fuerza. Es una segunda escala temporal independiente." },
+    { "status": "ok",   "label": "✓ Olvido adaptativo",       "text": "El olvido es más rápido donde el eco es alto — lo que cambia mucho se olvida más rápido. Lo estable persiste. Consolidación selectiva." },
+    { "status": "warn", "label": "⚠ Dos escalas temporales",  "text": "ψ evoluciona en escala DT. M evoluciona en escala 1/WRITE_RATE >> DT. Esta separación de escalas puede crear comportamiento lento/rápido no previsto." },
+    { "status": "warn", "label": "⚠ Cicatriz puede ser trampa","text": "Con GRAVITY alto y A alto, el campo puede quedar atrapado en un mínimo de memoria y no explorar. No es un bug — es el punto." },
+    { "status": "open", "label": "○ ¿Hay consolidación?",     "text": "¿El sistema consolida espontáneamente ciertos patrones en memoria a largo plazo, como la memoria REM? Pendiente de observar en runs largos." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Cicatriz actúa como atractor",   "text": "La semilla 'cicatriz' debe atraer al campo débil inicial hacia la forma toroidal grabada. El campo nunca experimentó ese estado — pero la memoria lo impone." },
+    { "id": "P2", "label": "Trauma oscila sin resolver",     "text": "La semilla 'trauma' (presente vs pasado opuestos) debe producir oscilaciones de alta energía sin converger fácilmente. El eco permanece alto." },
+    { "id": "P3", "label": "Olvido libera el campo",         "text": "Inyectar olvido en una zona de alta antigüedad debe liberar al campo — la trayectoria post-olvido debe ser diferente a la pre-olvido." },
+    { "id": "P4", "label": "Consolidar fija la trayectoria", "text": "Inyectar consolidar en un momento específico debe crear un atractor fuerte — el campo tenderá a volver a ese estado repetidamente." },
+    { "id": "P5", "label": "Ecos estratificados",            "text": "La semilla 'ecos' tiene tres estratos de memoria con diferentes antigüedades. El campo debe responder primero al estrato más joven y luego al más antiguo." },
+    { "id": "P6", "label": "Falsificación: sin memoria",     "text": "Con WRITE_RATE=0 (sin escritura de memoria) y M=0 inicial, el sistema debe ser idéntico a una onda estándar. Si no es así, hay un bug." }
+  ]
+}

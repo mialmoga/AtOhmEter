@@ -1,0 +1,80 @@
+{
+  "title": "ψ(t+1) = ψ + (1−c)·[D∇²ψ + R(ψ)] · · · c ← acierto − fragilidad·error",
+  "formula": [
+    { "term": "ψ(t+1) = ψ",            "class": "ft-kin",   "key": "state", "op": null },
+    { "term": "+ (1−c)·D∇²ψ",          "class": "ft-higgs", "key": "diff",  "op": "+"  },
+    { "term": "+ (1−c)·R(ψ)",          "class": "ft-snap",  "key": "react", "op": "+"  },
+    { "term": "σ = |ψ(t+1) − ⟨ψ⟩|",    "class": "ft-phase", "key": "surp",  "op": "·"  },
+    { "term": "c ← c + acierto − β·σ·c","class": "ft-bohm",  "key": "conf",  "op": "·"  }
+  ],
+  "legend": [
+    { "key": "state", "label": "Estado del campo",        "color": "rgba(255,255,255,0.6)" },
+    { "key": "diff",  "label": "Difusión (frenada por c)", "color": "rgba(60,232,200,0.7)"  },
+    { "key": "react", "label": "Reacción (vida del campo)", "color": "rgba(255,80,120,0.7)" },
+    { "key": "surp",  "label": "Sorpresa σ (el veredicto)", "color": "rgba(255,200,60,0.8)" },
+    { "key": "conf",  "label": "Confianza c (rigidez frágil)", "color": "rgba(120,220,120,0.7)" }
+  ],
+  "tooltips": {
+    "state": "El estado actual del campo en cada celda. No es lo que importa — lo que importa es cuánto se desvía de lo que se predijo.",
+    "diff":  "Difusión: la celda se mezcla con sus vecinos. Pero el factor (1−c) la frena: una celda confiada se ha cristalizado y casi no se deja mover. La certeza es rigidez.",
+    "react": "Reacción no-lineal de doble pozo: empuja ψ hacia ±1 y mantiene el campo vivo en vez de morir a un gris uniforme. Es lo que da algo que predecir.",
+    "surp":  "La sorpresa σ: la distancia entre lo que la celda predijo de su vecindad (el promedio local) y lo que de verdad ocurrió. Es el observable que se renderiza — el campo brilla donde el mundo lo desafió.",
+    "conf":  "La confianza c: sube despacio al acertar, cae duro al fallar — y cae MÁS duro cuanto más confiada estaba la celda (β·σ·c). La certeza es frágil: al congelar la celda, la vuelve ciega al cambio, y el cambio la refuta. Ninguna creencia es permanente."
+  },
+  "states": {
+    "vacuum":     "Nadie cree nada todavía. El campo es casi nulo, la confianza es cero, todo es plástico. Las fluctuaciones mínimas deciden qué predicción nucleará primero.",
+    "nucleating": "Las primeras predicciones empiezan a cuajar. Pequeñas regiones aciertan y ganan confianza incipiente. El modelo del mundo comienza a formarse.",
+    "active":     "El campo aprende activamente. La sorpresa es alta, las creencias se prueban contra el mundo y se reorganizan sin cesar. Plasticidad dominante.",
+    "pumping":    "La certeza se expande. Regiones confiadas crecen y asedian al caos circundante, imponiendo su predicción sobre los vecinos plásticos.",
+    "stable":     "El borde fértil. Una fracción grande del campo vive en la ventana de criticalidad — ni cristalizado ni caótico. Aquí es donde un sistema procesa información sin congelarse ni disolverse. El estado más rico.",
+    "locked":     "Certeza ciega. La cristalización ha ganado: la mayoría del campo está rígido, confiado, incapaz de aprender. Bello y muerto. Una sorpresa suficiente lo haría añicos ◉",
+    "collapse":   "Sorpresa total. El modelo del mundo se rompió por completo — toda predicción falla, toda certeza se derrumba a la vez. El campo vuelve a no saber nada."
+  },
+  "stateLabels": {
+    "vacuum":     "augur — nadie cree aún",
+    "nucleating": "augur — predicciones cuajando",
+    "active":     "augur — aprendiendo",
+    "pumping":    "augur — la certeza se expande",
+    "stable":     "augur — el borde fértil",
+    "locked":     "augur — CERTEZA CIEGA ◉",
+    "collapse":   "augur — sorpresa total"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "state": 0.5, "diff": 0.3, "react": 0.2, "surp": 0.2, "conf": 0.1 },
+    "nucleating": { "state": 0.6, "diff": 0.5, "react": 0.5, "surp": 0.5, "conf": 0.4 },
+    "active":     { "state": 0.7, "diff": 0.7, "react": 0.8, "surp": 1.0, "conf": 0.6 },
+    "pumping":    { "state": 0.6, "diff": 0.5, "react": 0.6, "surp": 0.7, "conf": 0.9 },
+    "stable":     { "state": 0.6, "diff": 0.8, "react": 0.7, "surp": 0.9, "conf": 1.0 },
+    "locked":     { "state": 0.4, "diff": 0.2, "react": 0.3, "surp": 0.3, "conf": 1.0 },
+    "collapse":   { "state": 0.8, "diff": 0.4, "react": 0.5, "surp": 1.0, "conf": 0.2 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Dos fuerzas opuestas reales",        "text": "Minimizar sorpresa (la confianza congela) contra la sorpresa que sigue llegando (rompe toda rigidez). No es un potencial local que se promedia: la predicción es espacial, depende de los vecinos." },
+    { "status": "ok",   "label": "✓ Criticalidad emergente verificada",  "text": "Headless: el campo se asienta en el borde crítico (~67-80% de celdas en confianza intermedia) sin quedar 'locked'. Hallazgo al probar las predicciones: el mecanismo que sostiene esto es el olvido de la certeza (DECAY), no la fragilidad ante el fallo (RIGIDITY) — ver P2. La narrativa se corrigió con el dato." },
+    { "status": "warn", "label": "⚠ La predicción es ingenua",           "text": "Cada celda 'predice' simplemente el promedio de sus vecinos. Es un modelo de orden cero. Un modelo más rico (predecir la tendencia, no el valor) daría dinámicas más complejas — pendiente." },
+    { "status": "warn", "label": "⚠ Equilibrio algo plácido",            "text": "Con los defaults, la criticalidad converge suave y se queda. Subiendo REACT y NOISE, o bajando DECAY, se obtiene turbulencia perpetua con migración de regiones críticas." },
+    { "status": "open", "label": "○ Sin memoria de predicción",          "text": "La confianza recuerda el historial de aciertos, pero la predicción en sí no tiene memoria temporal. Un AUGUR con modelo predictivo aprendido (no solo el promedio) sería el siguiente paso." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "El borde de criticalidad es un atractor",
+      "text": "Desde ruido total, el campo debe converger a un estado donde una fracción grande de celdas (>50%) vive con confianza intermedia (ni <0.2 ni >0.7), sin que ninguna región domine. La criticalidad no se programa — emerge del balance entre acierto y fragilidad."
+    },
+    {
+      "id": "P2",
+      "label": "Falsificación: el olvido es lo que mantiene la vida",
+      "text": "Si DECAY→1 (la confianza no se erosiona nunca), el campo DEBE cristalizar a 'locked' y quedarse — verificado: con DECAY=0.999 el 62% se vuelve rígido. Con DECAY=0.94 vive en el borde. Sorpresa del laboratorio: probando esta predicción descubrimos que el olvido de la certeza, no su fragilidad ante el fallo (RIGIDITY), es el mecanismo que sostiene la criticalidad. RIGIDITY modula; DECAY decide."
+    },
+    {
+      "id": "P3",
+      "label": "La duda rejuvenece localmente",
+      "text": "Inyectar 'duda' sobre una región cristalizada debe devolverla a plasticidad y reactivar el aprendizaje local — un pulso de sorpresa que se propaga desde la zona dudada hacia afuera antes de reasentarse."
+    },
+    {
+      "id": "P4",
+      "label": "La costura del cisma es el sitio fértil",
+      "text": "Con la semilla 'cismas', la sorpresa máxima y la criticalidad deben concentrarse en la frontera entre las dos creencias opuestas, no en sus interiores. El desacuerdo es donde el campo aprende."
+    }
+  ]
+}

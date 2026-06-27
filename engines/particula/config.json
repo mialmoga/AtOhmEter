@@ -1,0 +1,46 @@
+{
+  "id": "particula",
+  "name": "PARTÍCULA — Particle Life",
+  "description": "5 tipos de partículas con tabla de atracciones/repulsiones. Comportamientos emergentes: depredadores, simbiosis, órbitas. Inspirado en Particle Life de Jeffrey Ventrella.",
+  "panelTitle": "⚛ PARTÍCULA",
+  "params": {
+    "N_PARTICLES": { "default":600,  "label":"N partículas", "min":100,  "max":1000, "step":50   },
+    "R_MAX":       { "default":0.4,  "label":"radio inf.",   "min":0.1,  "max":0.8,  "step":0.01 },
+    "R_MIN":       { "default":0.06, "label":"radio rep.",   "min":0.01, "max":0.2,  "step":0.01 },
+    "FRICTION":    { "default":0.85, "label":"fricción",     "min":0.5,  "max":0.99, "step":0.01 },
+    "FORCE_SCALE": { "default":0.015,"label":"escala F",     "min":0.001,"max":0.05, "step":0.001},
+    "THRESH":      { "default":0.05, "label":"Umbral 👁",    "min":0.01, "max":1.0,  "step":0.01 }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "mix",     "label": "Mix — mezcla aleatoria uniforme" },
+    { "id": "stripes", "label": "Franjas — separadas por tipo" },
+    { "id": "rings",   "label": "Anillos — capas concéntricas" }
+  ],
+  "defaultSeed": "mix",
+  "injections": [
+    { "id": "agitar",   "label": "💨 Agitar",    "class": ""      },
+    { "id": "nuevo",    "label": "⊕ Cluster",    "class": "amber" },
+    { "id": "invertir", "label": "⊗ Invertir F", "class": "amber" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "n/N",        "class": "hot"  },
+    { "id": "s-ekin",      "label": "vel. media", "class": ""     },
+    { "id": "s-etorsion", "label": "tipo 0 🔴",  "class": ""     },
+    { "id": "s-ephase",   "label": "tipo 1 🟢",  "class": ""     },
+    { "id": "s-helic",    "label": "tipo 2 🔵",  "class": ""     },
+    { "id": "s-boundary", "label": "tipo 3 🟡",  "class": ""     },
+    { "id": "s-pump",     "label": "tipo 4 🩵",  "class": ""     },
+    { "id": "s-umax",     "label": "vel. máx",   "class": "hot"  }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "nube"     },
+    { "min": 4, "label": "cluster"  },
+    { "min": 2, "label": "grupo"    },
+    { "min": 0, "label": "partícula"}
+  ]
+}

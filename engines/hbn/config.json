@@ -1,0 +1,51 @@
+{
+  "id": "hbn",
+  "name": "HBN — Polaritones Fonón-Fotón",
+  "description": "Ondas híbridas en nitruro de boro hexagonal (hBN). El tensor dieléctrico anisótropo (ε⊥ < 0, ε∥ > 0) produce propagación hiperbólica: los frentes de onda forman conos en lugar de esferas. El toque añade una nueva fuente de polaritones.",
+  "panelTitle": "🔬 HBN",
+
+  "params": {
+    "FREQ":         { "default": 0.35,  "label": "frecuencia",    "min": 0.05, "max": 1.0,  "step": 0.01  },
+    "ACOPLAMIENTO": { "default": 0.4,   "label": "acoplamiento",  "min": 0.0,  "max": 1.0,  "step": 0.01  },
+    "AMORT":        { "default": 0.012, "label": "amort.",        "min": 0.0,  "max": 0.1,  "step": 0.001 },
+    "ANISO":        { "default": 2.8,   "label": "anisotropía",   "min": 0.0,  "max": 6.0,  "step": 0.1   },
+    "C_EFF":        { "default": 0.5,   "label": "c efectiva",    "min": 0.1,  "max": 1.5,  "step": 0.05  },
+    "THRESH":       { "default": 0.03,  "label": "umbral 👁",     "min": 0.005,"max": 0.2,  "step": 0.005 }
+  },
+
+  "uniformBindings": { "THRESH": "uThresh" },
+
+  "seeds": [
+    { "id": "hbn",        "label": "🔬 hBN — nitruro de boro real"        },
+    { "id": "isotropico", "label": "🌊 Isotrópico — ondas esféricas"       },
+    { "id": "pulso",      "label": "⚡ Pulso — excitación impulsiva"       },
+    { "id": "dosfuentes", "label": "🔮 Dos fuentes — interferencia"        }
+  ],
+  "defaultSeed": "hbn",
+
+  "injections": [
+    { "id": "pulso",  "label": "⚡ Pulso central", "class": "amber" },
+    { "id": "calma",  "label": "🪨 Calmar",         "class": ""      }
+  ],
+
+  "gridOptions": [
+    { "value": 12, "label": "12³ móvil"            },
+    { "value": 24, "label": "24³", "default": true  },
+    { "value": 32, "label": "32³ detalle"           }
+  ],
+
+  "hud": [
+    { "id": "s-etotal",   "label": "|E| fotónico",  "class": "cool" },
+    { "id": "s-ekin",     "label": "|Q| fonónico",  "class": "hot"  },
+    { "id": "s-etorsion", "label": "amp. máx.",     "class": ""     },
+    { "id": "s-ephase",   "label": "polaritones",   "class": "cool" },
+    { "id": "s-helic",    "label": "pico campo",    "class": "amber"},
+    { "id": "s-pump",     "label": "activo",        "class": "amber"}
+  ],
+
+  "zoomLabels": [
+    { "min": 8, "label": "cristal" },
+    { "min": 3, "label": "onda"    },
+    { "min": 0, "label": "frente"  }
+  ]
+}

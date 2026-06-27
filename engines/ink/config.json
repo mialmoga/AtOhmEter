@@ -1,0 +1,124 @@
+{
+  "id": "ink",
+  "name": "Ink — Fluido Cromático",
+  "description": "Navier-Stokes incompresible con advección de color RGB. Mezcla aditiva: R+G+B=blanco. Toque táctil inyecta tinta y fuerza local.",
+  "params": {
+    "VISCOSITY": {
+      "default": 1e-05,
+      "label": "Viscosidad",
+      "min": 1e-06,
+      "max": 0.001,
+      "step": 1e-06
+    },
+    "DIFFUSION": {
+      "default": 1e-05,
+      "label": "Difusión",
+      "min": 1e-06,
+      "max": 0.001,
+      "step": 1e-06
+    },
+    "FORCE_SCALE": {
+      "default": 8.0,
+      "label": "Fuerza 👆",
+      "min": 0.5,
+      "max": 30.0,
+      "step": 0.5
+    },
+    "DECAY": {
+      "default": 0.995,
+      "label": "Decay",
+      "min": 0.97,
+      "max": 1.0,
+      "step": 0.001
+    },
+    "DT": {
+      "default": 0.016,
+      "label": "DT",
+      "min": 0.004,
+      "max": 0.05,
+      "step": 0.002
+    },
+    "INK_RADIUS": {
+      "default": 0.15,
+      "label": "Radio tinta",
+      "min": 0.05,
+      "max": 0.4,
+      "step": 0.01
+    },
+    "THRESH": {
+      "default": 0.01,
+      "label": "Umbral 👁",
+      "min": 0.001,
+      "max": 0.2,
+      "step": 0.001
+    }
+  },
+  "seeds": [
+    {
+      "id": "ink",
+      "label": "Tres manchas RGB"
+    },
+    {
+      "id": "swirl",
+      "label": "Vórtice cromático"
+    }
+  ],
+  "defaultSeed": "ink",
+  "hud": [
+    {
+      "id": "s-etotal",
+      "label": "tinta total",
+      "class": "hot"
+    },
+    {
+      "id": "s-ekin",
+      "label": "|v|_max",
+      "class": "cool"
+    },
+    {
+      "id": "s-ehiggs",
+      "label": "rojo",
+      "class": ""
+    },
+    {
+      "id": "s-etorsion",
+      "label": "verde",
+      "class": ""
+    },
+    {
+      "id": "s-ephase",
+      "label": "azul",
+      "class": "cool"
+    },
+    {
+      "id": "s-coher",
+      "label": "C(x,t)",
+      "class": "cool"
+    }
+  ],
+  "stateLabels": {
+    "vacuum": "fluido en reposo",
+    "nucleating": "tinta difundiéndose",
+    "active": "fluido activo — mezcla cromática",
+    "stable": "fluido estable — patrones persistentes",
+    "collapse": "fluido saturado"
+  },
+  "injections": [
+    {
+      "id": "rojo",
+      "label": "🔴 Rojo"
+    },
+    {
+      "id": "verde",
+      "label": "🟢 Verde"
+    },
+    {
+      "id": "azul",
+      "label": "🔵 Azul"
+    },
+    {
+      "id": "perturb",
+      "label": "💥 Agitar"
+    }
+  ]
+}

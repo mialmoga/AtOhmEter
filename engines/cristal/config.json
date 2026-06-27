@@ -1,0 +1,46 @@
+{
+  "id": "cristal",
+  "name": "CRISTAL — Cristalización Emergente",
+  "description": "Autómata celular de fase: líquido → cristal. Cuatro minerales con geometrías de crecimiento distintas. El toque siembra nuevos núcleos.",
+  "panelTitle": "❄️ CRISTAL",
+  "params": {
+    "TEMPERATURA":    { "default": 50,  "label": "temp. °",      "min": 0,   "max": 100, "step": 1    },
+    "HUMEDAD":        { "default": 70,  "label": "humedad %",    "min": 0,   "max": 100, "step": 1    },
+    "TENSION_SUP":    { "default": 0.6, "label": "tensión sup.", "min": 0.0, "max": 1.0, "step": 0.01 },
+    "VEL_NUCLEACION": { "default": 0.4, "label": "vel. nucl.",   "min": 0.0, "max": 1.0, "step": 0.01 },
+    "IMPUREZAS":      { "default": 0.2, "label": "impurezas",    "min": 0.0, "max": 1.0, "step": 0.01 },
+    "THRESH":         { "default": 0.05,"label": "Umbral 👁",    "min": 0.01,"max": 0.3, "step": 0.01 }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "hielo",   "label": "❄️ Hielo — copos hexagonales" },
+    { "id": "bismuto", "label": "💜 Bismuto — escalones iridiscentes" },
+    { "id": "cuarzo",  "label": "💎 Cuarzo — prismas verticales" },
+    { "id": "sal",     "label": "🧂 Sal — cúbico perfecto" }
+  ],
+  "defaultSeed": "hielo",
+  "injections": [
+    { "id": "pulso", "label": "⚡ Sembrar núcleo", "class": "amber" },
+    { "id": "calma", "label": "💧 Derretir",        "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 16, "label": "16³ rápido" },
+    { "value": 24, "label": "24³",  "default": true },
+    { "value": 32, "label": "32³ detalle" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "|cristal|",  "class": ""      },
+    { "id": "s-ekin",     "label": "líquido",    "class": "cool"  },
+    { "id": "s-etorsion", "label": "temp. med.", "class": "hot"   },
+    { "id": "s-ephase",   "label": "nucleación", "class": "cool"  },
+    { "id": "s-helic",    "label": "max cristal","class": ""      },
+    { "id": "s-boundary", "label": "frac. crist.","class":"amber" },
+    { "id": "s-pump",     "label": "congelado",  "class": "amber" }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "cosmos"   },
+    { "min": 4, "label": "cubo"     },
+    { "min": 2, "label": "cristal"  },
+    { "min": 0, "label": "faceta"   }
+  ]
+}

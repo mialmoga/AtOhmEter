@@ -1,0 +1,285 @@
+// === VERTEX ===
+    varying vec3 vWorldPos;
+    varying vec3 vLocalPos;
+    uniform float uBoxSize;
+    void main(){
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        vLocalPos = position / uBoxSize;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+
+
+// === FRAGMENT ===
+// ══════════════════════════════════════════════════════════════
+//  COLORS — Cubo de Agua con Cáusticas de Piscina
+//
+//  Estrategia visual:
+//    - Volumen de fluido casi invisible (agua oscura y profunda)
+//    - Cáusticas como protagonistas: red de filamentos brillantes
+//      generada por interferencia de ondas planas (patrón realista)
+//    - Proyección en el fondo del cubo como si el sol viniera de arriba
+//    - Color del agua como tinte suave, no como relleno
+//    - Sonoluminiscencia: destello blanco puntual
+// ══════════════════════════════════════════════════════════════
+
+precision highp float;
+precision highp sampler3D;
+
+varying vec3 vWorldPos;
+varying vec3 vLocalPos;
+
+uniform vec3      uCameraPos;
+uniform vec3      uCameraLocal;
+uniform float     uTime;
+uniform float     uThresh;
+uniform float     uEnergy;
+uniform sampler3D uVolume;
+uniform sampler3D uPhase;
+// Raycaster
+uniform vec3      uTouchPos;
+uniform float     uTouchActive;
+uniform float     uTouchTime;
+
+float sampleVol(vec3 p){
+    vec3 uvw=p*0.5+0.5;
+    if(any(lessThan(uvw,vec3(0.0)))||any(greaterThan(uvw,vec3(1.0)))) return 0.0;
+    return texture(uVolume,uvw).r;
+}
+float samplePhase(vec3 p){
+    vec3 uvw=p*0.5+0.5;
+    if(any(lessThan(uvw,vec3(0.0)))||any(greaterThan(uvw,vec3(1.0)))) return 0.5;
+    return texture(uPhase,uvw).r;
+}
+
+// ── Color del agua desde phase ─────────────────────────────────
+// Rueda de cosenos suave: transición R → G → B → R
+vec3 waterTint(float ph){
+    float a = ph * 6.28318;
+    float r = clamp(0.5 + 0.5*cos(a),           0.0, 1.0);
+    float g = clamp(0.5 + 0.5*cos(a - 2.09440), 0.0, 1.0);
+    float b = clamp(0.5 + 0.5*cos(a - 4.18879), 0.0, 1.0);
+    return clamp(vec3(r, g, b), 0.0, 1.0);
+}
+
+// ── Cáusticas reales de piscina ────────────────────────────────
+// Técnica: suma de N ondas planas con diferentes ángulos y fases.
+// Las cáusticas emergen donde las crestas se superponen.
+// El patrón resultante es una red irregular de filamentos brillantes,
+// igual que la luz en el fondo de una piscina.
+//
+// Referencias: Perlin (1985), Wyman (2004) pool caustics
+float poolCaustic(vec3 pos, float t) {
+    // Proyectamos sobre el plano XZ (fondo de la piscina = Y bajo)
+    // Añadimos algo de variación en Y para el volumen 3D
+    vec2 p = pos.xz * 6.0 + pos.y * 0.8;
+
+    // 8 ondas planas con ángulos distribuidos irregularmente
+    // Los ángulos son primos entre sí para evitar simetría perfecta
+    float wave = 0.0;
+    float speed = t * 0.4;
+
+    // Onda 1-4: estructura principal de la red
+    wave += cos(p.x * 1.00 + p.y * 0.31 + speed * 0.97);
+    wave += cos(p.x * 0.71 + p.y * 1.00 + speed * 1.11);
+    wave += cos(p.x * 1.31 + p.y * 0.71 - speed * 0.89);
+    wave += cos(p.x * 0.41 + p.y * 1.31 - speed * 1.03);
+
+    // Onda 5-8: detalle fino (filamentos secundarios)
+    wave += cos(p.x * 2.10 + p.y * 0.53 + speed * 0.76) * 0.6;
+    wave += cos(p.x * 0.53 + p.y * 2.10 - speed * 0.83) * 0.6;
+    wave += cos(p.x * 1.73 + p.y * 1.41 + speed * 0.61) * 0.4;
+    wave += cos(p.x * 1.41 + p.y * 1.73 - speed * 0.71) * 0.4;
+
+    // Normalizar al rango [0, 1]
+    // La suma máxima es 4 + 1.2 + 0.8 = 6.0
+    wave = (wave + 6.0) / 12.0;
+
+    // Exponenciación agresiva: comprime los valores medios a negro,
+    // deja solo las crestas como filamentos brillantes.
+    // pow grande = filamentos más delgados y brillantes
+    float caustic = pow(wave, 5.0);
+
+    // Segundo pase con escala diferente → textura más fina superpuesta
+    vec2 p2 = pos.xz * 11.0 + pos.y * 1.5;
+    float wave2 = 0.0;
+    wave2 += cos(p2.x * 1.00 + p2.y * 0.61 + speed * 1.27);
+    wave2 += cos(p2.x * 0.61 + p2.y * 1.00 - speed * 1.19);
+    wave2 += cos(p2.x * 1.41 + p2.y * 0.87 + speed * 0.94);
+    wave2 += cos(p2.x * 0.87 + p2.y * 1.41 - speed * 1.07);
+    wave2 = (wave2 + 4.0) / 8.0;
+    float caustic2 = pow(wave2, 7.0);
+
+    // Mezcla: estructura grande + detalle fino
+    return caustic * 1.8 + caustic2 * 0.9;
+}
+
+// ── Perturbación de toque ──────────────────────────────────────
+// Deforma las coordenadas de la cáustica localmente
+float touchRipple(vec3 pos){
+    if(uTouchPos.x > 5.0) return 0.0;
+    float dist = length(pos - uTouchPos);
+    float t = uTouchTime;
+    float wave = sin(dist*18.0 - t*10.0) * exp(-dist*4.0) * exp(-t*1.2);
+    return max(0.0, wave) * (1.0 - smoothstep(0.0, 0.4, t));
+}
+
+// ── Sonoluminiscencia ──────────────────────────────────────────
+float sonoFlash(vec3 pos){
+    float s = sampleVol(pos);
+    return s > 0.8 ? (s - 0.8) * 6.0 : 0.0;
+}
+
+// ── Normal del fluido ──────────────────────────────────────────
+vec3 fluidNormal(vec3 pos){
+    float eps = 0.05;
+    float dx = sampleVol(pos+vec3(eps,0,0)) - sampleVol(pos-vec3(eps,0,0));
+    float dy = sampleVol(pos+vec3(0,eps,0)) - sampleVol(pos-vec3(0,eps,0));
+    float dz = sampleVol(pos+vec3(0,0,eps)) - sampleVol(pos-vec3(0,0,eps));
+    return normalize(vec3(dx,dy,dz) + 0.001);
+}
+
+float boxExit(vec3 ro,vec3 rd,float hs){
+    vec3 invD=1.0/rd;
+    vec3 t0=(-hs-ro)*invD, t1=(hs-ro)*invD;
+    vec3 tm=max(t0,t1);
+    return min(min(tm.x,tm.y),tm.z);
+}
+
+void main(){
+    vec3 ro = uCameraLocal;
+    vec3 rd = normalize(vLocalPos - ro);
+    float tMax = boxExit(ro, rd, 1.0);
+    if(tMax < 0.0) discard;
+
+    float tStart = 0.001;
+    if(!all(greaterThan(ro,vec3(-1.0))) || !all(lessThan(ro,vec3(1.0)))){
+        vec3 invD = 1.0/rd;
+        vec3 t0 = (-1.0-ro)*invD, t1 = (1.0-ro)*invD;
+        vec3 tm = min(t0,t1);
+        tStart = max(max(tm.x,tm.y),tm.z);
+        if(tStart < 0.0) tStart = 0.001;
+    }
+
+    float stepSize = 2.0 / 80.0;
+    int steps = int(min((tMax-tStart)/stepSize, 128.0));
+    vec4 acc = vec4(0.0);
+
+    for(int i = 0; i < 128; i++){
+        if(i >= steps) break;
+        float tt = tStart + (float(i)+0.5)*stepSize;
+        vec3 pos = ro + rd*tt;
+        float d   = sampleVol(pos);
+        float ph  = samplePhase(pos);
+
+        // ── Cáustica en este voxel ─────────────────────────────
+        // La cáustica está modulada por la profundidad:
+        // más intensa cerca del fondo (Y bajo), atenuada arriba
+        float depth01 = (tt - tStart) / (tMax - tStart);
+
+        // Perturbación del toque: desplaza las coordenadas de la cáustica
+        float ripple = touchRipple(pos);
+        vec3 causticPos = pos + vec3(ripple*0.05, 0.0, ripple*0.05);
+
+        float caust = poolCaustic(causticPos, uTime);
+
+        // La cáustica se proyecta "hacia el fondo" — más intensa con profundidad
+        float depthFactor = smoothstep(0.0, 0.5, depth01);
+        caust *= depthFactor;
+
+        // ── El volumen del motor (fluido + luces RGB) modula las cáusticas ──
+        // NO lo renderizamos como objeto opaco — el agua es transparente.
+        // Lo usamos solo como multiplicador: en zonas iluminadas por las
+        // lámparas del motor, las cáusticas son más intensas y coloreadas.
+        // d está en [0,1] e incluye la contribución de las luces R/G/B.
+        // phase codifica el color dominante (R=0, G=0.33, B=0.66, blanco=0.5)
+        float lightBoost = smoothstep(0.0, 0.4, d); // 0 en oscuro, 1 en iluminado
+
+        // Color de la cáustica: blanco base + tinte del color de luz dominante
+        // En zonas sin luz → filamento blanco puro
+        // En zonas con luz R/G/B → filamento coloreado
+        vec3 litTint = waterTint(ph); // color de la luz en este voxel
+        vec3 caustCol = mix(
+            vec3(0.85, 0.92, 1.0),   // blanco-azulado base (agua sin luz)
+            litTint * 1.8,            // color de la luz dominante
+            lightBoost * 0.7          // solo tiñe donde hay luz del motor
+        );
+
+        // ── Cáustica — protagonista ────────────────────────────
+        // Alpha bajo: los filamentos son brillantes pero el fondo es negro
+        float caustStrength = caust * (0.04 + lightBoost * 0.05);
+        float caustAlpha = caustStrength * (1.0 - acc.a);
+        acc.rgb += caustCol * caustStrength * caustAlpha * 8.0;
+        acc.a   += caustAlpha;
+
+        // ── Sonoluminiscencia ──────────────────────────────────
+        float sono = sonoFlash(pos);
+        if(sono > 0.0){
+            acc.rgb += vec3(1.0, 0.97, 0.92) * sono * 4.0 * (1.0-acc.a);
+            acc.a   += sono * 0.3 * (1.0-acc.a);
+        }
+
+        if(acc.a > 0.92) break;
+    }
+
+    // ── Cáusticas proyectadas en el fondo del cubo ─────────────
+    // El efecto principal: la "alfombra" de luz en el suelo
+    // vLocalPos.y cerca de -1 = fondo del cubo
+    float floorDist = 1.0 - smoothstep(-1.0, -0.6, vLocalPos.y);
+    if(floorDist > 0.0){
+        // Deformar con el toque
+        float rippleFace = 0.0;
+        if(uTouchPos.x < 5.0){
+            float d2 = length(vLocalPos.xz - uTouchPos.xz);
+            float tv = uTouchTime;
+            rippleFace = sin(d2*14.0 - tv*9.0) * exp(-d2*3.5) * exp(-tv*1.2) * max(0.0,1.0-tv*3.0);
+        }
+        vec3 floorPos = vLocalPos + vec3(rippleFace*0.04, 0.0, rippleFace*0.04);
+        float floorCaust = poolCaustic(floorPos * 1.2, uTime * 0.85);
+
+        // Color de las cáusticas del suelo: tinte del agua
+        float floorPh = samplePhase(vec3(vLocalPos.x, -0.9, vLocalPos.z));
+        vec3 floorTint = waterTint(floorPh);
+
+        // Split cromático en el suelo: R ligeramente desplazado de B
+        vec3 floorCol;
+        float splitAmt = 0.03;
+        float cR = poolCaustic(floorPos * 1.2 + vec3( splitAmt, 0.0,  splitAmt), uTime*0.85);
+        float cB = poolCaustic(floorPos * 1.2 + vec3(-splitAmt, 0.0, -splitAmt), uTime*0.85);
+        floorCol = vec3(
+            pow(cR, 4.0),
+            pow(floorCaust, 4.5),
+            pow(cB, 5.0)
+        );
+        // Tinte del color del agua sobre los filamentos blancos
+        floorCol = mix(floorCol, floorCol * floorTint * 2.0, 0.35);
+
+        float floorAlpha = floorDist * floorCaust * 0.5;
+        acc.rgb += floorCol * floorAlpha * (1.0 - acc.a);
+        acc.a   += floorAlpha * 0.15 * (1.0 - acc.a);
+    }
+
+    // ── Paredes laterales — cáusticas tenues ───────────────────
+    float wallMask = max(abs(vLocalPos.x), abs(vLocalPos.z));
+    float wallDist = smoothstep(0.75, 1.0, wallMask);
+    if(wallDist > 0.0){
+        float wallCaust = poolCaustic(vLocalPos * 0.9, uTime * 0.7);
+        float wallPh = samplePhase(vLocalPos * 0.8);
+        vec3 wallTint = waterTint(wallPh);
+        float wAlpha = wallDist * wallCaust * 0.2;
+        acc.rgb += wallTint * wallCaust * wAlpha * (1.0 - acc.a);
+        acc.a   += wAlpha * 0.08 * (1.0 - acc.a);
+    }
+
+    // ── Borde del cubo — luz de reflexión interna ──────────────
+    float edgeMask = max(max(abs(vLocalPos.x), abs(vLocalPos.y)), abs(vLocalPos.z));
+    float edge = smoothstep(0.88, 0.99, edgeMask);
+    if(edge > 0.0 && acc.a < 0.3){
+        float edgePh = fract(vLocalPos.x*1.8 + vLocalPos.z*1.5 + uTime*0.08);
+        vec3 edgeCol = waterTint(edgePh) * 0.6 + vec3(0.1, 0.15, 0.2);
+        acc.rgb += edgeCol * edge * 0.12 * (1.0-acc.a);
+        acc.a   += edge * 0.06 * (1.0-acc.a);
+    }
+
+    gl_FragColor = clamp(acc, 0.0, 1.0);
+}

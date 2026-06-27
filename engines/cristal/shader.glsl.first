@@ -1,0 +1,356 @@
+// === VERTEX ===
+    varying vec3 vWorldPos;
+    varying vec3 vLocalPos;
+    uniform float uBoxSize;
+    void main(){
+        vec4 wp = modelMatrix * vec4(position, 1.0);
+        vWorldPos = wp.xyz;
+        vLocalPos = position / uBoxSize;
+        gl_Position = projectionMatrix * viewMatrix * wp;
+    }
+
+
+// === FRAGMENT ===
+// ══════════════════════════════════════════════════════════════
+//  CRISTAL — Cristalización Emergente
+//
+//  Codificación de phaseData:
+//    [0.00 - 0.45] → líquido (valor = temperatura local)
+//    [0.50]        → hielo   (❄️ blanco-azul, dendrítico)
+//    [0.62]        → cuarzo  (💎 transparente, prismas)
+//    [0.74]        → bismuto (💜 iridiscente, escalonado)
+//    [0.86]        → sal     (🧂 cúbico, blanco puro)
+//
+//  Valores intermedios = transición líquido→cristal
+// ══════════════════════════════════════════════════════════════
+
+precision highp float;
+precision highp sampler3D;
+
+varying vec3 vWorldPos;
+varying vec3 vLocalPos;
+
+uniform vec3      uCameraPos;
+uniform vec3      uCameraLocal;
+uniform float     uTime;
+uniform float     uThresh;
+uniform float     uEnergy;
+uniform sampler3D uVolume;
+uniform sampler3D uPhase;
+uniform vec3      uTouchPos;
+uniform float     uTouchActive;
+uniform float     uTouchTime;
+
+float sampleVol(vec3 p){
+    vec3 uvw=p*0.5+0.5;
+    if(any(lessThan(uvw,vec3(0.0)))||any(greaterThan(uvw,vec3(1.0)))) return 0.0;
+    return texture(uVolume,uvw).r;
+}
+float samplePhase(vec3 p){
+    vec3 uvw=p*0.5+0.5;
+    if(any(lessThan(uvw,vec3(0.0)))||any(greaterThan(uvw,vec3(1.0)))) return 0.0;
+    return texture(uPhase,uvw).r;
+}
+
+// ── Identificar estado desde phase ────────────────────────────
+// Retorna: 0.0=líquido puro, 1.0=cristal puro
+// El tipo de cristal se extrae por la zona de phase
+float crystalFraction(float ph) {
+    return smoothstep(0.46, 0.54, ph);
+}
+
+// ── Normal con facetas cuantizadas (del shader cristal.glsl) ──
+vec3 facetNormal(vec3 pos) {
+    float eps=0.055;
+    float dx=sampleVol(pos+vec3(eps,0,0))-sampleVol(pos-vec3(eps,0,0));
+    float dy=sampleVol(pos+vec3(0,eps,0))-sampleVol(pos-vec3(0,eps,0));
+    float dz=sampleVol(pos+vec3(0,0,eps))-sampleVol(pos-vec3(0,0,eps));
+    vec3 n=vec3(dx,dy,dz);
+    // Cuantización: crea facetas planas como en un cristal real
+    n = normalize(floor(n*3.0+0.5)/3.0 + 0.001);
+    return n;
+}
+
+// Normal suave para el líquido
+vec3 smoothNormal(vec3 pos) {
+    float eps=0.05;
+    float dx=sampleVol(pos+vec3(eps,0,0))-sampleVol(pos-vec3(eps,0,0));
+    float dy=sampleVol(pos+vec3(0,eps,0))-sampleVol(pos-vec3(0,eps,0));
+    float dz=sampleVol(pos+vec3(0,0,eps))-sampleVol(pos-vec3(0,0,eps));
+    return normalize(vec3(dx,dy,dz)+0.001);
+}
+
+// ── Dispersión prismática (del shader cristal.glsl) ───────────
+vec3 prismDispersion(vec3 rd, vec3 normal, float ior_base) {
+    float ior_r=ior_base+0.025;
+    float ior_g=ior_base;
+    float ior_b=ior_base-0.025;
+    float cosi=abs(dot(rd,normal));
+    float r_c=sqrt(max(0.0,1.0-(1.0-cosi*cosi)/(ior_r*ior_r)));
+    float g_c=sqrt(max(0.0,1.0-(1.0-cosi*cosi)/(ior_g*ior_g)));
+    float b_c=sqrt(max(0.0,1.0-(1.0-cosi*cosi)/(ior_b*ior_b)));
+    return vec3(r_c,g_c,b_c);
+}
+
+// ── Paleta del líquido (del shader criogenico.glsl) ───────────
+vec3 liquidColor(float intensity, float temp) {
+    // temp [0,0.45]: 0=muy frío (casi cristalizando), 0.45=tibio
+    float t = intensity;
+    vec3 col;
+    if(t < 0.25){
+        col=mix(vec3(0.0,0.01,0.06), vec3(0.02,0.08,0.28), t/0.25);
+    } else if(t < 0.55){
+        col=mix(vec3(0.02,0.08,0.28), vec3(0.05,0.45,0.85), (t-0.25)/0.3);
+    } else if(t < 0.8){
+        col=mix(vec3(0.05,0.45,0.85), vec3(0.3,0.92,1.0), (t-0.55)/0.25);
+    } else {
+        col=mix(vec3(0.3,0.92,1.0), vec3(0.92,0.97,1.0), (t-0.8)/0.2);
+    }
+    // Destello de cristales en formación
+    float spark = abs(sin(temp*18.0+uTime*0.4)) * 0.12;
+    col += vec3(0.3,0.6,1.0) * spark * t;
+    return col;
+}
+
+// ── Colores de cristal por mineral ────────────────────────────
+// ph ∈ [0.50, 0.86] determina el mineral
+
+// HIELO: ph ≈ 0.50
+vec3 iceColor(float density, vec3 normal, vec3 rd, vec3 pos) {
+    // Blanco-azul con reflejos internos
+    vec3 base = vec3(0.75, 0.88, 1.0);
+    vec3 deep = vec3(0.1, 0.4, 0.9);
+
+    // Brillo interno animado — la estructura del hielo
+    float internal = abs(sin(pos.x*9.0+uTime*0.15))
+                   * abs(sin(pos.z*7.3+uTime*0.12))
+                   * abs(sin(pos.y*11.0+uTime*0.08));
+    vec3 col = mix(deep, base, internal);
+
+    // Especular muy duro en las facetas
+    vec3 light1=normalize(vec3(0.4,1.0,0.3));
+    float spec=pow(max(0.0,dot(reflect(-light1,normal),-rd)),80.0);
+    col += vec3(1.0)*spec*2.5;
+
+    // Dispersión prismática suave (IOR del hielo ≈ 1.31)
+    vec3 disp=prismDispersion(rd,normal,1.31);
+    col += disp*spec*0.8;
+
+    return col;
+}
+
+// CUARZO: ph ≈ 0.62
+vec3 quartzColor(float density, vec3 normal, vec3 rd, vec3 pos, float ph) {
+    // Transparente con tinte variable según inclusiones
+    float t=fract(ph*10.0);
+    vec3 tint = mix(vec3(0.9,0.95,1.0), vec3(0.85,0.7,0.9), t); // cuarzo rosa/blanco
+
+    // Dos luces para highlights de facetas prismáticas
+    vec3 l1=normalize(vec3(0.5,1.0,0.3));
+    vec3 l2=normalize(vec3(-0.6,0.4,-0.5));
+    float s1=pow(max(0.0,dot(reflect(-l1,normal),-rd)),72.0);
+    float s2=pow(max(0.0,dot(reflect(-l2,normal),-rd)),40.0);
+
+    vec3 col = tint*(0.05+density*0.15);
+    col += tint*s1*3.0;
+    col += vec3(0.6,0.5,1.0)*s2*0.8;
+
+    // Dispersión (IOR cuarzo ≈ 1.55)
+    vec3 disp=prismDispersion(rd,normal,1.55);
+    col += disp*s1*2.0;
+
+    // Brillo interno de inclusiones
+    float incl=sin(pos.x*13.0+pos.z*7.0)*sin(pos.y*11.0);
+    col += tint*max(0.0,incl)*density*0.2;
+
+    return col;
+}
+
+// BISMUTO: ph ≈ 0.74
+vec3 bismuthColor(float density, vec3 normal, vec3 rd, vec3 pos, float ph) {
+    // Iridiscencia de óxido — los escalones del bismuto atrapan luz
+    // El bismuto real tiene capas de óxido de Bi₂O₃ que producen
+    // colores de interferencia: dorado → rojo → violeta → azul
+    float angle = abs(dot(-rd, normal));
+
+    // Interferencia de película delgada (grosor variable en cada escalón)
+    float thickness = 0.5 + 0.5*sin(pos.x*8.0+pos.y*6.0+pos.z*7.0);
+    float phase1 = thickness * angle * 10.0 + uTime*0.05;
+    float phase2 = thickness * angle * 14.0 + uTime*0.04;
+    float phase3 = thickness * angle * 7.0  + uTime*0.06;
+
+    vec3 iri = vec3(
+        0.5+0.5*sin(phase1),            // dorado/rojo
+        0.5+0.5*sin(phase2+1.2),        // verde/amarillo
+        0.5+0.5*sin(phase3+2.8)         // azul/violeta
+    );
+
+    // Base metálica del bismuto — gris plateado
+    vec3 metal = vec3(0.7, 0.72, 0.75);
+
+    // Especular metálico
+    vec3 l1=normalize(vec3(0.3,1.0,0.4));
+    float spec=pow(max(0.0,dot(reflect(-l1,normal),-rd)),48.0);
+
+    // Fresnel — la iridiscencia es más intensa en ángulos rasantes
+    float fr=pow(1.0-angle, 2.5);
+
+    vec3 col = metal * (0.15 + density*0.2);
+    col = mix(col, iri*1.2, fr*0.85 + 0.15);
+    col += vec3(1.0)*spec*1.5;
+
+    return col;
+}
+
+// SAL: ph ≈ 0.86
+vec3 saltColor(float density, vec3 normal, vec3 rd, vec3 pos) {
+    // Cúbico perfecto — muy blanco y brillante
+    // Los bordes de los cubos capturan la luz
+    vec3 base = vec3(0.95, 0.97, 1.0); // casi blanco puro
+
+    vec3 l1=normalize(vec3(0.5,1.0,0.3));
+    vec3 l2=normalize(vec3(-0.5,0.8,-0.4));
+    float s1=pow(max(0.0,dot(reflect(-l1,normal),-rd)),96.0);
+    float s2=pow(max(0.0,dot(reflect(-l2,normal),-rd)),48.0);
+
+    vec3 col = base*(0.1+density*0.3);
+    col += vec3(1.0)*s1*3.0;
+    col += vec3(0.9,0.95,1.0)*s2*1.0;
+
+    // Aristas brillantes — la sal tiene bordes muy definidos
+    float edge = abs(sin(pos.x*N_GRID))*abs(sin(pos.z*N_GRID));
+    col += vec3(1.0)*edge*density*0.4;
+
+    return col;
+}
+
+// Constante para el patrón cúbico de la sal
+#define N_GRID 12.0
+
+// ── Fresnel universal ─────────────────────────────────────────
+float fresnel(vec3 rd, vec3 n, float power) {
+    return pow(max(0.0, 1.0-abs(dot(rd,n))), power);
+}
+
+float boxExit(vec3 ro,vec3 rd,float hs){
+    vec3 invD=1.0/rd;
+    vec3 t0=(-hs-ro)*invD,t1=(hs-ro)*invD;
+    vec3 tm=max(t0,t1);
+    return min(min(tm.x,tm.y),tm.z);
+}
+
+void main(){
+    vec3 ro=uCameraLocal;
+    vec3 rd=normalize(vLocalPos-ro);
+    float tMax=boxExit(ro,rd,1.0);
+    if(tMax<0.0) discard;
+
+    float tStart=0.001;
+    if(!all(greaterThan(ro,vec3(-1.0)))||!all(lessThan(ro,vec3(1.0)))){
+        vec3 invD=1.0/rd;
+        vec3 t0=(-1.0-ro)*invD,t1=(1.0-ro)*invD;
+        vec3 tm=min(t0,t1);
+        tStart=max(max(tm.x,tm.y),tm.z);
+        if(tStart<0.0) tStart=0.001;
+    }
+
+    float stepSize=2.0/72.0;
+    int steps=int(min((tMax-tStart)/stepSize,128.0));
+    vec4 acc=vec4(0.0);
+
+    for(int i=0;i<128;i++){
+        if(i>=steps) break;
+        float tt=tStart+(float(i)+0.5)*stepSize;
+        vec3 pos=ro+rd*tt;
+        float d=sampleVol(pos);
+        if(d < uThresh*0.4) continue;
+
+        float ph=samplePhase(pos);
+        float density=smoothstep(uThresh*0.4, uThresh*4.0, d);
+
+        float cFrac = crystalFraction(ph);
+
+        vec3 col;
+        float alpha;
+
+        if(cFrac < 0.05) {
+            // ── LÍQUIDO PURO ──────────────────────────────────
+            vec3 normal = smoothNormal(pos);
+            float fr = fresnel(rd, normal, 3.0);
+            col = liquidColor(density, ph);
+            col += vec3(0.4,0.85,1.0)*fr*0.4*density;
+            alpha = density * 0.045;
+
+        } else if(cFrac > 0.95) {
+            // ── CRISTAL PURO ──────────────────────────────────
+            vec3 normal = facetNormal(pos);
+
+            // Seleccionar color por mineral según ph
+            // 0.50=hielo, 0.62=cuarzo, 0.74=bismuto, 0.86=sal
+            if(ph < 0.56) {
+                col = iceColor(density, normal, rd, pos);
+            } else if(ph < 0.68) {
+                col = quartzColor(density, normal, rd, pos, ph);
+            } else if(ph < 0.80) {
+                col = bismuthColor(density, normal, rd, pos, ph);
+            } else {
+                col = saltColor(density, normal, rd, pos);
+            }
+
+            // El cristal es más transparente que el líquido
+            // Los highlights especulares son los que dan presencia
+            vec3 lightSpec=normalize(vec3(0.5,1.0,0.3));
+            float spec=pow(max(0.0,dot(reflect(-lightSpec,normal),-rd)),64.0);
+            alpha = (density*0.02 + spec*0.18) * (1.0-acc.a);
+
+        } else {
+            // ── ZONA DE TRANSICIÓN — frente de cristalización ─
+            // La zona más visualmente interesante:
+            // aquí el cristal está creciendo activamente
+            vec3 normalSmooth = smoothNormal(pos);
+            vec3 normalFacet  = facetNormal(pos);
+            vec3 normal = mix(normalSmooth, normalFacet, cFrac);
+
+            // Mezcla de colores
+            vec3 colLiquid  = liquidColor(density, ph);
+            vec3 colCrystal;
+            if(ph < 0.56)       colCrystal = iceColor(density,normal,rd,pos);
+            else if(ph < 0.68)  colCrystal = quartzColor(density,normal,rd,pos,ph);
+            else if(ph < 0.80)  colCrystal = bismuthColor(density,normal,rd,pos,ph);
+            else                colCrystal = saltColor(density,normal,rd,pos);
+
+            col = mix(colLiquid, colCrystal, cFrac);
+
+            // El frente brilla — nucleación libera energía
+            float frontGlow = cFrac * (1.0-cFrac) * 4.0; // máximo en cFrac=0.5
+            col += vec3(0.8,0.95,1.0) * frontGlow * 0.4;
+
+            alpha = density * mix(0.045, 0.025, cFrac);
+        }
+
+        acc.rgb += col * alpha * (1.0-acc.a);
+        acc.a   += alpha * (1.0-acc.a);
+        if(acc.a > 0.95) break;
+    }
+
+    // ── Borde del cubo — reflexión interna del cristal ────────
+    float edgeMask=max(max(abs(vLocalPos.x),abs(vLocalPos.y)),abs(vLocalPos.z));
+    float edge=smoothstep(0.88,1.0,edgeMask);
+    if(edge>0.0 && acc.a<0.15){
+        // Samplear phase en el borde para el color del mineral activo
+        float edgePh=samplePhase(vLocalPos*0.9);
+        float ef=crystalFraction(edgePh);
+        vec3 edgeCol;
+        if(edgePh<0.56)      edgeCol=vec3(0.7,0.88,1.0);
+        else if(edgePh<0.68) edgeCol=vec3(0.9,0.8,1.0);
+        else if(edgePh<0.80) {
+            // bismuto — arcoíris en el borde
+            float a=uTime*0.08+vLocalPos.x*2.0+vLocalPos.y*1.5;
+            edgeCol=vec3(0.5+0.5*sin(a), 0.5+0.5*sin(a+2.1), 0.5+0.5*sin(a+4.2));
+        } else edgeCol=vec3(0.97,0.98,1.0);
+        acc.rgb += edgeCol*edge*0.12*(1.0-acc.a);
+        acc.a   += edge*0.06*(1.0-acc.a);
+    }
+
+    gl_FragColor = clamp(acc, 0.0, 1.0);
+}

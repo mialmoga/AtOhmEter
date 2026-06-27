@@ -1,0 +1,124 @@
+// === VERTEX ===
+
+varying vec3 vPos;
+
+void main(){
+
+    vPos = position;
+
+    gl_Position =
+        projectionMatrix *
+        modelViewMatrix *
+        vec4(position,1.0);
+}
+
+
+// === FRAGMENT ===
+
+precision highp float;
+precision highp sampler3D;
+
+uniform sampler3D uVolume;
+uniform sampler3D uPhase;
+
+uniform vec3  uCameraLocal;
+uniform float uBoxSize;
+uniform float uThresh;
+
+varying vec3 vPos;
+
+vec3 palette(float t){
+
+    vec3 violet = vec3(0.35,0.10,0.90);
+    vec3 blue   = vec3(0.05,0.15,0.45);
+    vec3 cyan   = vec3(0.10,0.80,1.00);
+    vec3 amber  = vec3(1.00,0.70,0.20);
+    vec3 white  = vec3(1.00);
+
+    if(t < 0.25)
+        return mix(violet,blue,t*4.0);
+
+    if(t < 0.50)
+        return mix(
+            blue,
+            cyan,
+            (t-0.25)*4.0
+        );
+
+    if(t < 0.80)
+        return mix(
+            cyan,
+            amber,
+            (t-0.50)/0.30
+        );
+
+    return mix(
+        amber,
+        white,
+        (t-0.80)/0.20
+    );
+}
+
+void main(){
+
+    vec3 rayDir =
+        normalize(
+            vPos - uCameraLocal
+        );
+
+    vec3 pos = vPos;
+
+    vec3 color = vec3(0.0);
+
+    float alpha = 0.0;
+
+    const int STEPS = 96;
+
+    for(int i=0;i<STEPS;i++){
+
+        vec3 uv =
+            (pos/uBoxSize)*0.5+0.5;
+
+        if(any(lessThan(uv,vec3(0.0))) ||
+           any(greaterThan(uv,vec3(1.0))))
+            break;
+
+        float density =
+            texture(
+                uVolume,
+                uv
+            ).r;
+
+        float phase =
+            texture(
+                uPhase,
+                uv
+            ).r;
+
+        density =
+            density*density;
+
+        if(density > uThresh){
+
+            vec3 c =
+                palette(phase);
+
+            float a =
+                density * 0.04;
+
+            color +=
+                c*a*(1.0-alpha);
+
+            alpha +=
+                a*(1.0-alpha);
+
+            if(alpha > 0.98)
+                break;
+        }
+
+        pos += rayDir*0.05;
+    }
+
+    gl_FragColor =
+        vec4(color,alpha);
+}

@@ -1,0 +1,80 @@
+{
+  "title": "Membrana jabonosa: INFLADO vs TENSIÓN   ·   espesor → iridiscencia   ·   sopla y revienta",
+  "formula": [
+    { "term": "membrana(aire soplado)",            "class": "ft-kin",   "key": "film",  "op": null },
+    { "term": "espesor ∝ 1 / tamaño²",             "class": "ft-higgs", "key": "thick", "op": "·"  },
+    { "term": "+ INFLADO (tu aliento)",            "class": "ft-snap",  "key": "blow",  "op": "+"  },
+    { "term": "− TENSIÓN (drena, evapora)",        "class": "ft-bohm",  "key": "tens",  "op": "−"  },
+    { "term": "color = interferencia(espesor)",    "class": "ft-phase", "key": "irid",  "op": "·"  }
+  ],
+  "legend": [
+    { "key": "film",  "label": "Membrana — la película jabonosa que nace al soplar", "color": "rgba(255,255,255,0.6)" },
+    { "key": "thick", "label": "Espesor — más grande = más fina = más frágil", "color": "rgba(60,200,255,0.7)" },
+    { "key": "blow",  "label": "Inflado — tu aliento (micrófono) infla la burbuja", "color": "rgba(255,80,120,0.8)" },
+    { "key": "tens",  "label": "Tensión — drena la membrana hasta reventar", "color": "rgba(120,220,160,0.8)" },
+    { "key": "irid",  "label": "Iridiscencia — el color sale del grosor (película delgada)", "color": "rgba(255,200,60,0.8)" }
+  ],
+  "tooltips": {
+    "film": "Cada burbuja es una membrana esférica que nace cuando soplas. El tamaño depende de cuánto soples (volumen del micro) y de qué cara del cubo tengas al frente: frente=normal, lados=chicas, arriba=gigante, abajo=espuma, atrás=con humo.",
+    "thick": "El espesor de la película baja cuanto más grande es la burbuja: la misma cantidad de jabón estirada sobre más superficie. Por eso las burbujas grandes son finas, frágiles y revientan pronto — física real del jabón.",
+    "blow": "INFLADO — una de las dos fuerzas. Tu aliento (el volumen captado por el micrófono) crea e infla burbujas. Soplar fuerte = burbujas grandes. El slider SOPLIDO ajusta la sensibilidad. (También está el botón 💨 Soplar por si no hay micro.)",
+    "tens": "TENSIÓN — la fuerza opuesta. La membrana drena y se evapora con el tiempo; la tensión acelera ese drenaje. Cuando el espesor cae bajo un mínimo crítico, ¡pop! El slider TENSIÓN ajusta la fragilidad: alta, las burbujas mueren rápido; baja, las pequeñas son casi eternas.",
+    "irid": "El color no se pinta: emerge del ESPESOR de la membrana, como en el jabón real (interferencia de película delgada). Distintos grosores reflejan distintos colores — por eso las pompas tienen ese arcoíris cambiante. El slider IRIDISCENCIA intensifica el efecto. En modo UV, las membranas brillan fluorescentes."
+  },
+  "states": {
+    "vacuum":     "El cubo en calma, sin burbujas. Sopla al micrófono (o usa 💨) para crear.",
+    "nucleating": "Las primeras burbujas nacen de tu aliento y empiezan a flotar.",
+    "active":     "Varias burbujas flotan, irisando con el espesor de sus membranas.",
+    "pumping":    "Mucho humo/vapor llenando burbujas — la cara de atrás está dando vapor.",
+    "stable":     "Espuma poblada: muchas burbujitas estables flotando juntas.",
+    "locked":     "Una burbuja enorme, tensa al límite ◉ — a punto de reventar.",
+    "collapse":   "¡Pop! Varias burbujas reventando — el inflado venció a la tensión."
+  },
+  "stateLabels": {
+    "vacuum":     "burbuja — sopla para crear",
+    "nucleating": "burbuja — primeras pompas",
+    "active":     "burbuja — flotando e irisando",
+    "pumping":    "burbuja — vapor dentro ◉",
+    "stable":     "burbuja — espuma poblada",
+    "locked":     "burbuja — TENSA AL LÍMITE ◉",
+    "collapse":   "burbuja — ¡POP!"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "film": 0.3, "thick": 0.2, "blow": 0.2, "tens": 0.3, "irid": 0.2 },
+    "nucleating": { "film": 0.7, "thick": 0.5, "blow": 0.7, "tens": 0.3, "irid": 0.5 },
+    "active":     { "film": 0.9, "thick": 0.7, "blow": 0.6, "tens": 0.5, "irid": 0.9 },
+    "pumping":    { "film": 0.7, "thick": 0.6, "blow": 0.8, "tens": 0.5, "irid": 0.7 },
+    "stable":     { "film": 0.9, "thick": 0.8, "blow": 0.4, "tens": 0.6, "irid": 1.0 },
+    "locked":     { "film": 0.8, "thick": 1.0, "blow": 0.7, "tens": 0.8, "irid": 0.8 },
+    "collapse":   { "film": 0.5, "thick": 0.6, "blow": 0.5, "tens": 1.0, "irid": 0.4 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Cada cara reacciona distinto",      "text": "Verificado: la dirección de cámara detecta qué cara está al frente y el soplido se comporta según ella — frente da una burbuja normal, lados burbujitas, arriba una gigante del tamaño de la cara, atrás con humo, abajo espuma. Un indicador avisa al cruzar a otra cara." },
+    { "status": "ok",   "label": "✓ Iridiscencia por espesor real",      "text": "El color de las membranas no se pinta: se deriva del espesor de la película, como la interferencia de película delgada en el jabón real. Las burbujas grandes (más finas) y pequeñas (más gruesas) muestran colores distintos." },
+    { "status": "warn", "label": "⚠ Predicción AFINADA: hay un umbral",   "text": "El diseño suponía 'tensión alta → revienta proporcionalmente más pequeña'. Headless mostró algo más fiel a la física real: existe un UMBRAL. Burbujas pequeñas y poco tensas son casi eternas (como una buena pompa de jabón); solo al cruzar cierto tamaño (soplido fuerte) o fragilidad (tensión alta) revientan, y entonces rápido. El soplido/tamaño es el factor dominante. Ver P1." },
+    { "status": "warn", "label": "⚠ Burbujas como entidades, no campo",   "text": "Para correr fluido en móvil, las burbujas son entidades (centro, radio, espesor, humo) que se pintan en el campo volumétrico en cada refresh, en vez de simular la dinámica de fluido completa. Es una aproximación: captura membranas, iridiscencia y reventado, pero no la coalescencia real de pompas que se tocan." },
+    { "status": "open", "label": "○ Inspiración y micrófono",             "text": "BURBUJA estrena el micrófono del shell como ENTRADA expresiva: tu aliento es la fuerza creadora. La idea surgió tras ver el bloom de partículas de Velvet; aquí se llevó a campo volumétrico con membranas reales. La órbita automática (capacidad nueva del shell) le da el aire contemplativo de pieza de museo." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "El reventado tiene umbral, no es gradual (afinada)",
+      "text": "No toda burbuja revienta: las pequeñas y poco tensas son cuasi-estables (vida indefinida). Existe un umbral de tamaño/fragilidad por encima del cual revientan, y entonces rápido. Verificado: con tensión 0.5, soplido ≤0.5 → vida >300 frames; soplido 0.8 → ~30 frames; soplido 1.0 → ~12 frames. El tamaño (soplido) domina sobre la tensión."
+    },
+    {
+      "id": "P2",
+      "label": "Las grandes revientan antes que las chicas",
+      "text": "A igual tensión, las burbujas más grandes (más soplido) tienen membranas más finas y revientan antes. Es la conservación del jabón: la misma película estirada sobre más superficie es más delgada. Verificado: radio de nacimiento crece con el soplido (0.2→r4.4, 1.0→r9.0) y la vida cae con el tamaño."
+    },
+    {
+      "id": "P3",
+      "label": "La cara al frente determina el soplido",
+      "text": "Girando la cámara cambia qué cara del cubo está al frente, y eso cambia qué hace el soplido: normal / burbujitas / gigante / humo / espuma. Verificado: la proyección de la dirección de cámara sobre los 6 normales detecta la cara correcta en cada orientación."
+    },
+    {
+      "id": "P4",
+      "label": "El color depende del grosor, no es arbitrario",
+      "text": "Si la iridiscencia es interferencia de película delgada, dos burbujas de distinto tamaño (distinto espesor) deben mostrar colores distintos, y el color de una misma burbuja debe derivar al adelgazarse hacia el reventón. Falsable observando si el color sigue al espesor o es aleatorio."
+    }
+  ]
+}

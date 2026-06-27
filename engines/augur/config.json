@@ -1,0 +1,99 @@
+{
+  "id": "augur",
+  "name": "AUGUR — El Campo que Adivina",
+  "description": "Un campo que no evoluciona según lo que es, sino según el error entre lo que predijo y lo que ocurrió. Las regiones que aciertan ganan confianza y se cristalizan — y al congelarse, dejan de seguir al mundo, hasta que una sorpresa las refuta. La estructura vive en el borde entre la certeza ciega y el caos: la ventana de criticalidad. Un campo cuya única ley es minimizar su propia sorpresa, y que nunca lo logra del todo.",
+  "panelTitle": "🔮 EL AUGUR",
+  "params": {
+    "DIFFUSION": {
+      "default": 0.18,
+      "label": "difusión",
+      "min": 0.02,
+      "max": 0.5,
+      "step": 0.01
+    },
+    "REACT": {
+      "default": 0.9,
+      "label": "reacción",
+      "min": 0.0,
+      "max": 2.0,
+      "step": 0.05
+    },
+    "LEARN": {
+      "default": 0.06,
+      "label": "γ aprende",
+      "min": 0.01,
+      "max": 0.4,
+      "step": 0.01
+    },
+    "DECAY": {
+      "default": 0.94,
+      "label": "olvido",
+      "min": 0.8,
+      "max": 0.999,
+      "step": 0.002
+    },
+    "RIGIDITY": {
+      "default": 1.2,
+      "label": "fragilidad",
+      "min": 0.0,
+      "max": 3.0,
+      "step": 0.05
+    },
+    "NOISE": {
+      "default": 0.025,
+      "label": "ruido mundo",
+      "min": 0.0,
+      "max": 0.1,
+      "step": 0.005
+    },
+    "DT": {
+      "default": 0.5,
+      "label": "DT",
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "THRESH": {
+      "default": 0.04,
+      "label": "Umbral 👁",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "seeds": [
+    { "id": "ruido",    "label": "Ruido total (el mundo arranca impredecible)" },
+    { "id": "profecia", "label": "Profecía (un núcleo que ya cree, asediado por el caos)" },
+    { "id": "cismas",   "label": "Dos cismas (certezas opuestas, sorpresa en la costura)" },
+    { "id": "vacio",    "label": "Vacío plástico (nadie cree nada aún)" }
+  ],
+  "defaultSeed": "ruido",
+  "injections": [
+    { "id": "duda",     "label": "⊘ Duda",     "class": "amber" },
+    { "id": "profecia", "label": "◉ Profecía",  "class": "amber" },
+    { "id": "sismo",    "label": "≋ Sismo",     "class": "" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "sorpresa",    "class": "hot"  },
+    { "id": "s-ephase",   "label": "confianza",   "class": "cool" },
+    { "id": "s-etorsion", "label": "criticalidad","class": "hot"  },
+    { "id": "s-ekin",     "label": "plástico",    "class": ""     },
+    { "id": "s-boundary", "label": "cristalizado","class": "cool" },
+    { "id": "s-pump",     "label": "pico sorpresa","class": ""    },
+    { "id": "s-coher",    "label": "identidad",   "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "el oráculo" },
+    { "min": 4, "label": "creencias"  },
+    { "min": 2, "label": "el borde"   },
+    { "min": 0, "label": "la duda"    }
+  ]
+}

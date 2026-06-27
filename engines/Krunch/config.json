@@ -1,0 +1,99 @@
+{
+  "id": "krunch",
+  "name": "KRUNCH — El cristal que se astilla",
+  "description": "Una realidad de cristal liso que acumula tensión hasta que en un punto —¡KRUNCH!— se astilla como vidrio templado: venas finas y angulosas que se bifurcan en líneas rectas. Por las astillas asoma OTRA realidad, cuyo corazón es una esponja de Menger (cubos dentro de cubos). Cuando la red de grietas atraviesa el cristal, se invierte: lo oculto se vuelve cristal, el cristal viejo pasa a ser el corazón. Cristal que respira. Inspiración visual de un render de Velvet. Tres modos: el ciclo solo (Vigilia), tú das el golpe (Sísmico), o varios cristales compiten (Babel).",
+  "panelTitle": "🜂 KRUNCH",
+  "params": {
+    "FRACTAL": {
+      "default": 3,
+      "label": "menger (niveles)",
+      "min": 1,
+      "max": 4,
+      "step": 1
+    },
+    "RAMIFICA": {
+      "default": 0.15,
+      "label": "ramificación",
+      "min": 0.0,
+      "max": 0.5,
+      "step": 0.01
+    },
+    "PRESION": {
+      "default": 1.0,
+      "label": "tensión (astilla)",
+      "min": 0.5,
+      "max": 3.0,
+      "step": 0.1
+    },
+    "CURACION": {
+      "default": 0.001,
+      "label": "recocido (sana)",
+      "min": 0.0,
+      "max": 0.01,
+      "step": 0.0005
+    },
+    "DETALLE": {
+      "default": 3,
+      "label": "escala núcleo",
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    "DT": {
+      "default": 1.0,
+      "label": "DT",
+      "min": 0.25,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "THRESH": {
+      "default": 0.06,
+      "label": "Umbral 👁",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "mic": {
+    "enabled": true,
+    "bindings": [
+      { "feature": "bass",   "inject": "krunch", "threshold": 0.55, "cooldown": 10 },
+      { "feature": "volume", "param": "PRESION", "min": 0.6, "max": 2.4 },
+      { "feature": "treble", "param": "RAMIFICA", "min": 0.06, "max": 0.4 }
+    ]
+  },
+  "seeds": [
+    { "id": "vigilia", "label": "A · Vigilia — el cristal respira solo" },
+    { "id": "sismico", "label": "B · Sísmico — tú das el golpe (¡KRUNCH!)" },
+    { "id": "babel",   "label": "C · Babel — cristales de colores compiten" }
+  ],
+  "defaultSeed": "vigilia",
+  "injections": [
+    { "id": "krunch",   "label": "✕ ¡KRUNCH!",         "class": "red"   },
+    { "id": "sembrar",  "label": "⊕ Sembrar realidad",  "class": "amber" },
+    { "id": "invertir", "label": "↺ Invertir ya",       "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "astillado",      "class": "hot"  },
+    { "id": "s-ekin",     "label": "venas activas",  "class": "cool" },
+    { "id": "s-etorsion", "label": "núcleo visible", "class": ""     },
+    { "id": "s-pump",     "label": "inversiones",    "class": "amber" },
+    { "id": "s-umax",     "label": "realidades/venas","class": "cool" },
+    { "id": "s-coher",    "label": "tensión crítica", "class": "hot" },
+    { "id": "s-thmax",    "label": "cristal",        "class": ""     }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "el cristal"   },
+    { "min": 4, "label": "la astilla"   },
+    { "min": 2, "label": "la vena"      },
+    { "min": 0, "label": "el menger"    }
+  ]
+}

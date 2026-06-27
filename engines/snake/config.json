@@ -1,0 +1,46 @@
+{
+  "id": "snake",
+  "name": "SNAKE 3D — La Serpiente Cuántica",
+  "description": "La serpiente es el campo. Su cuerpo escribe en el volumen. La comida pulsa en rojo. Los botones son el control. El autopiloto encuentra el camino más corto por BFS.",
+  "panelTitle": "🐍 SNAKE 3D",
+  "params": {
+    "SPEED":      { "default":4,   "label":"velocidad",     "min":1,   "max":20,  "step":1   },
+    "GROW":       { "default":3,   "label":"crecer/comida", "min":1,   "max":10,  "step":1   },
+    "FOOD_COUNT": { "default":3,   "label":"comidas",       "min":1,   "max":8,   "step":1   },
+    "AUTO":       { "default":0,   "label":"autopiloto",    "min":0,   "max":1,   "step":1   },
+    "THRESH":     { "default":0.05,"label":"Umbral 👁",     "min":0.01,"max":0.5, "step":0.01}
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "manual", "label": "Manual — tú controlas" },
+    { "id": "auto",   "label": "Autopiloto — solo mirar" }
+  ],
+  "defaultSeed": "manual",
+  "injections": [
+    { "id": "iz",    "label": "← Izquierda", "class": "amber" },
+    { "id": "der",   "label": "→ Derecha",   "class": "amber" },
+    { "id": "arr",   "label": "↑ Arriba",    "class": ""      },
+    { "id": "sub",   "label": "↓ Abajo",     "class": ""      },
+    { "id": "auto",  "label": "🤖 Auto",     "class": "cyan"  },
+    { "id": "reset", "label": "↺ Reset",     "class": "red"   }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³ — normal",  "default": true },
+    { "value": 16, "label": "16³ — fácil"  },
+    { "value": 48, "label": "48³ — difícil" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "puntos 🏆",  "class": "hot"  },
+    { "id": "s-ekin",      "label": "longitud 🐍","class": "cool" },
+    { "id": "s-etorsion", "label": "vidas ❤️",   "class": "hot"  },
+    { "id": "s-ephase",   "label": "nivel ⭐",   "class": "amber"},
+    { "id": "s-helic",    "label": "comidas 🍎", "class": ""     },
+    { "id": "s-coher",    "label": "auto 🤖",    "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "cosmos"   },
+    { "min": 4, "label": "campo"    },
+    { "min": 2, "label": "serpiente"},
+    { "min": 0, "label": "cabeza"   }
+  ]
+}

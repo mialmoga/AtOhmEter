@@ -1,0 +1,67 @@
+{
+  "title": "El Espacio que se Teje",
+  "formula": [
+    { "term": "C(a,b) = [d<R] ∧ [cos Δφ > θ]",    "class": "ft-kin",   "key": "connect",  "op": null },
+    { "term": "F_ab = γ·cos(Δφ)·(d−d₀)/d",        "class": "ft-snap",  "key": "force",    "op": ";"  },
+    { "term": "ψ̇ₐ = iωψₐ + κΣ_{b∈C(a)}(ψ_b−ψₐ)", "class": "ft-phase", "key": "couple",   "op": ";"  },
+    { "term": "birth ∝ Θ(|C(a)|≥3)",               "class": "ft-higgs", "key": "birth",    "op": ";"  },
+    { "term": "death ← [|C(a)|<k] ∨ [|ψ|<ε]",     "class": "ft-bohm",  "key": "death",    "op": ";"  }
+  ],
+  "legend": [
+    { "key": "connect", "label": "Conexión C(a,b)",  "color": "rgba(60,200,255,0.7)"  },
+    { "key": "force",   "label": "Fuerza F_ab",      "color": "rgba(255,80,120,0.7)"  },
+    { "key": "couple",  "label": "Acoplamiento ψ",   "color": "rgba(255,200,60,0.7)"  },
+    { "key": "birth",   "label": "Nacimiento",        "color": "rgba(100,255,180,0.7)" },
+    { "key": "death",   "label": "Muerte",            "color": "rgba(255,255,255,0.4)" }
+  ],
+  "tooltips": {
+    "connect": "C(a,b) = 1 si dist(a,b)<R y cos(φₐ−φ_b)>θ — Conexión por proximidad Y coherencia de fase. No basta estar cerca — hay que estar de acuerdo. La geometría es filtrada por la física.",
+    "force":   "F_ab = γ·cos(Δφ)·(d−d₀)/d — En fase (cos>0): atracción hacia distancia óptima d₀. Antifase (cos<0): repulsión. Los que piensan igual se juntan. Los que piensan diferente se repelen.",
+    "couple":  "ψ̇ₐ = iωψₐ + κΣ(ψ_b−ψₐ) — Evolución de ψ: rotación libre (iω) + acoplamiento con vecinos conectados. La frecuencia ω aumenta con el número de conexiones — los más conectados oscilan más rápido.",
+    "birth":   "birth ∝ Θ(|C(a)|≥3) — Nacimiento en zonas con al menos 3 conexiones activas. El nuevo punto hereda el ψ del padre. La vida emerge en zonas de alta densidad relacional.",
+    "death":   "death ← [|C(a)|<k] ∨ [|ψ|<ε] — Muerte por aislamiento (pocas conexiones) o por silencio (amplitud demasiado baja). Sin relaciones y sin voz, el punto desaparece."
+  },
+  "states": {
+    "vacuum":     "Red vacía o casi vacía. Los puntos están muriendo por aislamiento. El espacio se colapsa.",
+    "nucleating": "Pocos conexiones por punto. La red está formándose. Los clusters están definiendo su territorio.",
+    "active":     "Alta fracción de puntos aislados. La red está en tensión — muchos en el borde de la muerte.",
+    "pumping":    "Alta velocidad de movimiento. Los clusters se mueven y reorganizan activamente.",
+    "stable":     "Alta cohesión. La mayoría de puntos tiene conexiones suficientes. La geometría es estable.",
+    "locked":     "MUY ALTA COHESIÓN. La red se cristalizó — todos conectados, nadie se mueve.",
+    "collapse":   "Sin puntos. El sistema murió. Reset necesario."
+  },
+  "stateLabels": {
+    "vacuum":     "red — colapso",
+    "nucleating": "red — formándose",
+    "active":     "red — en tensión",
+    "pumping":    "red — reorganizando",
+    "stable":     "red — estable",
+    "locked":     "red — CRISTALIZADA ◉",
+    "collapse":   "red — vacía"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "connect":0.2, "force":0.2, "couple":0.3, "birth":0.1, "death":1.0 },
+    "nucleating": { "connect":0.7, "force":0.5, "couple":0.5, "birth":0.8, "death":0.5 },
+    "active":     { "connect":0.5, "force":1.0, "couple":0.6, "birth":0.4, "death":0.7 },
+    "pumping":    { "connect":0.8, "force":1.0, "couple":0.8, "birth":0.6, "death":0.4 },
+    "stable":     { "connect":1.0, "force":0.5, "couple":0.9, "birth":0.5, "death":0.2 },
+    "locked":     { "connect":1.0, "force":0.2, "couple":1.0, "birth":0.3, "death":0.1 },
+    "collapse":   { "connect":0.1, "force":0.1, "couple":0.1, "birth":0.1, "death":1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Sin grid fijo",           "text": "Las posiciones son variables dinámicas, no índices de array. El espacio que ves en el render es densidad de conexiones proyectada al grid del shader." },
+    { "status": "ok",   "label": "✓ Geometría filtrada",      "text": "La conexión requiere tanto proximidad espacial como coherencia de fase. Dos puntos pueden estar cerca y no conectar si no están de acuerdo." },
+    { "status": "ok",   "label": "✓ Vida y muerte emergentes","text": "No hay un número fijo de puntos. Nacen donde la red es densa y mueren donde están solos. La demografía es consecuencia de la dinámica." },
+    { "status": "warn", "label": "⚠ O(n²) complejidad",       "text": "Cada punto revisa todos los demás — O(n²) por generación. Con MAX_POINTS=800 son 640,000 comparaciones/generación. N64 puede ser lento." },
+    { "status": "warn", "label": "⚠ Proyección al grid",      "text": "El render proyecta puntos continuos al grid discreto. La resolución visual está limitada por N, no por el número de puntos." },
+    { "status": "open", "label": "○ ¿Topología conservada?",  "text": "¿Los clusters mantienen su número de Euler-Poincaré durante la evolución? ¿Hay invariantes topológicos en la red de conexiones?" }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Segregación por fase",      "text": "Los clusters de la semilla 'clusters' deben mantenerse separados — los puntos en antifase se repelen activamente. Las fronteras entre clusters deben ser visibles." },
+    { "id": "P2", "label": "Anillo metaestable",        "text": "La semilla 'anillo' debe mantener la geometría toroidal por al menos 100 generaciones. Si se desintegra antes, la red no soporta topología no trivial." },
+    { "id": "P3", "label": "Colisión → fusión o rebote","text": "Los dos clusters de 'colisión' deben o fusionarse (si sus fases son compatibles) o rebotar (si son incompatibles). El resultado depende de PSI_SPEED." },
+    { "id": "P4", "label": "Explosión regenera red",    "text": "Inyectar explosión debe dispersar todos los puntos. Si BIRTH_RATE es alto, la red debe regenerarse desde los puntos que sobreviven en la periferia." },
+    { "id": "P5", "label": "Inversión rompe clusters",  "text": "Invertir ψ globalmente hace que todos los vecinos sean ahora antifase. Los clusters deben desintegrarse inmediatamente y reagruparse con nueva geometría." },
+    { "id": "P6", "label": "Falsificación: sin fase",   "text": "Con C_THRESH=-1 (cualquier fase conecta), la red no debe segregarse por fase — solo por distancia. Si hay segregación, la fase no es responsable." }
+  ]
+}

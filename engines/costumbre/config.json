@@ -1,0 +1,49 @@
+{
+  "id": "costumbre",
+  "name": "COSTUMBRE — El Campo que se Acostumbra",
+  "description": "Un sistema no cambia por energía absoluta. Cambia por diferencia respecto a lo que ya considera normal. No existe energía. No existe memoria. Existe costumbre.",
+  "panelTitle": "🧠 COSTUMBRE",
+  "params": {
+    "ALPHA": { "default":0.4,   "label":"α difusión",    "min":0.0,  "max":2.0,  "step":0.05  },
+    "BETA":  { "default":1.2,   "label":"β sensibilidad","min":0.0,  "max":3.0,  "step":0.05  },
+    "GAMMA": { "default":0.8,   "label":"γ saturación",  "min":0.0,  "max":3.0,  "step":0.05  },
+    "DELTA": { "default":0.3,   "label":"δ deriva",      "min":0.0,  "max":2.0,  "step":0.05  },
+    "MU":    { "default":0.008, "label":"μ habituación", "min":0.0,  "max":0.1,  "step":0.001 },
+    "DT":    { "default":0.015, "label":"DT",            "min":0.002,"max":0.04, "step":0.001 },
+    "THRESH":{ "default":0.05,  "label":"Umbral 👁",     "min":0.01, "max":1.0,  "step":0.01  }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "pulso",     "label": "Pulso — gaussiano nuevo sobre N=0" },
+    { "id": "habituado", "label": "Habituado — ψ ≈ N, todo ya es normal" },
+    { "id": "fronteras", "label": "Fronteras — dos regiones distintas habituadas" },
+    { "id": "adiccion",  "label": "Adicción — alta amplitud sobre N=0 (sobreestimulación)" },
+    { "id": "despertar", "label": "Despertar — N alta, ψ desapareció (el hueco)" }
+  ],
+  "defaultSeed": "pulso",
+  "injections": [
+    { "id": "novedad",  "label": "✦ Novedad",   "class": "amber" },
+    { "id": "apagar",   "label": "◌ Apagar",    "class": ""      },
+    { "id": "reset_n",  "label": "⚡ Despertar", "class": "amber" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "novedad med", "class": "hot"  },
+    { "id": "s-ekin",     "label": "nov. máx",    "class": "hot"  },
+    { "id": "s-etorsion", "label": "habituado",   "class": "cool" },
+    { "id": "s-ephase",   "label": "ceguera",     "class": "amber"},
+    { "id": "s-helic",    "label": "fronteras",   "class": "cool" },
+    { "id": "s-pump",     "label": "ceguera %",   "class": ""     },
+    { "id": "s-coher",    "label": "overlap",     "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "mundo"    },
+    { "min": 4,  "label": "región"   },
+    { "min": 2,  "label": "frontera" },
+    { "min": 0,  "label": "hueco"    }
+  ]
+}

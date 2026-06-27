@@ -1,0 +1,80 @@
+{
+  "id": "chladni",
+  "name": "CHLADNI 3D — La Forma del Sonido",
+  "description": "Tres fuentes pulsan presión real en un sustrato granular. La onda se propaga, rebota e interfiere; donde cabe exactamente en la caja forma ondas estacionarias — los modos propios de la cavidad. La arena huye de donde el medio vibra (antinodos) y queda atrapada donde está quieto (nodos), dibujando las figuras de Chladni en 3D. La estacionariedad no se programa: emerge. Algunas frecuencias resuenan; otras tiemblan. Suena lo que ves.",
+  "panelTitle": "🔊 CHLADNI",
+  "sound": {
+    "enabled": true,
+    "voices": 3,
+    "startOn": "simulation",
+    "bindings": [
+      { "freq": "S1_PITCH", "wave": "S1_WAVE", "gain": "S1_GAIN" },
+      { "freq": "S2_PITCH", "wave": "S2_WAVE", "gain": "S2_GAIN" },
+      { "freq": "S3_PITCH", "wave": "S3_WAVE", "gain": "S3_GAIN" }
+    ],
+    "freqRange": [80, 880],
+    "filterParam": null
+  },
+  "params": {
+    "S1_X":     { "default": 0.5, "label": "F1 · x", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S1_Y":     { "default": 0.5, "label": "F1 · y", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S1_Z":     { "default": 0.5, "label": "F1 · z", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S1_PITCH": { "default": 4.0, "label": "F1 · tono", "min": 1.0, "max": 12.0, "step": 0.1 },
+    "S1_WAVE":  { "default": 0.0, "label": "F1 · forma", "min": 0.0, "max": 1.0, "step": 0.01 },
+    "S1_GAIN":  { "default": 1.0, "label": "F1 · volumen", "min": 0.0, "max": 2.0, "step": 0.05 },
+
+    "S2_X":     { "default": 0.3, "label": "F2 · x", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S2_Y":     { "default": 0.7, "label": "F2 · y", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S2_Z":     { "default": 0.5, "label": "F2 · z", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S2_PITCH": { "default": 6.0, "label": "F2 · tono", "min": 1.0, "max": 12.0, "step": 0.1 },
+    "S2_WAVE":  { "default": 0.0, "label": "F2 · forma", "min": 0.0, "max": 1.0, "step": 0.01 },
+    "S2_GAIN":  { "default": 0.0, "label": "F2 · volumen", "min": 0.0, "max": 2.0, "step": 0.05 },
+
+    "S3_X":     { "default": 0.7, "label": "F3 · x", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S3_Y":     { "default": 0.3, "label": "F3 · y", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S3_Z":     { "default": 0.5, "label": "F3 · z", "min": 0.0, "max": 1.0, "step": 0.02 },
+    "S3_PITCH": { "default": 8.0, "label": "F3 · tono", "min": 1.0, "max": 12.0, "step": 0.1 },
+    "S3_WAVE":  { "default": 0.0, "label": "F3 · forma", "min": 0.0, "max": 1.0, "step": 0.01 },
+    "S3_GAIN":  { "default": 0.0, "label": "F3 · volumen", "min": 0.0, "max": 2.0, "step": 0.05 },
+
+    "C_SPEED":    { "default": 0.6,    "label": "vel. onda",  "min": 0.2,  "max": 0.9,    "step": 0.02 },
+    "DAMP":       { "default": 0.9995, "label": "resonancia", "min": 0.99, "max": 0.9999, "step": 0.0001 },
+    "GRAIN_MIG":  { "default": 0.5,    "label": "migración",  "min": 0.0,  "max": 2.0,    "step": 0.05 },
+    "VIB_MEM":    { "default": 0.96,   "label": "memoria vib","min": 0.7,  "max": 0.99,   "step": 0.01 },
+    "THRESH":     { "default": 0.04,   "label": "Umbral 👁",  "min": 0.01, "max": 1.0,    "step": 0.01 }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "seeds": [
+    { "id": "modo1", "label": "Modo 1 — una fuente (patrón nodal simple)" },
+    { "id": "modo2", "label": "Modo 2 — dos fuentes (interferencia)" },
+    { "id": "modo3", "label": "Modo 3 — tres fuentes (figura compleja)" }
+  ],
+  "defaultSeed": "modo1",
+  "injections": [
+    { "id": "subsonico",   "label": "≋ Subsónico",   "class": "amber" },
+    { "id": "supersonico", "label": "⚡ Supersónico", "class": "" },
+    { "id": "silencio",    "label": "○ Silencio",    "class": "" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "energía ac.",   "class": "hot"  },
+    { "id": "s-ekin",     "label": "vibración",     "class": ""     },
+    { "id": "s-etorsion", "label": "estacionaria",  "class": "cool" },
+    { "id": "s-boundary", "label": "nodos",         "class": "cool" },
+    { "id": "s-ephase",   "label": "antinodos",     "class": "hot"  },
+    { "id": "s-umax",     "label": "presión max",   "class": ""     },
+    { "id": "s-pump",     "label": "vib max",       "class": ""     }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "la caja"    },
+    { "min": 4, "label": "los modos"  },
+    { "min": 2, "label": "los nodos"  },
+    { "min": 0, "label": "la arena"   }
+  ]
+}

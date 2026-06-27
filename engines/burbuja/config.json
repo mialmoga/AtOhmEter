@@ -1,0 +1,90 @@
+{
+  "id": "burbuja",
+  "name": "BURBUJA — El cubo de jabón que respira con tu aliento",
+  "description": "Un cubo de película jabonosa. Soplas al micrófono y nacen burbujas — pero cada cara del cubo reacciona distinto: gíralo (orbitando la cámara) para poner al frente la cara que quieras. Frente: burbuja normal. Lados: burbujitas. Atrás: humo dentro. Arriba: una burbuja gigante. Abajo: espuma. Las membranas tienen iridiscencia por espesor (física real de película delgada), flotan con gravedad suave, y revientan si se inflan demasiado. Dos modos: luz normal o luz UV fluorescente. La cámara orbita sola como pieza de museo.",
+  "panelTitle": "🫧 BURBUJA",
+  "params": {
+    "SOPLIDO": {
+      "default": 1.0,
+      "label": "soplido (sensib.)",
+      "min": 0.2,
+      "max": 2.5,
+      "step": 0.1
+    },
+    "TENSION": {
+      "default": 0.5,
+      "label": "tensión (fragilidad)",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "HUMO": {
+      "default": 0.6,
+      "label": "humo (densidad)",
+      "min": 0.0,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "GRAVEDAD": {
+      "default": 0.015,
+      "label": "gravedad (flote)",
+      "min": -0.03,
+      "max": 0.05,
+      "step": 0.005
+    },
+    "IRIDISCENCIA": {
+      "default": 1.0,
+      "label": "iridiscencia",
+      "min": 0.0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    "THRESH": {
+      "default": 0.05,
+      "label": "Umbral 👁",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "mic": {
+    "enabled": true,
+    "bindings": [
+      { "feature": "volume", "inject": "soplido_mic", "threshold": 0.12, "cooldown": 3, "passStrength": true }
+    ]
+  },
+  "autoOrbit": true,
+  "autoOrbitSpeed": 0.5,
+  "seeds": [
+    { "id": "normal", "label": "A · Normal — luz natural, iridiscencia de jabón" },
+    { "id": "uv",     "label": "B · UV — luz negra, membranas fluorescentes" }
+  ],
+  "defaultSeed": "normal",
+  "injections": [
+    { "id": "soplar",   "label": "💨 Soplar",      "class": "amber" },
+    { "id": "reventar", "label": "✕ Reventar todas","class": "red"   },
+    { "id": "vapor",    "label": "☁ Vapor",        "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "burbujas",   "class": "cool" },
+    { "id": "s-pump",     "label": "más grande", "class": "hot"  },
+    { "id": "s-etorsion", "label": "humo",       "class": ""     },
+    { "id": "s-ephase",   "label": "espesor med.", "class": "cool" },
+    { "id": "s-ekin",     "label": "reventando", "class": "hot"  },
+    { "id": "s-thmax",    "label": "cara",       "class": "amber" }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "el cubo"      },
+    { "min": 4, "label": "las pompas"   },
+    { "min": 2, "label": "la membrana"  },
+    { "min": 0, "label": "la iridiscencia" }
+  ]
+}

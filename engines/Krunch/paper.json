@@ -1,0 +1,80 @@
+{
+  "title": "Cristal ⇄ Astilla   ·   núcleo = esponja de Menger   ·   se parte cuando la grieta lo atraviesa",
+  "formula": [
+    { "term": "cristal liso (superficie)",           "class": "ft-kin",   "key": "glass", "op": null },
+    { "term": "− recocido·∂(sanar astilla)",          "class": "ft-higgs", "key": "anneal","op": "−"  },
+    { "term": "+ tensión·vena_angular(núcleo)",       "class": "ft-snap",  "key": "vein",  "op": "+"  },
+    { "term": "núcleo = Menger(x,y,z) cúbico",        "class": "ft-phase", "key": "menger","op": "·"  },
+    { "term": "↺ inversión si la grieta atraviesa",   "class": "ft-bohm",  "key": "thru",  "op": "·"  }
+  ],
+  "legend": [
+    { "key": "glass",  "label": "Cristal — la realidad lisa de arriba", "color": "rgba(255,255,255,0.6)" },
+    { "key": "anneal", "label": "Recocido — el cristal sana, cierra astillas", "color": "rgba(60,200,255,0.7)" },
+    { "key": "vein",   "label": "Vena — la astilla avanza recta y se bifurca", "color": "rgba(255,80,120,0.8)" },
+    { "key": "menger", "label": "Núcleo de Menger — cubos dentro de cubos", "color": "rgba(255,200,60,0.8)" },
+    { "key": "thru",   "label": "Atravesar — el cristal cede cuando la grieta lo cruza", "color": "rgba(120,220,160,0.8)" }
+  ],
+  "tooltips": {
+    "glass": "La realidad de arriba: cristal liso, casi sin brillo, con un fantasma tenue del núcleo de Menger por dentro. Es lo que ves antes del primer KRUNCH, y lo que vuelve a cubrir todo tras cada inversión — pero ya con otro color.",
+    "anneal": "La fuerza del RECOCIDO: las astillas finas se recierran lentamente, como vidrio que sana. Si la subes, el cristal resiste más y puede curarse antes de partirse. La mitad de la tensión de oro.",
+    "vein": "La fuerza de la TENSIÓN: la astilla no se difunde como mancha — avanza en VENAS angulares rectas que se bifurcan (slider RAMIFICACIÓN), como vidrio templado estrellándose. Por eso se ven líneas finas nítidas y no espuma. La otra mitad de la tensión.",
+    "menger": "El corazón de la otra realidad es una esponja de Menger 3D: cubos recursivos con huecos, generados por aritmética en base 3 (sin iteración costosa → corre liso). El slider MENGER controla los niveles de recursión (1-4): más niveles, más cubos anidados. La grieta revela esta estructura cúbica al astillar.",
+    "thru": "El cristal no se invierte cuando el 50% del volumen es polvo (las venas son líneas, nunca llenarían el volumen). Se invierte cuando la RED de grietas ATRAVIESA el cubo — alcanza una extensión espacial que cruza el cristal de lado a lado. Entonces cede: lo oculto se vuelve cristal, el cristal viejo se oculta, y nace un nuevo punto de tensión."
+  },
+  "states": {
+    "vacuum":     "Cristal intacto, liso. En modo Sísmico, esperando tu golpe.",
+    "nucleating": "¡KRUNCH! El punto de tensión cedió. Una estrella de venas finas nace y empieza a astillar el cristal.",
+    "active":     "Las venas avanzan rectas, se bifurcan, revelan el núcleo de Menger naranja por las astillas.",
+    "pumping":    "La red de astillas se extiende con fuerza por el cristal. En Babel, varios cristales compiten ferozmente.",
+    "stable":     "Tensión y recocido en equilibrio: las venas crecen y sanan a la vez. El cristal aguanta, por ahora.",
+    "locked":     "Tensión crítica ◉ — la grieta casi atraviesa el cristal. A un paso de partirse.",
+    "collapse":   "La grieta atravesó: el cristal cede. Inversión — lo oculto se vuelve superficie. (Transitorio.)"
+  },
+  "stateLabels": {
+    "vacuum":     "krunch — cristal intacto",
+    "nucleating": "krunch — ¡primer astillazo!",
+    "active":     "krunch — las venas avanzan",
+    "pumping":    "krunch — el cristal se astilla ◉",
+    "stable":     "krunch — tensión en equilibrio",
+    "locked":     "krunch — TENSIÓN CRÍTICA ◉",
+    "collapse":   "krunch — ↺ el cristal cede"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "glass": 0.9, "anneal": 0.5, "vein": 0.1, "menger": 0.3, "thru": 0.1 },
+    "nucleating": { "glass": 0.7, "anneal": 0.5, "vein": 0.6, "menger": 0.6, "thru": 0.2 },
+    "active":     { "glass": 0.5, "anneal": 0.5, "vein": 0.9, "menger": 0.9, "thru": 0.3 },
+    "pumping":    { "glass": 0.3, "anneal": 0.4, "vein": 1.0, "menger": 1.0, "thru": 0.5 },
+    "stable":     { "glass": 0.6, "anneal": 0.8, "vein": 0.7, "menger": 0.7, "thru": 0.3 },
+    "locked":     { "glass": 0.3, "anneal": 0.5, "vein": 0.9, "menger": 0.8, "thru": 0.9 },
+    "collapse":   { "glass": 0.4, "anneal": 0.2, "vein": 0.6, "menger": 0.5, "thru": 1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Astillas en venas, no espuma",       "text": "Verificado headless: la fractura crece en venas angulares (≈2.7 vecinos astillados por celda, vs ≈5 que sería un blob). Avanza recta y se bifurca como vidrio templado — el problema de espuma de su motor hermano KRANK quedó resuelto cambiando difusión isótropa por propagación direccional." },
+    { "status": "ok",   "label": "✓ El núcleo es un Menger real",         "text": "La esponja de Menger se genera por aritmética en base 3, sin iteración compleja: material 74%/55%/41% para niveles 1/2/3 — coincide exacto con el teórico (20/27)ⁿ. Barato, corre liso a 64³. Cubos dentro de cubos auténticos." },
+    { "status": "warn", "label": "⚠ Umbral REDISEÑADO: por atravesar, no por volumen", "text": "El diseño inicial invertía al fracturar el 50% del volumen. Headless lo desmintió: las venas son líneas 1D y solo alcanzaban ~2% del volumen — nunca invertía. Se rediseñó: el cristal cede cuando la grieta ATRAVIESA el cubo (extensión espacial > 62%). Más fiel a la física real del cristal y al fin completa el ciclo (P1)." },
+    { "status": "warn", "label": "⚠ El render es de líneas finas",        "text": "Como las grietas son venas finas, el motor luce mejor con umbral visual bajo y, en móvil, a 48³+ para que las líneas tengan resolución. A 32³ las venas pueden verse algo pixeladas. El núcleo Menger se aprecia mejor con MENGER en 3-4." },
+    { "status": "open", "label": "○ Inspiración y hermano",                "text": "La visión visual (cubo de cristal + grietas estrelladas + corazón fractal naranja) vino de un render de Velvet (GPT) en la triada del laboratorio. KRUNCH es el hermano cristalino de KRANK: KRANK se quiebra orgánico (espuma), KRUNCH se astilla cristalino (venas + Menger). Ambos conviven en el laboratorio." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "El cristal cede al atravesarse, no al llenarse (corregida)",
+      "text": "La inversión NO ocurre por fracción de volumen astillado (las venas nunca llenan el cubo). Ocurre cuando la extensión espacial de la red de grietas cruza el cristal (bounding box > 62% en alguna dimensión). Verificado: con ese criterio el ciclo completa (~5 inversiones en 800 frames, ritmo ~114 frames). La predicción original (50% de volumen) fue falsificada."
+    },
+    {
+      "id": "P2",
+      "label": "Inversión recurrente con rotación de color",
+      "text": "En Vigilia el cristal nunca se asienta: se astilla, cede, invierte, y el color del cristal rota en cada inversión (azul→naranja→verde→...). Multiestable: ninguna realidad permanece como cristal indefinidamente."
+    },
+    {
+      "id": "P3",
+      "label": "Los niveles de Menger cambian la textura del corazón",
+      "text": "Al subir MENGER (1→4), el núcleo visible por las astillas debe mostrar más subdivisión cúbica: nivel 1 = un cubo hueco simple; nivel 3-4 = la esponja de Menger clásica con cubos dentro de cubos. La fracción de material debe caer como (20/27)ⁿ. Verificado: 74%/55%/41%."
+    },
+    {
+      "id": "P4",
+      "label": "Ramificación controla el carácter del vidrio",
+      "text": "El slider RAMIFICACIÓN debe cambiar el aspecto de la fractura: cerca de 0, pocas venas largas y rectas (vidrio que se raja limpio); alto (>0.3), muchas bifurcaciones (vidrio que se estrella en telaraña). El número de venas activas debe crecer con la ramificación."
+    }
+  ]
+}

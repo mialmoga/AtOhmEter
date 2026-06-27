@@ -1,0 +1,61 @@
+{
+  "title": "La Dinámica del Eco",
+  "formula": [
+    { "term": "ψₙ₊₁ = D·∇²ψₙ", "class": "ft-kin",   "key": "diffusion", "op": null },
+    { "term": "+ μ·Mₙ",          "class": "ft-phase",  "key": "memory",    "op": "+"  },
+    { "term": "+ ε·ξ",           "class": "ft-bohm",   "key": "noise",     "op": "+"  },
+    { "term": "+ λ·ψₙ",          "class": "ft-snap",   "key": "inertia",   "op": "+"  }
+  ],
+  "legend": [
+    { "key": "diffusion", "label": "Difusión D",    "color": "rgba(120,220,255,0.7)" },
+    { "key": "memory",    "label": "Memoria μ",     "color": "rgba(255,180,80,0.7)"  },
+    { "key": "noise",     "label": "Exploración ε", "color": "rgba(120,255,180,0.7)" },
+    { "key": "inertia",   "label": "Persistencia λ","color": "rgba(255,120,120,0.7)" }
+  ],
+  "tooltips": {
+    "diffusion": "D·∇²ψ — La actividad se expande al vecindario. Sin difusión el eco queda atrapado en su punto de origen.",
+    "memory":    "μ·M — Las regiones recordadas atraen actividad futura. M crece donde ψ es alto y decae con el olvido. Los senderos más visitados se vuelven más probables.",
+    "noise":     "ε·ξ — Exploración espontánea. Sin ruido el sistema converge a sus propios surcos y muere. Con demasiado ruido, la memoria no puede consolidarse.",
+    "inertia":   "λ·ψₙ — La actividad actual tiende a persistir. Implementado como amortiguamiento suave (×0.999 por paso)."
+  },
+  "states": {
+    "vacuum":     "No quedan huellas. El espacio ha olvidado todo.",
+    "nucleating": "Las primeras marcas aparecen. La memoria empieza a consolidarse.",
+    "active":     "Los ecos compiten por el espacio. Múltiples senderos activos.",
+    "pumping":    "La memoria y la actividad se retroalimentan. Ciclo positivo activo.",
+    "stable":     "Existen senderos persistentes. El espacio tiene historia visible.",
+    "locked":     "La tradición domina el espacio. Los fósiles de memoria controlan el campo.",
+    "collapse":   "La memoria saturó el universo. FORGETTING demasiado bajo."
+  },
+  "stateLabels": {
+    "vacuum":     "eco — silencio",
+    "nucleating": "eco — recordando",
+    "active":     "eco — resonando",
+    "pumping":    "eco — acumulando",
+    "stable":     "eco — tradición",
+    "locked":     "eco — fósil",
+    "collapse":   "eco — obsesión"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "diffusion":0.4, "memory":0.1, "noise":0.3, "inertia":0.2 },
+    "nucleating": { "diffusion":0.6, "memory":0.5, "noise":0.4, "inertia":0.3 },
+    "active":     { "diffusion":0.8, "memory":0.7, "noise":0.6, "inertia":0.5 },
+    "pumping":    { "diffusion":0.7, "memory":1.0, "noise":0.5, "inertia":0.8 },
+    "stable":     { "diffusion":0.5, "memory":0.9, "noise":0.3, "inertia":0.7 },
+    "locked":     { "diffusion":0.3, "memory":1.0, "noise":0.1, "inertia":0.9 },
+    "collapse":   { "diffusion":0.2, "memory":1.0, "noise":0.8, "inertia":0.3 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Memoria emergente",    "text": "M no es un parámetro fijo — crece donde ψ es activo y decae espontáneamente. Los senderos emergen sin que nadie los programe." },
+    { "status": "ok",   "label": "✓ Olvido necesario",     "text": "Sin FORGETTING el espacio se llena de fósiles y el campo no puede explorar zonas nuevas. El olvido es libertad." },
+    { "status": "warn", "label": "⚠ MEMORY alto = colapso","text": "Con MEMORY > 1.0 la retroalimentación positiva es inestable — el campo crece sin límite donde hay memoria alta. Reducir FORGETTING si ocurre." },
+    { "status": "open", "label": "○ ¿Hay senderos óptimos?","text": "¿El sistema descubre espontáneamente rutas que minimizan alguna función? ¿O los senderos son arbitrarios según la semilla?" }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Nacimiento de senderos",  "text": "Las regiones visitadas repetidamente desarrollan rutas persistentes visibles como líneas en el volumen." },
+    { "id": "P2", "label": "Memoria excesiva",        "text": "Existe un valor crítico de MEMORY donde el sistema deja de explorar — todo converge a los senderos existentes." },
+    { "id": "P3", "label": "Olvido necesario",        "text": "Sin FORGETTING el espacio termina atrapado en su historia. Los fósiles dominan y el campo pierde movilidad." },
+    { "id": "P4", "label": "Nostalgia reactiva",      "text": "La inyección Nostalgia (field += memory*0.5) debe reactivar zonas que habían caído en silencio — el pasado vuelve como presente." },
+    { "id": "P5", "label": "Falsificación: μ=0",      "text": "Con MEMORY=0 la memoria no influye en el campo — debe comportarse como difusión estándar sin senderos persistentes." }
+  ]
+}

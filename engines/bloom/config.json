@@ -1,0 +1,92 @@
+{
+  "id": "bloom",
+  "name": "BLOOM — Las que se convocan y se apartan",
+  "description": "Partículas con peso que se atraen a donde tocas (o hacia donde inclinas el teléfono) pero se repelen de cerca. De esa tensión nacen células: cúmulos que se aglutinan sin fundirse, con fronteras nítidas. Cada tipo tiene su peso (los pesados aceleran más al caer) y su color (unas estáticas, otras cambian de tono con su velocidad). Cuatro modos: células con frontera (Bloom), fusión de mercurio, tejido que late (Células), y división celular (Mitosis). Homenaje al bloom de Velvet. Estrena el giroscopio: inclina el teléfono y rueda.",
+  "panelTitle": "🌸 BLOOM",
+  "params": {
+    "ATRACCION": {
+      "default": 0.6,
+      "label": "atracción (toque)",
+      "min": 0.0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    "REPULSION": {
+      "default": 0.5,
+      "label": "repulsión (células)",
+      "min": 0.0,
+      "max": 1.5,
+      "step": 0.05
+    },
+    "GRAVEDAD": {
+      "default": 0.0,
+      "label": "gravedad base",
+      "min": 0.0,
+      "max": 0.08,
+      "step": 0.005
+    },
+    "VISCOSIDAD": {
+      "default": 0.88,
+      "label": "viscosidad",
+      "min": 0.7,
+      "max": 0.98,
+      "step": 0.01
+    },
+    "DENSIDAD": {
+      "default": 0.5,
+      "label": "densidad",
+      "min": 0.1,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "THRESH": {
+      "default": 0.05,
+      "label": "Umbral 👁",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "gyro": {
+    "enabled": true,
+    "bindings": [
+      { "feature": "tiltX", "param": "GRAV_X", "min": -0.06, "max": 0.06 },
+      { "feature": "tiltY", "param": "GRAV_Y", "min": -0.06, "max": 0.06 }
+    ]
+  },
+  "autoOrbit": false,
+  "seeds": [
+    { "id": "bloom",    "label": "A · Bloom — células con frontera (Velvet)" },
+    { "id": "mercurio", "label": "B · Mercurio — se fusionan en charcos" },
+    { "id": "celulas",  "label": "C · Células — tejido que late" },
+    { "id": "mitosis",  "label": "D · Mitosis — los cúmulos se dividen" }
+  ],
+  "defaultSeed": "bloom",
+  "injections": [
+    { "id": "convocar",  "label": "✛ Convocar",  "class": "amber" },
+    { "id": "dispersar", "label": "✺ Dispersar", "class": ""      },
+    { "id": "dividir",   "label": "⊟ Dividir",   "class": "red"   }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "actividad",  "class": "hot"  },
+    { "id": "s-pump",     "label": "células",    "class": "cool" },
+    { "id": "s-coher",    "label": "cohesión",   "class": "cool" },
+    { "id": "s-ekin",     "label": "vel. máx",   "class": "hot"  },
+    { "id": "s-ephase",   "label": "dispersión", "class": ""     },
+    { "id": "s-thmax",    "label": "partículas", "class": ""     }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "el enjambre" },
+    { "min": 4, "label": "las células" },
+    { "min": 2, "label": "el cúmulo"   },
+    { "min": 0, "label": "la gota"     }
+  ]
+}

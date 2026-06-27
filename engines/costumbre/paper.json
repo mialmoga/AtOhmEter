@@ -1,0 +1,67 @@
+{
+  "title": "El Campo que se Acostumbra",
+  "formula": [
+    { "term": "∂ψ/∂t = α∇²ψ",                  "class": "ft-kin",   "key": "diffusion", "op": null },
+    { "term": "+ β(ψ−N)",                        "class": "ft-snap",  "key": "novelty",   "op": "+"  },
+    { "term": "− γ|ψ−N|²(ψ−N)",                 "class": "ft-higgs", "key": "saturation","op": "+"  },
+    { "term": "+ δ∇N",                           "class": "ft-phase", "key": "drift",     "op": "+"  },
+    { "term": "Ṅ = μ(ψ−N)",                     "class": "ft-bohm",  "key": "habit",     "op": ";"  }
+  ],
+  "legend": [
+    { "key": "diffusion",  "label": "Difusión α",      "color": "rgba(255,255,255,0.5)" },
+    { "key": "novelty",    "label": "Sensibilidad β",  "color": "rgba(255,255,255,0.9)" },
+    { "key": "saturation", "label": "Saturación γ",    "color": "rgba(20,20,20,0.9)"    },
+    { "key": "drift",      "label": "Deriva δ",        "color": "rgba(240,180,20,0.8)"  },
+    { "key": "habit",      "label": "Habituación μ",   "color": "rgba(60,100,220,0.8)"  }
+  ],
+  "tooltips": {
+    "diffusion":  "α∇²ψ — Difusión base. El campo se equilibra con sus vecinos. Sin esto ψ no se propaga — solo reacciona localmente.",
+    "novelty":    "β(ψ−N) — Sensibilidad a la novedad. Lo diferente se amplifica. Si ψ = N (habituado), este término es cero — el campo ya no reacciona. Lo cotidiano es invisible.",
+    "saturation": "−γ|ψ−N|²(ψ−N) — Saturación por sobreestimulación. Cuando la novedad es demasiado grande y sostenida, la respuesta colapsa. El exceso continuo produce silencio. Adicción.",
+    "drift":      "δ∇N — Deriva hacia zonas sorprendentes. ψ fluye hacia donde N tiene gradiente — las fronteras entre costumbres distintas. Ley 4: las fronteras son los lugares más vivos.",
+    "habit":      "Ṅ = μ(ψ−N) — Habituación. N persigue lentamente a ψ. Lo que persiste se vuelve normal. μ bajo = lenta habituación (memoria larga). μ alto = rápida adaptación (amnesia funcional). μ=0 → sin costumbre."
+  },
+  "states": {
+    "vacuum":     "Todo igual. N ≈ ψ en todo punto. Nada sorprende. El campo es invisible para sí mismo.",
+    "nucleating": "Diferencias locales emergiendo. N aún no alcanzó a ψ en algunas zonas. Primeras novedades.",
+    "active":     "Alta novedad. Las fronteras entre costumbres distintas están activas y brillan dorado.",
+    "pumping":    "Las regiones cambian más rápido de lo que N puede aprender. El sistema está desbordado.",
+    "stable":     "El campo aprendió el mundo. N ≈ ψ en la mayoría de zonas. Solo las fronteras siguen vivas.",
+    "locked":     "CEGUERA PROFUNDA ◉. Más del 40% del espacio saturado. El mundo sigue moviéndose pero el sistema ya no lo nota.",
+    "collapse":   "μ demasiado alto. Todo se vuelve invisible instantáneamente."
+  },
+  "stateLabels": {
+    "vacuum":     "costumbre — todo normal",
+    "nucleating": "costumbre — primeras diferencias",
+    "active":     "costumbre — fronteras vivas",
+    "pumping":    "costumbre — desbordado",
+    "stable":     "costumbre — mundo aprendido",
+    "locked":     "costumbre — CEGUERA ◉",
+    "collapse":   "costumbre — invisible"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "diffusion":0.4, "novelty":0.1, "saturation":0.1, "drift":0.2, "habit":0.8 },
+    "nucleating": { "diffusion":0.5, "novelty":0.6, "saturation":0.2, "drift":0.4, "habit":0.5 },
+    "active":     { "diffusion":0.5, "novelty":0.9, "saturation":0.3, "drift":1.0, "habit":0.4 },
+    "pumping":    { "diffusion":0.6, "novelty":1.0, "saturation":0.7, "drift":0.8, "habit":0.3 },
+    "stable":     { "diffusion":0.4, "novelty":0.5, "saturation":0.4, "drift":0.6, "habit":0.9 },
+    "locked":     { "diffusion":0.3, "novelty":0.2, "saturation":1.0, "drift":0.3, "habit":1.0 },
+    "collapse":   { "diffusion":0.2, "novelty":0.1, "saturation":1.0, "drift":0.1, "habit":1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ N es expectativa, no historia",  "text": "N no almacena el pasado — almacena la expectativa presente. Es el valor que el sistema 'asume' que debería ver. Cuando ψ lo sorprende, N se actualiza lentamente." },
+    { "status": "ok",   "label": "✓ Ley 2 implementada",             "text": "Cuando ψ cae por debajo de N (apagar), la diferencia ψ−N es negativa. El sistema siente el hueco activamente — la ausencia de lo habitual es un estímulo." },
+    { "status": "ok",   "label": "✓ Shader semántico",               "text": "Los colores no codifican amplitud — codifican significado: azul=costumbre, blanco=novedad, dorado=frontera, negro=ceguera, violeta=fantasma." },
+    { "status": "warn", "label": "⚠ Campo real (no complejo)",        "text": "ψ es real, no complejo. La ecuación de Velvet no tiene parte imaginaria. Sin rotación de fase no hay interferencia cuántica — es deliberado." },
+    { "status": "warn", "label": "⚠ μ alto = inestabilidad",         "text": "Con μ > 0.05, N persigue a ψ tan rápido que β(ψ−N) → 0 antes de que ψ pueda organizarse. El sistema se paraliza." },
+    { "status": "open", "label": "○ ¿Fronteras son atractores?",     "text": "¿El término δ∇N crea atractores estables en las fronteras entre costumbres? ¿O solo los visita temporalmente?" }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Fantasma inverso",      "text": "Inyectar 'Apagar' en zona habituada → N > ψ → aparece onda negativa (violeta) donde antes había adaptación. La ausencia de lo habitual se siente como presencia." },
+    { "id": "P2", "label": "Movimiento invisible",  "text": "Un patrón lento con μ alto → N sigue a ψ y ψ−N → 0. El patrón sigue moviéndose pero el campo ya no lo nota. El movimiento existe pero es invisible." },
+    { "id": "P3", "label": "Oasis de borde",        "text": "La semilla 'fronteras' debe mantener actividad dorada permanente en la frontera entre las dos regiones, aunque ambas regiones estén habituadas (azul)." },
+    { "id": "P4", "label": "Adicción",               "text": "La semilla 'adiccion' con alta amplitud sobre N=0 debe producir respuesta inicial grande que luego colapsa a negro (ceguera) aunque la amplitud siga alta." },
+    { "id": "P5", "label": "Despertar",              "text": "⚡ Resetear N → todo lo habitual se vuelve extraordinario. El azul se convierte en blanco. Lo cotidiano regresa a ser novedad por un momento." },
+    { "id": "P6", "label": "Falsificación: μ=0",    "text": "Con μ=0, N nunca cambia (N≡0 si arrancó en cero). La ecuación se reduce a difusión + no-linealidad estándar. Sin costumbre, sin habituación." }
+  ]
+}

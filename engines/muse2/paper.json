@@ -1,0 +1,80 @@
+{
+  "title": "V(x,y,z) = 2·popcount( logic_regla(⌊x⌋,⌊y⌋,⌊z⌋) ) − bits   ·· + tiempo",
+  "formula": [
+    { "term": "wᵢ = ⌊coordᵢ · 2^bits⌋",          "class": "ft-kin",   "key": "disc", "op": null },
+    { "term": "L = logic_regla(w)",               "class": "ft-snap",  "key": "logic","op": "·"  },
+    { "term": "V = 2·popcount(L) − bits",         "class": "ft-higgs", "key": "volt", "op": "·"  },
+    { "term": "REVELACIÓN: caer al patrón",       "class": "ft-bohm",  "key": "rev",  "op": "·"  },
+    { "term": "DERIVA: el tiempo lo erosiona",    "class": "ft-phase", "key": "der",  "op": "·"  }
+  ],
+  "legend": [
+    { "key": "disc",  "label": "Discretización de coordenadas a enteros", "color": "rgba(255,255,255,0.6)" },
+    { "key": "logic", "label": "Operador lógico (el DNA: 16 reglas)",      "color": "rgba(255,170,60,0.8)"  },
+    { "key": "volt",  "label": "Voltaje = popcount (bits encendidos)",      "color": "rgba(60,200,255,0.7)"  },
+    { "key": "rev",   "label": "Revelación: el patrón atemporal atrae",    "color": "rgba(120,220,160,0.7)" },
+    { "key": "der",   "label": "Deriva: el tiempo despega del patrón",     "color": "rgba(255,200,60,0.8)"  }
+  ],
+  "tooltips": {
+    "disc": "Cada coordenada continua se discretiza a un entero de 'bits' bits. Subir BITS = grilla más fina = patrón más detallado (el zoom logarítmico de ŚN1E). Es lo que convierte el espacio continuo en argumentos para la lógica.",
+    "logic": "El corazón de la idea, tomada de ŚN1E (Borkowski): uno de 16 operadores booleanos (AND, OR, XOR, NOR, XNOR...) codificado como máscara de 4 bits de un mapa de Karnaugh. El slider REGLA recorre los 16 — es el 'DNA' del gas hecho perilla. Cada operador es un universo visual distinto.",
+    "volt": "El voltaje del campo en cada punto: cuenta los bits encendidos del resultado lógico (popcount), centrado y normalizado a [-1,1]. No hay física aquí — el patrón ya vive en la aritmética. Geometría i encadena logic(logic(x,y),z); geometría ii suma los tres planos.",
+    "rev": "REVELACIÓN — una de las dos fuerzas. El paisaje lógico atrae: en modo Terreno el polvo cae hacia él; en modo Atlas el campo ES el patrón puro. El orden atemporal imponiéndose sobre la materia.",
+    "der": "DERIVA — la fuerza opuesta. El tiempo erosiona el patrón eterno: difusión que esparce el polvo (Terreno), o mutación que cambia la propia regla (Deriva). Lo que ŚN1E no tiene, porque ŚN1E es determinista y atemporal: aquí el tiempo sí toca el campo."
+  },
+  "states": {
+    "vacuum":     "Operador trivial. La regla elegida produce un campo casi plano (poca estructura). El atlas está en una página en blanco.",
+    "nucleating": "El patrón lógico empieza a leerse. En Terreno, el polvo apenas comienza a sentir la atracción del paisaje.",
+    "active":     "El patrón es claro y la materia se mueve. En Atlas, un operador de estructura media (XOR/XNOR). En Terreno, el polvo fluye hacia la figura. En Deriva, la regla muta conservando estructura.",
+    "pumping":    "Deriva rica: la regla muta y el patrón se reorganiza sin colapsar — estructura alta mientras el operador cambia bajo los pies. El campo persigue un blanco móvil y lo alcanza una y otra vez.",
+    "stable":     "Patrón claro y asentado. En Atlas, un operador de buena estructura. En Terreno, el polvo casi terminó de dibujar la figura del operador.",
+    "locked":     "Revelación plena ◉. En Atlas, un operador denso (AND/OR) con el patrón a máxima intensidad. En Terreno, el polvo se apiló del todo en las aristas del patrón. El orden atemporal ganó.",
+    "collapse":   "La deriva destruyó la estructura: la mutación es tan rápida que ningún patrón sobrevive lo suficiente para formarse. El tiempo borró al atlas."
+  },
+  "stateLabels": {
+    "vacuum":     "muse — página en blanco",
+    "nucleating": "muse — el patrón se insinúa",
+    "active":     "muse — patrón vivo",
+    "pumping":    "muse — DERIVA rica ◉",
+    "stable":     "muse — patrón asentado",
+    "locked":     "muse — REVELACIÓN plena ◉",
+    "collapse":   "muse — el tiempo borró el atlas"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "disc": 0.4, "logic": 0.3, "volt": 0.2, "rev": 0.2, "der": 0.1 },
+    "nucleating": { "disc": 0.6, "logic": 0.6, "volt": 0.5, "rev": 0.4, "der": 0.3 },
+    "active":     { "disc": 0.7, "logic": 0.9, "volt": 0.8, "rev": 0.6, "der": 0.6 },
+    "pumping":    { "disc": 0.6, "logic": 1.0, "volt": 0.8, "rev": 0.5, "der": 1.0 },
+    "stable":     { "disc": 0.6, "logic": 0.8, "volt": 0.9, "rev": 0.8, "der": 0.4 },
+    "locked":     { "disc": 0.5, "logic": 0.7, "volt": 1.0, "rev": 1.0, "der": 0.2 },
+    "collapse":   { "disc": 0.4, "logic": 0.5, "volt": 0.4, "rev": 0.2, "der": 1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ El campo lógico es honesto a ŚN1E",   "text": "popcount(operador(coordenadas)) llevado a 3D. Verificado headless: cada operador da estructura distinta — AND 93%, OR 77%, XOR/XNOR 37%. El slider REGLA recorre los 16 operadores de Borkowski, vivos y jugables." },
+    { "status": "ok",   "label": "✓ Geometría i vs ii son sabores reales", "text": "Encadenado (i) y tres-planos (ii) producen campos genuinamente distintos (XOR: 37% vs 2.4% de estructura). No son redundantes — i es fiel al espíritu binario de ŚN1E, ii es isotrópico y más suave en 3D." },
+    { "status": "warn", "label": "⚠ Predicción del polvo CORREGIDA",       "text": "El ejercicio mental supuso que el polvo caería a los 'valles' (campo bajo). Headless lo falsificó: el polvo se acumula donde |campo| es extremo y el GRADIENTE es alto (0.87 vs 0.57) — en las aristas/pozos del patrón, no en valles planos. El paper lleva la versión verificada (ver P2)." },
+    { "status": "warn", "label": "⚠ Modo A no evoluciona",                 "text": "Atlas es revelación pura: el campo es estático (la deriva es cero), fiel a la naturaleza atemporal de ŚN1E. Es el único motor del laboratorio cuyo modo A no tiene dinámica — y es deliberado: ahí honramos la visión platónica de Borkowski sin alterarla." },
+    { "status": "open", "label": "○ Diálogo entre laboratorios",            "text": "MUSE es el primer motor de AtOhmEter nacido de otro laboratorio. La idea del campo-por-lógica y las tres topologías (cubo/esfera/wormhole) son de ŚN1E, de Rafał P. J. Borkowski — <a href='https://tempolux.life/sn1e' target='_blank' rel='noopener' style='color:#f5a623;text-decoration:none;border-bottom:1px solid rgba(245,166,35,0.35);padding-bottom:1px'>tempolux.life/sn1e</a>. La dinámica temporal que evoluciona sobre ese campo (modos B y C) es el aporte de AtOhmEter. Estructura atemporal de él + emergencia temporal nuestra." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "Cada operador es un universo",
+      "text": "Al barrer el slider REGLA por los 16 operadores en modo Atlas, la estructura del campo debe cambiar de forma discreta y reconocible: AND/OR densos, XOR/XNOR de estructura media-fractal, operadores triviales casi planos. Verificado: AND 93%, OR 77%, XOR 37%."
+    },
+    {
+      "id": "P2",
+      "label": "El polvo busca las aristas, no los valles (corregida)",
+      "text": "En modo Terreno, el polvo NO se acumula en los valles planos del patrón sino en sus aristas y pozos extremos, donde el gradiente del campo lógico es máximo. Verificado headless: donde hay polvo, gradiente=0.87 y |campo|=1.0; donde no hay polvo, gradiente=0.57. La predicción original (valles) fue falsificada y corregida."
+    },
+    {
+      "id": "P3",
+      "label": "La mutación tiene un umbral de colapso",
+      "text": "En modo Deriva, a baja MUTACIÓN el patrón sobrevive (estado pumping, ~75% estructura). Existe un umbral de mutación por encima del cual ningún patrón se forma a tiempo y la estructura colapsa (estado collapse). El umbral debe ser abrupto, no gradual — porque la conectividad del patrón lógico es discreta."
+    },
+    {
+      "id": "P4",
+      "label": "Geometría i preserva más estructura que ii",
+      "text": "Para el mismo operador no-trivial, la geometría encadenada (i) debe producir más fracción estructurada que la de tres-planos (ii), porque ii promedia tres proyecciones y suaviza los extremos. Verificado para XOR (37% i vs 2.4% ii)."
+    }
+  ]
+}

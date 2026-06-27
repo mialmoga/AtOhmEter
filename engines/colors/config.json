@@ -1,0 +1,54 @@
+{
+  "id": "colors",
+  "name": "COLORS — Cubo de Luz y Agua",
+  "description": "Un cubo de fluido iridiscente bañado por tres proyecciones de luz R/G/B. Donde se cruzan emerge luz blanca. El toque perturba el fluido. La sonoluminiscencia produce un destello.",
+  "panelTitle": "🌈 COLORS",
+  "params": {
+    "WAVE_SPEED":   { "default":0.35, "label":"vel. onda",    "min":0.05,"max":1.0, "step":0.05  },
+    "DAMPING":      { "default":0.9985,"label":"amortiguam.", "min":0.98,"max":1.0, "step":0.0005},
+    "NONLIN":       { "default":0.3,  "label":"cáustics",     "min":0.0, "max":1.5, "step":0.05  },
+    "SURFACE_TENS": { "default":0.15, "label":"tensión sup.", "min":0.0, "max":0.5, "step":0.01  },
+    "LIGHT_R_X":    { "default":-0.7, "label":"luz R arriba",  "min":-1.0,"max":1.0, "step":0.05  },
+    "LIGHT_R_X2":   { "default":-0.7, "label":"luz R abajo",   "min":-1.0,"max":1.0, "step":0.05  },
+    "LIGHT_G_X":    { "default":0.0,  "label":"luz G arriba",  "min":-1.0,"max":1.0, "step":0.05  },
+    "LIGHT_G_X2":   { "default":0.0,  "label":"luz G abajo",   "min":-1.0,"max":1.0, "step":0.05  },
+    "LIGHT_B_X":    { "default":0.7,  "label":"luz B arriba",  "min":-1.0,"max":1.0, "step":0.05  },
+    "LIGHT_B_X2":   { "default":0.7,  "label":"luz B abajo",   "min":-1.0,"max":1.0, "step":0.05  },
+    "LIGHT_SPREAD": { "default":0.6,  "label":"apertura luz",  "min":0.1, "max":1.5, "step":0.05  },
+    "TOUCH_FORCE":  { "default":1.2,  "label":"fuerza toque", "min":0.1, "max":3.0, "step":0.1   },
+    "TOUCH_RADIUS": { "default":0.25, "label":"radio toque",  "min":0.05,"max":0.5, "step":0.05  },
+    "THRESH":       { "default":0.04, "label":"Umbral 👁",    "min":0.01,"max":0.5, "step":0.01  }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "calma",       "label": "Calma — fluido en reposo" },
+    { "id": "ondas",       "label": "Ondas — concéntricas desde el centro" },
+    { "id": "turbulencia", "label": "Turbulencia — caos inicial" }
+  ],
+  "defaultSeed": "calma",
+  "injections": [
+    { "id": "sono",  "label": "⚡ Sonoluminiscencia", "class": "amber" },
+    { "id": "pulso", "label": "💧 Pulso central",     "class": ""      },
+    { "id": "calma", "label": "◌ Calmar",             "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "|fluid|",  "class": ""     },
+    { "id": "s-ekin",     "label": "vel. med.", "class": "hot"  },
+    { "id": "s-etorsion", "label": "luz R 🔴", "class": "hot"  },
+    { "id": "s-ephase",   "label": "luz G 🟢", "class": "cool" },
+    { "id": "s-helic",    "label": "luz B 🔵", "class": "cool" },
+    { "id": "s-boundary", "label": "blanco ⚪","class": "amber" },
+    { "id": "s-pump",     "label": "sono ⚡",  "class": "amber" }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "cosmos"    },
+    { "min": 4, "label": "cubo"      },
+    { "min": 2, "label": "fluido"    },
+    { "min": 0, "label": "cáustic"   }
+  ]
+}

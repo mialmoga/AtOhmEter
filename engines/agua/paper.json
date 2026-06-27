@@ -1,0 +1,54 @@
+{
+  "title": "Navier-Stokes Incompresible",
+  "formula": [
+    { "term": "∂u/∂t + (u·∇)u = −∇p + ν∇²u + f", "class": "ft-kin",   "key": "ns",    "op": null },
+    { "term": "∇·u = 0",                            "class": "ft-snap",  "key": "incomp","op": ";"  },
+    { "term": "∂ρ/∂t + (u·∇)ρ = κ∇²ρ",            "class": "ft-bohm",  "key": "dens",  "op": ";"  },
+    { "term": "I = I₀ e^{−σρ}",                     "class": "ft-phase", "key": "luz",   "op": ";"  }
+  ],
+  "legend": [
+    { "key": "ns",     "label": "Navier-Stokes",       "color": "rgba(60,200,255,0.8)"  },
+    { "key": "incomp", "label": "Incompresibilidad",   "color": "rgba(255,160,40,0.8)"  },
+    { "key": "dens",   "label": "Advección de tinte",  "color": "rgba(120,220,180,0.8)" },
+    { "key": "luz",    "label": "Beer-Lambert (luz)",  "color": "rgba(255,240,120,0.8)" }
+  ],
+  "tooltips": {
+    "ns":     "∂u/∂t + (u·∇)u = −∇p + ν∇²u + f — La ecuación de Navier-Stokes para fluido incompresible. El término (u·∇)u es la advección no lineal — el fluido se arrastra a sí mismo. ∇p es el gradiente de presión que mantiene la incompresibilidad. ν∇²u es la difusión viscosa. f son las fuerzas externas (gravedad + turbulencia + toque).",
+    "incomp": "∇·u = 0 — La condición de incompresibilidad: la divergencia del campo de velocidad debe ser cero en todo punto. Se impone en cada frame resolviendo la ecuación de Poisson ∇²p = ∇·u y restando el gradiente de presión. Sin esta condición el fluido se comprimiría y expandiría como gas.",
+    "dens":   "∂ρ/∂t + (u·∇)ρ = κ∇²ρ — La densidad/tinte del fluido se advecta con el campo de velocidad y se difunde lentamente. No afecta a la dinámica del fluido (fluido pasivo) — es solo para visualización. Permite ver los patrones de mezcla y las estructuras de vórtice.",
+    "luz":    "I = I₀ e^{−σρ} — Ley de Beer-Lambert: la intensidad de la luz decrece exponencialmente con la densidad del medio. σ es el coeficiente de extinción. El scattering de Mie (función de fase de Henyey-Greenstein) redistribuye la luz hacia adelante, creando el brillo característico del agua iluminada."
+  },
+  "states": {
+    "vacuum":     "Cubo vacío o fluido sin movimiento. Inicializa con una semilla para comenzar.",
+    "nucleating": "Fluido en reposo. La gravedad y la turbulencia empezarán a moverlo.",
+    "stable":     "Fluido en movimiento suave. Corrientes organizadas y estructuras de vórtice.",
+    "pumping":    "Turbulencia activa. Vórtices, corrientes cruzadas y mezcla intensa.",
+    "active":     "Fluido muy agitado. Cascada de energía desde escalas grandes a pequeñas."
+  },
+  "stateLabels": {
+    "vacuum":     "agua — reposo",
+    "nucleating": "agua — quieto",
+    "stable":     "agua — flujo laminar",
+    "pumping":    "agua — corrientes",
+    "active":     "agua — turbulencia"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "ns": 0.2, "incomp": 0.1, "dens": 0.1, "luz": 0.3 },
+    "nucleating": { "ns": 0.4, "incomp": 0.3, "dens": 0.3, "luz": 0.5 },
+    "stable":     { "ns": 0.7, "incomp": 0.8, "dens": 0.6, "luz": 0.7 },
+    "pumping":    { "ns": 0.9, "incomp": 1.0, "dens": 0.8, "luz": 0.8 },
+    "active":     { "ns": 1.0, "incomp": 1.0, "dens": 1.0, "luz": 0.6 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Incompresibilidad real",     "text": "El solver de Poisson garantiza ∇·u=0 en cada frame — el fluido no se comprime ni expande. Esto distingue una simulación de agua de una de gas." },
+    { "status": "ok",   "label": "✓ Advección semi-Lagrangiana", "text": "El método de Stam es incondicionalmente estable — no hay restricción CFL sobre el timestep. El fluido puede moverse más de un voxel por frame sin explotar." },
+    { "status": "ok",   "label": "✓ Touch inyecta velocidad",    "text": "El raycaster pasa la posición de intersección al motor. Se inyecta un impulso radial — como meter la mano en el agua. La perturbación se propaga como onda de presión real." },
+    { "status": "warn", "label": "⚠ Disipación numérica",        "text": "La interpolación trilineal de la advección introduce difusión numérica — el fluido pierde energía más rápido que en la realidad. A N=24 los vórtices se disipan en ~100 frames. Mitigable con N mayor o esquemas de orden superior." },
+    { "status": "open", "label": "○ Tensión superficial",        "text": "Pendiente: la tensión superficial crea gotas y burbujas. Implementable como fuerza de curvatura en la interfaz fluido-aire. Daría comportamiento de gota y menisco." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Kolmogorov cascade",  "text": "Con turbulencia alta, la energía debe transferirse desde las escalas grandes (N/4) hacia las pequeñas (1-2 voxels) antes de disiparse. Observable como distribución de velocidades en el espectro de Fourier." },
+    { "id": "P2", "label": "Vórtice estable",      "text": "Con viscosidad baja y semilla 'vórtice', el torbellino debe persistir >200 frames antes de disiparse. Predicción: a N=32 dura el doble que a N=16." },
+    { "id": "P3", "label": "Scattering anisótropo","text": "El brillo del fluido debe ser mayor cuando el rayo de visión apunta hacia la fuente de luz (forward scattering, g=0.4). Observable como asimetría en la apariencia del cubo según el ángulo de vista." }
+  ]
+}

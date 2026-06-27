@@ -1,0 +1,52 @@
+{
+  "id": "agua",
+  "name": "AGUA — Fluido Incompresible",
+  "description": "Simulación de fluido por el método de Stam (Stable Fluids, 1999). Un rayo de luz desciende desde arriba y se dispersa según la densidad local del fluido. El toque inyecta velocidad — como meter la mano en el agua.",
+  "panelTitle": "💧 AGUA",
+
+  "params": {
+    "VISCOSIDAD":  { "default": 0.0001,"label": "viscosidad",  "min": 0.0,  "max": 0.01, "step": 0.0001 },
+    "GRAVEDAD":    { "default": 0.04,  "label": "gravedad",    "min": 0.0,  "max": 0.15, "step": 0.005  },
+    "TURBULENCIA": { "default": 0.15,  "label": "turbulencia", "min": 0.0,  "max": 1.0,  "step": 0.01   },
+    "LUZ_INT":     { "default": 1.2,   "label": "luz",         "min": 0.0,  "max": 3.0,  "step": 0.1    },
+    "LUZ_ANGULO":  { "default": 0.0,   "label": "ángulo luz",  "min": 0.0,  "max": 1.0,  "step": 0.05   },
+    "THRESH":      { "default": 0.04,  "label": "umbral 👁",   "min": 0.01, "max": 0.3,  "step": 0.01   }
+  },
+
+  "uniformBindings": { "THRESH": "uThresh" },
+
+  "seeds": [
+    { "id": "reposo",  "label": "💧 Reposo — cubo lleno quieto" },
+    { "id": "ola",     "label": "🌊 Ola — impulso horizontal"   },
+    { "id": "vortice", "label": "🌀 Vórtice — torbellino"       },
+    { "id": "lluvia",  "label": "☁️ Lluvia — gotitas desde arriba" }
+  ],
+  "defaultSeed": "reposo",
+
+  "injections": [
+    { "id": "pulso",  "label": "⚡ Pulso central", "class": "amber" },
+    { "id": "lluvia", "label": "☁️ Añadir lluvia",  "class": "cyan"  },
+    { "id": "calma",  "label": "🪨 Calmar",          "class": ""      }
+  ],
+
+  "gridOptions": [
+    { "value": 12, "label": "12³ móvil"             },
+    { "value": 24, "label": "24³",  "default": true  },
+    { "value": 32, "label": "32³ detalle"            }
+  ],
+
+  "hud": [
+    { "id": "s-etotal",   "label": "densidad",    "class": "cool" },
+    { "id": "s-ekin",     "label": "vel. media",  "class": "hot"  },
+    { "id": "s-etorsion", "label": "luz media",   "class": "cool" },
+    { "id": "s-ephase",   "label": "turbulencia", "class": "hot"  },
+    { "id": "s-helic",    "label": "vel. máx.",   "class": ""     },
+    { "id": "s-pump",     "label": "activo",      "class": "amber"}
+  ],
+
+  "zoomLabels": [
+    { "min": 8, "label": "cubo"   },
+    { "min": 3, "label": "fluido" },
+    { "min": 0, "label": "gota"   }
+  ]
+}

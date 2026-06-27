@@ -1,0 +1,56 @@
+{
+  "id": "palimpsesto",
+  "name": "PALIMPSESTO — Estratigrafía Temporal",
+  "description": "Un campo que carga capas de su propio pasado. La memoria no es un parámetro — es física emergente. Lo que persiste se graba. Lo grabado atrae. El olvido es la única libertad.",
+  "panelTitle": "📜 PALIMPSESTO",
+  "params": {
+    "C_SPEED":      { "default":0.35,  "label":"c velocidad",   "min":0.05, "max":1.0,  "step":0.05  },
+    "NONLIN":       { "default":0.6,   "label":"λ autointer",   "min":0.0,  "max":2.0,  "step":0.05  },
+    "GRAVITY":      { "default":0.4,   "label":"gravedad M",    "min":0.0,  "max":2.0,  "step":0.05  },
+    "WRITE_RATE":   { "default":0.015, "label":"escritura",     "min":0.001,"max":0.1,  "step":0.001 },
+    "WRITE_THRESH": { "default":0.1,   "label":"umbral escrit.", "min":0.01, "max":0.5,  "step":0.01  },
+    "FORGET":       { "default":0.003, "label":"olvido base",   "min":0.0,  "max":0.05, "step":0.001 },
+    "FORGET_BOOST": { "default":2.0,   "label":"olvido eco",    "min":0.0,  "max":5.0,  "step":0.1   },
+    "AGE_RATE":     { "default":0.005, "label":"envejec.",      "min":0.001,"max":0.05, "step":0.001 },
+    "AGE_DECAY":    { "default":0.002, "label":"decay edad",    "min":0.0,  "max":0.02, "step":0.001 },
+    "NOVELTY":      { "default":0.3,   "label":"novedad",       "min":0.0,  "max":2.0,  "step":0.05  },
+    "DAMP":         { "default":0.9994,"label":"damp",          "min":0.98, "max":1.0,  "step":0.0002},
+    "DT":           { "default":0.012, "label":"DT",            "min":0.002,"max":0.03, "step":0.001 },
+    "THRESH":       { "default":0.06,  "label":"Umbral 👁",     "min":0.01, "max":1.0,  "step":0.01  }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "virgen",    "label": "Virgen — campo nuevo, sin memoria" },
+    { "id": "cicatriz",  "label": "Cicatriz — memoria grabada, campo débil" },
+    { "id": "trauma",    "label": "Trauma — presente vs pasado en contradicción" },
+    { "id": "amnesia",   "label": "Amnesia — campo activo, memoria borrada" },
+    { "id": "ecos",      "label": "Ecos — tres estratos de memoria superpuestos" }
+  ],
+  "defaultSeed": "virgen",
+  "injections": [
+    { "id": "olvido",      "label": "◌ Olvido",      "class": ""      },
+    { "id": "impacto",     "label": "⊕ Impacto",     "class": "amber" },
+    { "id": "consolidar",  "label": "◉ Consolidar",  "class": "amber" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "|ψ| media",   "class": "hot"  },
+    { "id": "s-ekin",      "label": "|M| media",   "class": "cool" },
+    { "id": "s-etorsion", "label": "antigüedad",  "class": "cool" },
+    { "id": "s-ephase",   "label": "eco medio",   "class": "hot"  },
+    { "id": "s-helicity", "label": "eco máx",     "class": "hot"  },
+    { "id": "s-boundary", "label": "mem. profunda","class":"cool"  },
+    { "id": "s-umax",     "label": "|ψ|_max",    "class": ""     },
+    { "id": "s-coher",    "label": "overlap",     "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "cosmos"    },
+    { "min": 4,  "label": "sustrato"  },
+    { "min": 2,  "label": "estrato"   },
+    { "min": 0,  "label": "surco"     }
+  ]
+}

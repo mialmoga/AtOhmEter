@@ -1,0 +1,44 @@
+{
+  "id": "eco",
+  "name": "ECO — La Memoria del Espacio",
+  "description": "Un campo que recuerda dónde ha estado. La memoria atrae actividad futura. Los senderos más visitados se vuelven más probables. El olvido es la única libertad.",
+  "panelTitle": "🕯 ECO",
+  "params": {
+    "DIFFUSION":  { "default":0.12,  "label":"Difusión",    "min":0.0,  "max":1.0,  "step":0.01   },
+    "MEMORY":     { "default":0.35,  "label":"Memoria μ",   "min":0.0,  "max":2.0,  "step":0.01   },
+    "FORGETTING": { "default":0.002, "label":"Olvido",      "min":0.0,  "max":0.02, "step":0.0001 },
+    "NOISE":      { "default":0.01,  "label":"Exploración", "min":0.0,  "max":0.2,  "step":0.001  },
+    "DT":         { "default":0.02,  "label":"DT",          "min":0.005,"max":0.05, "step":0.005  },
+    "THRESH":     { "default":0.05,  "label":"Umbral 👁",   "min":0.01, "max":1.0,  "step":0.01   }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "pulso",  "label": "Evento único — un pulso gaussiano" },
+    { "id": "lluvia", "label": "Eventos dispersos — gotas aleatorias" },
+    { "id": "ritual", "label": "Repetición constante — eje vertical" }
+  ],
+  "defaultSeed": "pulso",
+  "injections": [
+    { "id": "recordar",  "label": "⊕ Recordar",  "class": "amber" },
+    { "id": "olvidar",   "label": "◌ Olvidar",   "class": ""      },
+    { "id": "nostalgia", "label": "↩ Nostalgia", "class": "amber" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "|ψ| media",  "class": ""     },
+    { "id": "s-ekin",     "label": "M media",     "class": "cool" },
+    { "id": "s-etorsion", "label": "fósiles",     "class": "amber"},
+    { "id": "s-umax",     "label": "|ψ|_max",    "class": "hot"  },
+    { "id": "s-coher",    "label": "senderos",    "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "espacio"  },
+    { "min": 4, "label": "sendero"  },
+    { "min": 2, "label": "huella"   },
+    { "min": 0, "label": "fósil"    }
+  ]
+}

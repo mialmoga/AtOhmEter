@@ -1,0 +1,80 @@
+{
+  "title": "∂²p/∂t² = c²∇²p + Σ fuentes · · · grano → ∇(−vibración)",
+  "formula": [
+    { "term": "∂²p/∂t² = c²∇²p",       "class": "ft-kin",   "key": "wave",  "op": null },
+    { "term": "+ Σ fuenteᵢ(x,t)",       "class": "ft-snap",  "key": "src",   "op": "+"  },
+    { "term": "vib(x) = env|p|",        "class": "ft-phase", "key": "vib",   "op": "·"  },
+    { "term": "grano → ∇(−vib)",        "class": "ft-higgs", "key": "grain", "op": "·"  },
+    { "term": "nodo ⟺ vib → 0",         "class": "ft-bohm",  "key": "node",  "op": "·"  }
+  ],
+  "legend": [
+    { "key": "wave",  "label": "Ecuación de onda (propagación real)",   "color": "rgba(255,255,255,0.6)" },
+    { "key": "src",   "label": "Tres fuentes (posición, tono, forma)",  "color": "rgba(255,170,60,0.8)"  },
+    { "key": "vib",   "label": "Vibración (envolvente de amplitud)",    "color": "rgba(255,80,120,0.7)"  },
+    { "key": "grain", "label": "Granos migran hacia la quietud",        "color": "rgba(60,200,255,0.7)"  },
+    { "key": "node",  "label": "Nodo: donde la onda no se mueve",       "color": "rgba(120,220,160,0.7)" }
+  ],
+  "tooltips": {
+    "wave": "La presión obedece la ecuación de onda real de segundo orden. No dibujamos el modo estacionario: dejamos que la onda se propague, rebote en las paredes e interfiera. Lo que cabe en la caja resuena; lo que no, tiembla.",
+    "src":  "Tres fuentes empujan presión oscilante en sus posiciones XYZ. Cada una tiene su tono (frecuencia), su forma de onda (sin→saw→square) y su volumen. Mover una fuente cambia qué modos excita y dónde caen los nodos.",
+    "vib":  "La vibración es la envolvente de la amplitud local: persigue el pico de |p| y decae despacio. Los antinodos mantienen vibración alta; los nodos la mantienen en cero. Esto revela el patrón estacionario emergente.",
+    "grain": "Los granos (la arena) migran por el gradiente de vibración: huyen de donde el medio vibra fuerte y buscan la quietud. Es la física real de una placa de Chladni, llevada a 3D.",
+    "node":  "Un nodo es donde la onda estacionaria no se mueve — amplitud cero sostenida. La arena se acumula y queda atrapada ahí. Las superficies nodales dibujadas por la arena son las figuras de Chladni."
+  },
+  "states": {
+    "vacuum":     "Silencio. El sustrato está quieto, la arena repartida, ninguna fuente suena todavía. Esperando la primera onda.",
+    "nucleating": "Las primeras ondas salen de las fuentes y empiezan a cruzar el cubo. Aún no hay patrón — solo frentes viajando y rebotando.",
+    "active":     "El sonido llena la caja. Las ondas interfieren por todo el volumen, pero todavía turbulentas: la frecuencia aún no encontró su modo. La arena se agita sin asentarse.",
+    "pumping":    "Mucha energía acústica, alta amplitud, pero sin figura estable. La onda empuja fuerte y la arena se mueve, buscando dónde quedarse. Una frecuencia desafinada vive aquí.",
+    "stable":     "La figura empieza a cuajar. La onda encontró (parcialmente) un modo de la caja: aparecen superficies nodales donde la arena comienza a acumularse. El patrón de Chladni se insinúa.",
+    "locked":     "Onda estacionaria estable ◉. La frecuencia resuena con la caja — cabe exactamente. La arena se ha apilado en los nodos y la figura de Chladni quedó dibujada, nítida y quieta. El sonido cristalizó en forma.",
+    "collapse":   "Inestabilidad: la presión diverge. Demasiada energía o una velocidad de onda fuera del límite. El medio se rompe en vez de resonar — baja la resonancia o la velocidad de onda."
+  },
+  "stateLabels": {
+    "vacuum":     "chladni — silencio",
+    "nucleating": "chladni — primeras ondas",
+    "active":     "chladni — el sonido llena la caja",
+    "pumping":    "chladni — frecuencia desafinada",
+    "stable":     "chladni — la figura cuaja",
+    "locked":     "chladni — FIGURA ESTACIONARIA ◉",
+    "collapse":   "chladni — inestable ⚠"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave": 0.3, "src": 0.2, "vib": 0.1, "grain": 0.2, "node": 0.1 },
+    "nucleating": { "wave": 0.7, "src": 0.8, "vib": 0.4, "grain": 0.3, "node": 0.2 },
+    "active":     { "wave": 1.0, "src": 0.9, "vib": 0.7, "grain": 0.5, "node": 0.3 },
+    "pumping":    { "wave": 0.9, "src": 1.0, "vib": 0.8, "grain": 0.6, "node": 0.4 },
+    "stable":     { "wave": 0.7, "src": 0.6, "vib": 0.9, "grain": 0.9, "node": 0.8 },
+    "locked":     { "wave": 0.5, "src": 0.4, "vib": 0.7, "grain": 1.0, "node": 1.0 },
+    "collapse":   { "wave": 1.0, "src": 0.5, "vib": 0.6, "grain": 0.3, "node": 0.1 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Onda real, estacionariedad emergente", "text": "La presión obedece la ecuación de onda de segundo orden (Verlet). No se dibuja el modo: emerge de la interferencia. Headless: la arena se concentra (max 0.79 vs media 0.55) y la estacionariedad sube a ~35-45%." },
+    { "status": "ok",   "label": "✓ La arena revela los nodos",             "text": "Los granos migran por el gradiente de vibración y se apilan en las superficies nodales. La envolvente de amplitud (no el promedio temporal, que se cancela) es lo que hace visibles los nodos estacionarios." },
+    { "status": "warn", "label": "⚠ Modos discretizados por el grid",       "text": "A 32³ la caja solo admite un número finito de modos. El slider de tono (1-12) recorre los modos visibles, pero entre ellos hay saltos: no todas las frecuencias intermedias forman figuras limpias. Eso es físicamente correcto — pero a baja resolución se nota el escalón." },
+    { "status": "warn", "label": "⚠ Cristaliza rápido a figura estable",    "text": "Con los defaults la figura cuaja pronto y se queda en 'locked'. Bueno para tocar (respuesta inmediata), pero para ver la transición turbulenta→estacionaria conviene bajar migración y memoria de vibración." },
+    { "status": "open", "label": "○ El audio suena lo que se ve",           "text": "El shell sintetiza las tres voces (Web Audio) a las mismas frecuencias que mueven la arena. Oyes el acorde y ves su figura. La capacidad de sonido es genérica del shell: cualquier motor con el bloque 'sound' en su config la hereda." }
+  ],
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "Solo ciertas frecuencias resuenan",
+      "text": "Al barrer el slider de tono de una fuente, la estacionariedad NO debe subir suave y monótona: debe tener picos (frecuencias modales que caben en la caja → figura nítida) y valles (frecuencias intermedias que tiemblan). La caja tiene modos propios discretos."
+    },
+    {
+      "id": "P2",
+      "label": "El silencio congela la figura",
+      "text": "Inyectar 'silencio' amortigua la presión de golpe; la arena deja de ser empujada y se asienta donde quedó. La estacionariedad medida debe SUBIR tras el silencio (verificado headless: de ~36% a ~46%). La figura se vuelve más nítida al callar la fuente."
+    },
+    {
+      "id": "P3",
+      "label": "Mover una fuente reorganiza los nodos",
+      "text": "Cambiar la posición XYZ de una fuente activa debe desplazar las superficies nodales y, por tanto, la arena acumulada. La figura sigue a la geometría de las fuentes, no es fija."
+    },
+    {
+      "id": "P4",
+      "label": "Más fuentes, figura más compleja",
+      "text": "Modo 1 (una fuente) da el patrón nodal más simple; modo 3 (tres fuentes en triángulo) da interferencia espacial con más superficies nodales. El número de fuentes activas correlaciona con la complejidad de la figura."
+    }
+  ]
+}

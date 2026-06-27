@@ -1,0 +1,91 @@
+{
+  "id": "krank",
+  "name": "KRANK — El campo que se quiebra",
+  "description": "Una realidad lisa que no aguanta su tensión: en un punto cede —¡krank!— y se abre una fractura de borde fractal (un Mandelbulb que enrosca colas de caballito de mar en 3D). A través de la grieta asoma OTRA realidad, de otro color. La grieta crece hasta que lo de abajo ocupa más de la mitad: entonces se invierte —lo oculto se vuelve superficie— y un nuevo puntito vuelve a quebrarse. Respiración de realidades. Tres modos: el ciclo solo (Vigilia), tú provocas los quiebres (Sísmico), o varias realidades compiten por conquistar (Babel).",
+  "panelTitle": "🜂 KRANK",
+  "params": {
+    "FRACTAL": {
+      "default": 8,
+      "label": "fractal (power)",
+      "min": 2,
+      "max": 8,
+      "step": 1
+    },
+    "C_PARAM": {
+      "default": 0.0,
+      "label": "forma (c)",
+      "min": -1.0,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "PRESION": {
+      "default": 0.045,
+      "label": "presión (fractura)",
+      "min": 0.005,
+      "max": 0.12,
+      "step": 0.005
+    },
+    "CURACION": {
+      "default": 0.004,
+      "label": "curación (superficie)",
+      "min": 0.0,
+      "max": 0.02,
+      "step": 0.001
+    },
+    "DETALLE": {
+      "default": 6,
+      "label": "detalle fractal",
+      "min": 2,
+      "max": 12,
+      "step": 1
+    },
+    "DT": {
+      "default": 1.0,
+      "label": "DT",
+      "min": 0.25,
+      "max": 1.0,
+      "step": 0.05
+    },
+    "THRESH": {
+      "default": 0.06,
+      "label": "Umbral 👁",
+      "min": 0.01,
+      "max": 1.0,
+      "step": 0.01
+    }
+  },
+  "uniformBindings": {
+    "THRESH": "uThresh"
+  },
+  "seeds": [
+    { "id": "vigilia", "label": "A · Vigilia — el ciclo solo, respira eterno" },
+    { "id": "sismico", "label": "B · Sísmico — tú provocas cada krank" },
+    { "id": "babel",   "label": "C · Babel — realidades compiten por conquistar" }
+  ],
+  "defaultSeed": "vigilia",
+  "injections": [
+    { "id": "krank",    "label": "✕ ¡KRANK!",        "class": "red"   },
+    { "id": "sembrar",  "label": "⊕ Sembrar realidad", "class": "amber" },
+    { "id": "invertir", "label": "↺ Invertir ya",      "class": ""      }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "fractura %",    "class": "hot"  },
+    { "id": "s-ekin",     "label": "perímetro",     "class": "cool" },
+    { "id": "s-etorsion", "label": "borde fractal", "class": ""     },
+    { "id": "s-pump",     "label": "inversiones",   "class": "amber" },
+    { "id": "s-umax",     "label": "realidades",    "class": "cool" },
+    { "id": "s-coher",    "label": "tensión crítica", "class": "hot" },
+    { "id": "s-thmax",    "label": "superficie",    "class": ""     }
+  ],
+  "zoomLabels": [
+    { "min": 8, "label": "la realidad" },
+    { "min": 4, "label": "la grieta"   },
+    { "min": 2, "label": "el borde"    },
+    { "min": 0, "label": "el caballito" }
+  ]
+}

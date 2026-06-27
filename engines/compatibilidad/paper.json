@@ -1,0 +1,126 @@
+{
+  "title": "Compatibilidad y Dimensión Emergente",
+
+  "formula": [
+    {
+      "term": "D∇²ψ",
+      "class": "ft-kin",
+      "key": "diff",
+      "op": null
+    },
+    {
+      "term": "ακ(μ−ψ)",
+      "class": "ft-bohm",
+      "key": "align",
+      "op": "+"
+    },
+    {
+      "term": "−βψ³",
+      "class": "ft-snap",
+      "key": "sat",
+      "op": "+"
+    },
+    {
+      "term": "∂μ/∂t",
+      "class": "ft-phase",
+      "key": "memory",
+      "op": "+"
+    }
+  ],
+
+  "legend": [
+    {
+      "key": "diff",
+      "label": "Difusión",
+      "color": "rgba(255,255,255,0.5)"
+    },
+    {
+      "key": "align",
+      "label": "Compatibilidad",
+      "color": "rgba(100,255,180,0.7)"
+    },
+    {
+      "key": "sat",
+      "label": "Saturación",
+      "color": "rgba(255,100,120,0.7)"
+    },
+    {
+      "key": "memory",
+      "label": "Memoria",
+      "color": "rgba(255,200,60,0.7)"
+    }
+  ],
+
+  "tooltips": {
+    "diff": "Tiende a homogeneizar el sistema.",
+    "align": "Refuerza regiones compatibles.",
+    "sat": "Impide crecimiento infinito.",
+    "memory": "Conserva historia local."
+  },
+
+  "states": {
+    "vacuum": "Las identidades fluctúan sin formar regiones persistentes.",
+    "nucleating": "Aparecen los primeros dominios compatibles.",
+    "active": "Las regiones compiten por expandirse.",
+    "pumping": "La conectividad crece rápidamente.",
+    "stable": "Existen estructuras persistentes.",
+    "locked": "Una red dominante atraviesa el sistema.",
+    "collapse": "La diversidad desaparece y el sistema cae en un único atractor."
+  },
+
+  "stateLabels": {
+    "vacuum": "compatibilidad — ruido",
+    "nucleating": "compatibilidad — nucleación",
+    "active": "compatibilidad — crecimiento",
+    "pumping": "compatibilidad — expansión",
+    "stable": "compatibilidad — persistencia",
+    "locked": "compatibilidad — red global",
+    "collapse": "compatibilidad — monocultura"
+  },
+
+  "formulaOpacity": {
+    "vacuum":     { "diff":1.0,"align":0.2,"sat":0.1,"memory":0.2 },
+    "nucleating": { "diff":0.8,"align":0.8,"sat":0.2,"memory":0.4 },
+    "active":     { "diff":0.6,"align":1.0,"sat":0.5,"memory":0.5 },
+    "pumping":    { "diff":0.4,"align":1.0,"sat":0.6,"memory":0.7 },
+    "stable":     { "diff":0.3,"align":0.7,"sat":0.5,"memory":1.0 },
+    "locked":     { "diff":0.2,"align":1.0,"sat":0.3,"memory":0.8 },
+    "collapse":   { "diff":0.1,"align":0.3,"sat":1.0,"memory":0.4 }
+  },
+
+  "limits": [
+    {
+      "status": "ok",
+      "label": "✓ estructuras emergentes",
+      "text": "Produce dominios coherentes sin imponer geometrías predefinidas."
+    },
+    {
+      "status": "warn",
+      "label": "⚠ dimensión efectiva aproximada",
+      "text": "La dimensión se estima mediante conectividad local."
+    },
+    {
+      "status": "open",
+      "label": "○ gravedad emergente",
+      "text": "No existe mecanismo gravitacional explícito."
+    }
+  ],
+
+  "predictions": [
+    {
+      "id": "P1",
+      "label": "Umbral crítico",
+      "text": "Existe una compatibilidad mínima por encima de la cual emerge una red global."
+    },
+    {
+      "id": "P2",
+      "label": "Exceso de compatibilidad",
+      "text": "Compatibilidad extrema reduce la diversidad y favorece colapso."
+    },
+    {
+      "id": "P3",
+      "label": "Memoria óptima",
+      "text": "Existe un rango intermedio de memoria que maximiza persistencia."
+    }
+  ]
+}

@@ -1,0 +1,446 @@
+// ══════════════════════════════════════════════════════════════
+//  AtOhmEter — Motor CRISTAL
+//  Cristalización Emergente — Autómata Celular de Fase
+//
+//  Física: cada voxel tiene una fracción de cristalización [0,1].
+//  La transición líquido→cristal se propaga desde núcleos semilla
+//  cuando la temperatura cae por debajo del punto de fusión local.
+//  Diferentes minerales tienen diferentes geometrías de propagación:
+//    - Hielo: simetría hexagonal, dendrítico, ramas radiales
+//    - Bismuto: escalonado (hopper crystal), isométrico
+//    - Cuarzo: prismático hexagonal, anisótropo en Y
+//    - Sal: cúbico perfecto, muy rápido y ordenado
+//
+//  Campos:
+//    crystal[T] — fracción cristalizada [0,1]
+//    liquid[T]  — densidad de fluido disponible [0,1]
+//    heat[T]    — temperatura local [0,1] (1=caliente, 0=frío)
+//    phase[T]   — estado del voxel codificado para el shader
+//
+//  Ámbar — Mayo 2026 🦝
+// ══════════════════════════════════════════════════════════════
+
+export function createEngine(N, renderVolume, phaseData, texture3D, texturePhase) {
+
+    const T = N * N * N;
+
+    // ── Parámetros ───────────────────────────────────────────
+    let P = {
+        // Sliders principales
+        TEMPERATURA:      25,    // 0=congelado, 100=hirviendo (bajo=cristaliza rápido)
+        HUMEDAD:          80,    // 0=vapor seco, 100=cubo lleno de agua
+        TENSION_SUP:      0.6,   // 0=esférico, 1=dendrítico/fractal
+        VEL_NUCLEACION:   0.7,   // velocidad de propagación del frente
+        IMPUREZAS:        0.25,  // rompe la simetría → cristales orgánicos
+
+        // Modo mineral activo
+        // 0=hielo, 1=bismuto, 2=cuarzo, 3=sal
+        MINERAL:          0,
+
+        // Internos
+        HEAT_DIFF:        0.08,  // difusión del calor
+        HEAT_LOSS:        0.002, // pérdida de calor al entorno
+        DT:               0.016,
+        THRESH:           0.05,
+    };
+
+    // ── Campos ───────────────────────────────────────────────
+    const crystal = new Float32Array(T);  // fracción cristalizada [0,1]
+    const liquid  = new Float32Array(T);  // fluido disponible [0,1]
+    const heat    = new Float32Array(T);  // temperatura [0,1]
+    const heat2   = new Float32Array(T);  // buffer doble para difusión
+
+    function idx(x, y, z) {
+        return ((x+N)%N)*N*N + ((y+N)%N)*N + ((z+N)%N);
+    }
+
+    // ── Geometría de vecinos por mineral ─────────────────────
+    // Define la anisotropía del frente de cristalización
+    // Cada mineral tiene una "regla de vecindad" diferente
+    function getNeighborWeight(dx, dy, dz, mineral) {
+        const ax=Math.abs(dx), ay=Math.abs(dy), az=Math.abs(dz);
+        const r2=dx*dx+dy*dy+dz*dz;
+        if(r2===0) return 0;
+
+        switch(mineral) {
+            case 0: { // HIELO — simetría hexagonal en XZ, dendrítico
+                // Los 6 vecinos principales del plano hexagonal crecen más rápido
+                // Simulamos hexagonal con preferencia a los 6 ejes de 60°
+                const hex = Math.abs(Math.cos(Math.atan2(dz,dx)*3.0)); // 3 ejes = 6 direcciones
+                const dendrite = hex * hex; // énfasis en las puntas
+                const planeFactor = 1.0 - ay * 0.4; // el plano XZ crece más rápido que Y
+                return Math.max(0, dendrite * planeFactor / r2);
+            }
+            case 1: { // BISMUTO — hopper crystal, isométrico con escalones
+                // Crece desde las esquinas de los cubos (vecinos diagonales)
+                // pero más lento en el centro de las caras → escalones
+                const isCorner = (ax>0 && ay>0) || (ay>0 && az>0) || (ax>0 && az>0) ? 1.2 : 0.6;
+                return isCorner / r2;
+            }
+            case 2: { // CUARZO — prismático hexagonal, eje Y privilegiado
+                const hex = Math.abs(Math.cos(Math.atan2(dz,dx)*3.0));
+                const prism = hex * 0.8 + ay * 1.4; // el eje Y crece más rápido
+                return Math.max(0, prism / r2);
+            }
+            case 3: { // SAL — cúbico perfecto, solo vecinos ortogonales
+                const isOrtho = (ax+ay+az===1) ? 1 : 0;
+                return isOrtho / 1.0;
+            }
+            default: return 1.0 / r2;
+        }
+    }
+
+    // ── Difusión de calor ────────────────────────────────────
+    function diffuseHeat() {
+        const diff = P.HEAT_DIFF * P.DT;
+        for(let x=0;x<N;x++) for(let y=0;y<N;y++) for(let z=0;z<N;z++) {
+            const i=idx(x,y,z);
+            const lap = heat[idx(x+1,y,z)] + heat[idx(x-1,y,z)]
+                      + heat[idx(x,y+1,z)] + heat[idx(x,y-1,z)]
+                      + heat[idx(x,y,z+1)] + heat[idx(x,y,z-1)]
+                      - 6.0 * heat[i];
+            // Los cristales conducen el calor diferente al líquido
+            const conductivity = 1.0 - crystal[i] * 0.4;
+            heat2[i] = heat[i] + diff * lap * conductivity;
+            // Pérdida al entorno (el cubo se enfría)
+            heat2[i] -= P.HEAT_LOSS * (heat2[i] - P.TEMPERATURA/100.0) * P.DT;
+            heat2[i] = Math.max(0, Math.min(1, heat2[i]));
+        }
+        heat.set(heat2);
+    }
+
+    // ── Propagación del frente de cristalización ─────────────
+    function propagateCrystal() {
+        const mineral    = Math.floor(P.MINERAL);
+        const tempCrit   = P.TEMPERATURA / 100.0;  // normalizada [0,1]
+        const velNuc     = P.VEL_NUCLEACION * P.DT * 20.0; // más agresivo para visibilidad en tiempo real
+        const impurity   = P.IMPUREZAS;
+
+        // Radio de vecindad: más tensión superficial → vecinos más lejanos
+        const radius = P.TENSION_SUP > 0.5 ? 2 : 1;
+
+        for(let x=0;x<N;x++) for(let y=0;y<N;y++) for(let z=0;z<N;z++) {
+            const i=idx(x,y,z);
+
+            // Solo procesar voxels con fluido disponible
+            if(liquid[i] < 0.01) continue;
+
+            const localTemp = heat[i];
+            // Si temp local > punto crítico → no cristaliza
+            if(localTemp >= tempCrit * 0.95) continue;
+
+            // Supercooling: cuánto por debajo del punto crítico estamos
+            const supercool = Math.max(0, tempCrit - localTemp) / tempCrit;
+
+            // Suma ponderada de cristal en vecindad
+            let crystalNeighbor = 0.0;
+            let totalWeight = 0.0;
+            for(let dx=-radius;dx<=radius;dx++)
+            for(let dy=-radius;dy<=radius;dy++)
+            for(let dz=-radius;dz<=radius;dz++) {
+                if(dx===0&&dy===0&&dz===0) continue;
+                const w = getNeighborWeight(dx,dy,dz,mineral);
+                if(w <= 0) continue;
+                const ni = idx(x+dx,y+dy,z+dz);
+                crystalNeighbor += crystal[ni] * w;
+                totalWeight += w;
+            }
+            if(totalWeight > 0) crystalNeighbor /= totalWeight;
+
+            // Ruido de impurezas — rompe la simetría perfecta
+            const noise = (Math.sin(x*127.1+y*311.7+z*74.7)*0.5+0.5) * impurity;
+
+            // Tasa de cristalización: proporcional al supercooling y vecindad
+            const rate = velNuc * supercool * (crystalNeighbor + noise * 0.1);
+
+            if(rate > 0) {
+                const delta = Math.min(liquid[i], rate);
+                crystal[i] = Math.min(1.0, crystal[i] + delta);
+                liquid[i]  = Math.max(0.0, liquid[i]  - delta);
+
+                // Calor latente: la cristalización libera calor (exotérmica)
+                heat[i] = Math.min(1.0, heat[i] + delta * 0.3);
+            }
+
+            // Fusión: si temp sube mucho → el cristal se derrite
+            if(localTemp > tempCrit * 1.1 && crystal[i] > 0) {
+                const melt = Math.min(crystal[i], (localTemp - tempCrit) * P.DT * 2.0);
+                crystal[i] -= melt;
+                liquid[i]   = Math.min(1.0, liquid[i] + melt);
+                // La fusión absorbe calor (endotérmica)
+                heat[i] = Math.max(0.0, heat[i] - melt * 0.2);
+            }
+        }
+    }
+
+    // ── STEP ─────────────────────────────────────────────────
+    // El shell llama step() una vez por frame.
+    // Corremos 4 substeps internos para que la física sea visible
+    // en tiempo real sin esperar cientos de frames.
+    function step() {
+        const substeps = 4;
+        for(let s=0; s<substeps; s++){
+            diffuseHeat();
+            propagateCrystal();
+        }
+    }
+
+    // ── REFRESH ───────────────────────────────────────────────
+    // Codificación para el shader:
+    //   renderVolume: densidad total (cristal + líquido)
+    //   phaseData:
+    //     < 0.5 → líquido (el valor codifica la temperatura local)
+    //     ≥ 0.5 → cristal (el valor codifica el mineral y la fracción)
+    //       0.50 = hielo puro
+    //       0.62 = cuarzo
+    //       0.74 = bismuto
+    //       0.86 = sal
+    //     Los valores intermedios dan transición suave
+    function refresh() {
+        const mineralPhaseBase = [0.50, 0.74, 0.62, 0.86]; // hielo, bismuto, cuarzo, sal
+        const mineral = Math.floor(P.MINERAL) % 4;
+        const crystalPhase = mineralPhaseBase[mineral];
+
+        for(let i=0;i<T;i++) {
+            const c = crystal[i];
+            const l = liquid[i];
+            const h = heat[i];
+
+            // Volumen: más denso donde hay cristal o líquido
+            renderVolume[i] = c * 0.9 + l * 0.4;
+
+            // Phase: interpola entre estado líquido y cristal
+            if(c < 0.05) {
+                // Puro líquido — phase codifica temperatura (azul frío → verde cálido)
+                phaseData[i] = h * 0.45; // [0, 0.45] = paleta de agua fría→tibia
+            } else if(c > 0.95) {
+                // Cristal puro — phase codifica el mineral
+                phaseData[i] = crystalPhase;
+            } else {
+                // Zona de transición — mezcla suave
+                phaseData[i] = c * crystalPhase + (1-c) * h * 0.45;
+            }
+        }
+        texture3D.needsUpdate    = true;
+        texturePhase.needsUpdate = true;
+    }
+
+    // ── SEMILLAS ──────────────────────────────────────────────
+    function clearFields() {
+        crystal.fill(0);
+        liquid.fill(0);
+        heat.fill(0);
+        heat2.fill(0);
+    }
+
+    // Llena el cubo de fluido según la humedad
+    function fillLiquid() {
+        const humedad = P.HUMEDAD / 100.0;
+        for(let i=0;i<T;i++) {
+            // Distribución no uniforme: más denso en el centro (gotas)
+            liquid[i] = Math.random() < humedad
+                ? 0.8 + Math.random() * 0.2
+                : 0.0;
+            heat[i] = P.TEMPERATURA / 100.0 + (Math.random()-0.5) * 0.05;
+        }
+    }
+
+    // Siembra N núcleos de cristalización en posiciones aleatorias
+    function seedNuclei(count) {
+        for(let n=0;n<count;n++) {
+            const x = Math.floor(Math.random()*N);
+            const y = Math.floor(Math.random()*N);
+            const z = Math.floor(Math.random()*N);
+            const i = idx(x,y,z);
+            crystal[i] = 1.0;
+            liquid[i]  = 0.0;
+            heat[i]    = 0.0; // el núcleo es un punto frío
+        }
+    }
+
+    function seedHielo() {
+        clearFields();
+        fillLiquid();
+        // El hielo crece desde múltiples núcleos pequeños
+        // Temperatura muy baja para propagar rápido
+        seedNuclei(6);
+        // Enfriar el entorno para que cristalice
+        for(let i=0;i<T;i++) heat[i] *= 0.3;
+    }
+
+    function seedBismuto() {
+        clearFields();
+        fillLiquid();
+        // El bismuto crece desde un núcleo central grande
+        // Temperatura moderada — crece lento y escalonado
+        const c=N>>1;
+        for(let dx=-1;dx<=1;dx++) for(let dy=-1;dy<=1;dy++) for(let dz=-1;dz<=1;dz++) {
+            const i=idx(c+dx,c+dy,c+dz);
+            crystal[i]=1.0; liquid[i]=0.0; heat[i]=0.0;
+        }
+        for(let i=0;i<T;i++) heat[i] *= 0.5;
+    }
+
+    function seedCuarzo() {
+        clearFields();
+        fillLiquid();
+        // El cuarzo crece desde la base (Y=0) hacia arriba — como en la naturaleza
+        for(let x=0;x<N;x++) for(let z=0;z<N;z++) {
+            if(Math.random() < 0.3) { // no todos los puntos de la base
+                const i=idx(x,0,z);
+                crystal[i]=1.0; liquid[i]=0.0; heat[i]=0.0;
+            }
+        }
+        // El cuarzo crece en un gradiente de temperatura vertical
+        for(let x=0;x<N;x++) for(let y=0;y<N;y++) for(let z=0;z<N;z++) {
+            const i=idx(x,y,z);
+            heat[i] = (y/(N-1)) * (P.TEMPERATURA/100.0);
+        }
+    }
+
+    function seedSal() {
+        clearFields();
+        fillLiquid();
+        // La sal crece en una cuadrícula cúbica — muy ordenado
+        const step = Math.max(3, Math.floor(N/5));
+        for(let x=0;x<N;x+=step) for(let y=0;y<N;y+=step) for(let z=0;z<N;z+=step) {
+            const i=idx(x,y,z);
+            crystal[i]=1.0; liquid[i]=0.0; heat[i]=0.0;
+        }
+        for(let i=0;i<T;i++) heat[i] *= 0.4;
+    }
+
+    const seedFns = [seedHielo, seedBismuto, seedCuarzo, seedSal];
+    const seedNames = ['hielo','bismuto','cuarzo','sal'];
+
+    function initSeed(name) {
+        const n = name.toLowerCase();
+        const idx2 = seedNames.indexOf(n);
+        if(idx2 >= 0) {
+            P.MINERAL = idx2;
+            seedFns[idx2]();
+        } else {
+            seedHielo(); // default
+        }
+        refresh();
+    }
+
+    initSeed('hielo');
+
+    // ── MÉTRICAS ──────────────────────────────────────────────
+    function getMetrics() {
+        let totalCrystal=0, totalLiquid=0, totalHeat=0, maxCrystal=0;
+        let nuclei=0; // voxels con cristal>0.9
+
+        for(let i=0;i<T;i++) {
+            totalCrystal += crystal[i];
+            totalLiquid  += liquid[i];
+            totalHeat    += heat[i];
+            if(crystal[i]>maxCrystal) maxCrystal=crystal[i];
+            if(crystal[i]>0.9) nuclei++;
+        }
+
+        const frac = totalCrystal / T;
+        return {
+            E_total:   frac,             // fracción cristalizada
+            E_kin:     totalLiquid/T,    // fluido restante
+            E_torsion: totalHeat/T,      // temperatura media
+            E_phase:   nuclei/T,         // densidad de nucleación
+            helicity:  maxCrystal,       // cristal más maduro
+            boundary:  frac,
+            pump:      frac > 0.8 ? 1 : 0,
+            u_max:     maxCrystal,
+            th_max:    totalHeat/T,
+            phi_max:   maxCrystal,
+            psiMax:    maxCrystal,
+            coherence: frac,
+            vortices:  nuclei,
+        };
+    }
+
+    // ── INYECCIONES ───────────────────────────────────────────
+    function injectTouch(pos) {
+        if(!pos) return;
+        const tx=Math.round((pos.x*0.5+0.5)*(N-1));
+        const ty=Math.round((pos.y*0.5+0.5)*(N-1));
+        const tz=Math.round((pos.z*0.5+0.5)*(N-1));
+        const r=Math.max(1, Math.floor(N*0.08));
+
+        for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++) for(let dz=-r;dz<=r;dz++) {
+            if(dx*dx+dy*dy+dz*dz>r*r) continue;
+            const i=idx(tx+dx,ty+dy,tz+dz);
+            // El toque siembra un núcleo de cristalización
+            crystal[i] = Math.min(1.0, crystal[i]+0.8);
+            liquid[i]  = Math.max(0.0, liquid[i]-0.8);
+            heat[i]    = 0.0; // enfría el punto
+        }
+    }
+
+    function injectPulso() {
+        // Pulso central: núcleo grande en el centro
+        const c=N>>1, r=Math.max(2,N>>4);
+        for(let dx=-r;dx<=r;dx++) for(let dy=-r;dy<=r;dy++) for(let dz=-r;dz<=r;dz++) {
+            if(dx*dx+dy*dy+dz*dz>r*r) continue;
+            const i=idx(c+dx,c+dy,c+dz);
+            crystal[i]=1.0; liquid[i]=0.0; heat[i]=0.0;
+        }
+    }
+
+    function injectCalma() {
+        // Derretir todo — subir temperatura
+        for(let i=0;i<T;i++) {
+            heat[i] = Math.min(1.0, heat[i] + 0.5);
+            if(heat[i] > P.TEMPERATURA/100.0 * 1.2) {
+                liquid[i] = Math.min(1.0, liquid[i] + crystal[i]);
+                crystal[i] = 0.0;
+            }
+        }
+    }
+
+    // ── API ───────────────────────────────────────────────────
+    return {
+        step, refresh, getMetrics,
+        getState() {
+            return {
+                crystal: new Float32Array(crystal),
+                liquid:  new Float32Array(liquid),
+                heat:    new Float32Array(heat),
+            };
+        },
+        setState(s) {
+            if(s.crystal) crystal.set(s.crystal);
+            if(s.liquid)  liquid.set(s.liquid);
+            if(s.heat)    heat.set(s.heat);
+            refresh();
+        },
+        loadState(s) { this.setState(s); },
+        savePrev()  {},
+        applyParams(p) {
+            Object.assign(P, p);
+            // Si cambia el mineral, resembrar
+            if(p.MINERAL !== undefined) {
+                const m = Math.floor(p.MINERAL) % 4;
+                P.MINERAL = m;
+            }
+        },
+        getParams() { return {...P}; },
+        initSeed, seed: initSeed,
+        inject(name, data) {
+            if(name==='touch')       injectTouch(data);
+            else if(name==='pulso')  injectPulso();
+            else if(name==='calma')  injectCalma();
+            else if(name==='hielo')  { P.MINERAL=0; seedHielo(); }
+            else if(name==='bismuto'){ P.MINERAL=1; seedBismuto(); }
+            else if(name==='cuarzo') { P.MINERAL=2; seedCuarzo(); }
+            else if(name==='sal')    { P.MINERAL=3; seedSal(); }
+            refresh();
+        },
+        classifyState(m) {
+            if(m.E_total > 0.85)     return 'locked';    // cubo congelado
+            if(m.E_total > 0.5)      return 'pumping';   // cristalización avanzada
+            if(m.E_total > 0.15)     return 'active';    // nucleando activamente
+            if(m.E_total > 0.01)     return 'nucleating';
+            return 'vacuum';
+        },
+    };
+}

@@ -1,0 +1,63 @@
+{
+  "title": "La Física de la Serpiente",
+  "formula": [
+    { "term": "head(t+1) = head(t) + dir",        "class": "ft-kin",   "key": "move",   "op": null },
+    { "term": "score += 10·level",                 "class": "ft-higgs", "key": "eat",    "op": "si head=food:" },
+    { "term": "len += GROW",                       "class": "ft-snap",  "key": "grow",   "op": "+"  },
+    { "term": "BFS(head→food, avoid body)",        "class": "ft-bohm",  "key": "auto",   "op": "AUTO:" },
+    { "term": "lives-- si head∈body",              "class": "ft-phase", "key": "death",  "op": ";"  }
+  ],
+  "legend": [
+    { "key": "move",  "label": "Movimiento",   "color": "rgba(60,220,100,0.8)"  },
+    { "key": "eat",   "label": "Comer",        "color": "rgba(255,80,60,0.8)"   },
+    { "key": "grow",  "label": "Crecer",       "color": "rgba(60,200,255,0.7)"  },
+    { "key": "auto",  "label": "BFS Auto",     "color": "rgba(255,200,60,0.7)"  },
+    { "key": "death", "label": "Colisión",     "color": "rgba(255,255,255,0.4)" }
+  ],
+  "tooltips": {
+    "move":  "head(t+1) = head(t) + dir — La cabeza avanza un paso en la dirección actual. El cuerpo sigue. La cola desaparece. El grid es periódico — puedes salir por un lado y entrar por el otro.",
+    "eat":   "score += 10·level — Comer suma puntos multiplicados por el nivel actual. Cada 5 comidas el nivel sube y la serpiente es más larga desde el inicio.",
+    "grow":  "len += GROW — Al comer, la cola no se elimina por GROW pasos. La serpiente crece. GROW es configurable desde el panel ⚙.",
+    "auto":  "BFS(head→food) — El autopiloto usa búsqueda por amplitud (BFS) desde la cabeza hasta la comida más cercana, evitando el cuerpo. Cuando no hay camino, elige una dirección aleatoria válida.",
+    "death": "lives-- si head∈body — Colisionar con el cuerpo propio cuesta una vida. Al llegar a 0 vidas, game over. Presiona cualquier inyección para reiniciar."
+  },
+  "states": {
+    "vacuum":     "Serpiente recién nacida. Buscando la primera comida.",
+    "nucleating": "¡Primer punto! La serpiente ha comido. Creciendo.",
+    "active":     "Serpiente larga en el campo. El control en 3D es exigente.",
+    "pumping":    "¡Puntuación alta! La serpiente domina el volumen.",
+    "stable":     "Modo manual activo. El campo responde a tus controles.",
+    "locked":     "🤖 AUTOPILOTO ACTIVO. BFS en cada paso. Solo mirar.",
+    "collapse":   "GAME OVER. Presiona cualquier botón para reiniciar."
+  },
+  "stateLabels": {
+    "vacuum":     "🐍 naciendo",
+    "nucleating": "🐍 primera comida",
+    "active":     "🐍 serpiente activa",
+    "pumping":    "🐍 dominando",
+    "stable":     "🐍 manual",
+    "locked":     "🤖 autopiloto BFS",
+    "collapse":   "💀 GAME OVER — toca para reiniciar"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "move":0.8, "eat":0.3, "grow":0.2, "auto":0.1, "death":0.1 },
+    "nucleating": { "move":0.7, "eat":1.0, "grow":0.8, "auto":0.2, "death":0.2 },
+    "active":     { "move":0.9, "eat":0.6, "grow":0.5, "auto":0.3, "death":0.5 },
+    "pumping":    { "move":1.0, "eat":1.0, "grow":1.0, "auto":0.4, "death":0.3 },
+    "stable":     { "move":0.8, "eat":0.5, "grow":0.4, "auto":0.1, "death":0.4 },
+    "locked":     { "move":0.5, "eat":0.5, "grow":0.5, "auto":1.0, "death":0.2 },
+    "collapse":   { "move":0.2, "eat":0.2, "grow":0.2, "auto":0.2, "death":1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Grid periódico",      "text": "Puedes salir por un lado del cubo y entrar por el opuesto. El espacio es un 3-toro — no hay paredes." },
+    { "status": "ok",   "label": "✓ BFS autopiloto",      "text": "El autopiloto encuentra el camino más corto a la comida más cercana evitando el cuerpo. Si no hay camino, elige una dirección aleatoria válida." },
+    { "status": "ok",   "label": "✓ Velocidad ajustable", "text": "SPEED controla frames entre pasos. SPEED=1 es máxima velocidad. SPEED=20 va muy lento — útil para aprender el control 3D." },
+    { "status": "warn", "label": "⚠ Control 3D difícil",  "text": "En 3D tienes 6 direcciones. Los botones rotan la dirección actual: izquierda/derecha en el plano actual, arriba/abajo en Y. Empieza en N=16." },
+    { "status": "open", "label": "○ Highscore local",     "text": "Pendiente: guardar highscore en localStorage. Por ahora el score se reinicia al recargar." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "El autopiloto falla",      "text": "BFS es óptimo en longitud de camino pero no en sobrevivencia — puede meterse en esquinas donde luego no hay salida. A longitud > N²/4 es muy probable que muera." },
+    { "id": "P2", "label": "N=16 es más fácil",        "text": "En un grid de 16³ hay más espacio relativo. En N=48 el campo es enorme y encontrar la comida es más difícil pero el cuerpo tarda más en ser peligroso." },
+    { "id": "P3", "label": "El shader cambia el juego", "text": "Con &shader=electrico la serpiente se ve como arco voltaico. Con &shader=lava la comida parece magma. Mismo juego, experiencia completamente diferente." }
+  ]
+}

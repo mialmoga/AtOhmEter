@@ -1,0 +1,54 @@
+{
+  "title": "Polaritones Hiperbólicos en hBN",
+  "formula": [
+    { "term": "∂²E/∂t² = c²(ε∥∂²E/∂x² − ε⊥∂²E/∂y²) − γQ", "class": "ft-kin",   "key": "em",   "op": null },
+    { "term": "∂²Q/∂t² = −ω²_TO · Q + β · E",               "class": "ft-snap",  "key": "ph",   "op": ";"  },
+    { "term": "tan²θ = −ε⊥/ε∥",                              "class": "ft-bohm",  "key": "cone", "op": "→"  },
+    { "term": "ω² = ½(ω²_LO + ω²_TO) ± √Δ",                 "class": "ft-phase", "key": "disp", "op": ";"  }
+  ],
+  "legend": [
+    { "key": "em",   "label": "Campo EM (fotónico)",      "color": "rgba(100,160,255,0.8)" },
+    { "key": "ph",   "label": "Fonón (vibración red)",    "color": "rgba(255,140,40,0.8)"  },
+    { "key": "cone", "label": "Ángulo del cono",          "color": "rgba(200,200,200,0.6)" },
+    { "key": "disp", "label": "Ramas de dispersión",      "color": "rgba(180,100,255,0.8)" }
+  ],
+  "tooltips": {
+    "em":   "∂²E/∂t² = c²(ε∥∂²E/∂x² − ε⊥∂²E/∂y²) − γQ — La ecuación de onda del campo electromagnético en un medio anisótropo. El signo negativo en el término Y (eje óptico del hBN) es lo que crea la hiperbolicidad: la onda se propaga hacia adelante en XZ pero 'hacia atrás' en Y, produciendo frentes cónicos en lugar de esféricos. γQ es el acoplamiento al campo fonónico.",
+    "ph":   "∂²Q/∂t² = −ω²_TO·Q + β·E — El oscilador de fonón transversal óptico (TO) acoplado al campo EM. Sin acoplamiento (β=0), Q oscila libremente a ω_TO. Con acoplamiento, E y Q se hibridan y forman los dos estados polaritónicos: la rama de alta energía (fotónica) y la de baja energía (fonónica), separadas por un gap de Reststrahlen.",
+    "cone": "tan²θ = −ε⊥/ε∥ — El ángulo θ del cono hiperbólico se determina únicamente por el ratio de las componentes del tensor dieléctrico. En el hBN real, ε⊥ ≈ −10 y ε∥ ≈ +3 en la banda tipo I, dando θ ≈ 58°. Al cambiar la frecuencia dentro de la banda, ε⊥ varía y el cono se abre o cierra — es el observable más directo de la física hiperbólica.",
+    "disp": "ω² = ½(ω²_LO + ω²_TO) ± √Δ — Las dos ramas de la relación de dispersión del polaritón. Δ = ¼(ω²_LO − ω²_TO)² + (γβ/ε₀). La rama upper (fotónica) tiene energía mayor que ω_LO; la lower (fonónica) menor que ω_TO. Entre ω_TO y ω_LO está la banda de Reststrahlen donde la propagación está prohibida en medios isotrópicos — pero permitida como cono hiperbólico en hBN."
+  },
+  "states": {
+    "vacuum":     "Sin excitación. Añade una semilla o pulso para iniciar la propagación.",
+    "nucleating": "Campo débil emergiendo. Los primeros frentes hiperbólicos se están formando.",
+    "stable":     "Propagación estacionaria. Los conos son visibles y estables.",
+    "pumping":    "Campo establecido. Frentes múltiples interfiriendo — patrón rico.",
+    "active":     "Alta densidad de polaritones híbridos. El estado más interesante físicamente."
+  },
+  "stateLabels": {
+    "vacuum":     "hBN — sin excitación",
+    "nucleating": "hBN — campo emergente",
+    "stable":     "hBN — conos formados",
+    "pumping":    "hBN — interferencia",
+    "active":     "hBN — polaritones híbridos ⚡"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "em": 0.2, "ph": 0.1, "cone": 0.3, "disp": 0.2 },
+    "nucleating": { "em": 0.5, "ph": 0.3, "cone": 0.6, "disp": 0.4 },
+    "stable":     { "em": 0.8, "ph": 0.5, "cone": 1.0, "disp": 0.7 },
+    "pumping":    { "em": 0.9, "ph": 0.8, "cone": 0.9, "disp": 0.9 },
+    "active":     { "em": 1.0, "ph": 1.0, "cone": 0.8, "disp": 1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Hiperbolicidad emergente",   "text": "El cono hiperbólico emerge del signo negativo en el Laplaciano Y — no está programado como forma, sino como consecuencia del tensor dieléctrico anisótropo. Si ANISO=0 (isotrópico), se obtienen ondas esféricas ordinarias." },
+    { "status": "ok",   "label": "✓ Dos ramas de dispersión",    "text": "El acoplamiento fonón-fotón produce dos estados propios: la rama alta (fotónica, E domina) y la rama baja (fonónica, Q domina). El estado híbrido en ph≈0.5 corresponde al anti-cruzamiento de las ramas en la dispersión real del hBN." },
+    { "status": "ok",   "label": "✓ Touch = nueva fuente",       "text": "El raycaster pasa la posición al motor. Se añade una fuente polaritónica en ese punto con fase aleatoria — las ondas de las distintas fuentes interfieren de forma hiperbólica." },
+    { "status": "warn", "label": "⚠ Modelo escalar simplificado","text": "El campo E es un escalar (componente z), no el vector completo. El hBN real tiene polarización TE/TM con comportamientos distintos. Un modelo completo requeriría E como vector 3D con tensor ε completo." },
+    { "status": "open", "label": "○ Reflexión en las capas",     "text": "Pendiente: el hBN real es un material 2D apilado en capas. Las reflexiones entre capas producen modos confinados (phonon polariton waveguide modes) que serían visibles como anillos concéntricos sobre el cono." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Ángulo del cono vs ANISO",  "text": "Al aumentar ANISO el ángulo del cono visible debe aumentar (tan²θ = ANISO). A ANISO=0 el cono debe colapsar en una esfera. Falsificable directamente en la simulación." },
+    { "id": "P2", "label": "Interferencia de dos fuentes","text": "Con la semilla 'dos fuentes' en antifase, debe observarse interferencia destructiva en la línea que une las fuentes y constructiva fuera de ella — patrón hiperbólico, no circular." },
+    { "id": "P3", "label": "Gap de Reststrahlen",        "text": "Existe un rango de FREQ donde la propagación debe ser mínima — el gap entre ω_TO y ω_LO. En los parámetros del hBN real esto ocurre aprox. entre FREQ=0.4 y FREQ=0.7." }
+  ]
+}

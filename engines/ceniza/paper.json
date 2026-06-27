@@ -1,0 +1,63 @@
+{
+  "title": "La Carrera Contra el Frío",
+  "formula": [
+    { "term": "∂²ψ/∂t² = c²∇²ψ + γT·∇²ψ",      "class": "ft-kin",   "key": "wave",   "op": null },
+    { "term": "Ṫ = κ∇²T − λT − γT|∇²ψ|",         "class": "ft-higgs", "key": "heat",   "op": ";"  },
+    { "term": "σ̇ = α|∇²ψ|T + λT/2 ≥ 0",          "class": "ft-snap",  "key": "entropy","op": ";"  },
+    { "term": "mobility = (T/T₀)·max(0, 1−βσ)",   "class": "ft-bohm",  "key": "freeze", "op": ";"  }
+  ],
+  "legend": [
+    { "key": "wave",    "label": "Onda ψ",          "color": "rgba(255,255,255,0.6)" },
+    { "key": "heat",    "label": "Difusión T",       "color": "rgba(255,120,40,0.8)"  },
+    { "key": "entropy", "label": "Producción σ",     "color": "rgba(100,150,255,0.7)" },
+    { "key": "freeze",  "label": "Congelamiento",    "color": "rgba(180,220,255,0.7)" }
+  ],
+  "tooltips": {
+    "wave":    "∂²ψ/∂t² = c²∇²ψ + γT·∇²ψ — Onda modulada por temperatura. Donde T es alta, ψ puede organizarse (el término γT·∇²ψ actúa). Donde T→0, solo queda la onda libre — pero el medio está congelado.",
+    "heat":    "Ṫ = κ∇²T − λT − γT|∇²ψ| — La temperatura se difunde (κ∇²T), se disipa al exterior (−λT), y se consume en organización (−γT|∇²ψ|). No hay fuente de calor. Solo salidas.",
+    "entropy": "σ̇ = α|∇²ψ|T + λT/2 ≥ 0 — La entropía SOLO SUBE. Cada acto de organización y cada pérdida de calor producen σ. No hay proceso que reduzca σ. La segunda ley es absoluta.",
+    "freeze":  "mobility = (T/T₀)·max(0,1−βσ) — La movilidad de ψ es el producto de dos factores: cuánto calor hay (T) y cuánto no está solidificado (1−βσ). Cuando ambos llegan a cero, ψ se congela para siempre."
+  },
+  "states": {
+    "vacuum":     "Sin energía. Sistema en el umbral del cero absoluto.",
+    "nucleating": "Calor bajo pero presente. ψ intenta organizarse en las últimas zonas calientes.",
+    "active":     "Alta entropía acumulada. El medio se está solidificando. Estructuras emergiendo en las fronteras.",
+    "pumping":    "Aún caliente. ψ tiene energía para moverse libremente. Aprovéchalo — no dura.",
+    "stable":     "Mayoría congelada. Las estructuras que sobrevivieron están fijas. Esto es lo que quedó.",
+    "locked":     "CONGELADO. Temperatura en el piso. ψ está inmóvil. Este es el final — pero hay belleza en lo que quedó.",
+    "collapse":   "Estado inesperado."
+  },
+  "stateLabels": {
+    "vacuum":     "ceniza — silencio",
+    "nucleating": "ceniza — últimas chispas",
+    "active":     "ceniza — solidificando",
+    "pumping":    "ceniza — aún caliente",
+    "stable":     "ceniza — lo que quedó",
+    "locked":     "ceniza — CONGELADO ❄",
+    "collapse":   "ceniza — error"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "wave":0.1, "heat":0.2, "entropy":0.8, "freeze":1.0 },
+    "nucleating": { "wave":0.5, "heat":0.6, "entropy":0.6, "freeze":0.5 },
+    "active":     { "wave":0.7, "heat":0.5, "entropy":1.0, "freeze":0.7 },
+    "pumping":    { "wave":1.0, "heat":1.0, "entropy":0.5, "freeze":0.2 },
+    "stable":     { "wave":0.3, "heat":0.3, "entropy":0.8, "freeze":0.9 },
+    "locked":     { "wave":0.1, "heat":0.1, "entropy":1.0, "freeze":1.0 },
+    "collapse":   { "wave":0.5, "heat":0.5, "entropy":0.5, "freeze":0.5 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ σ estrictamente creciente",  "text": "La producción de entropía σ̇ ≥ 0 en todo punto y todo tiempo. No hay ningún mecanismo que reduzca σ. La segunda ley es absoluta en este motor." },
+    { "status": "ok",   "label": "✓ Destino único",              "text": "Todo run termina congelado. La única pregunta es cuándo y en qué forma. El estado final depende de la semilla. El destino no." },
+    { "status": "ok",   "label": "✓ La trampa viola la ley",     "text": "⚡ La inyección 'Trampa' resetea σ y T — viola explícitamente la segunda ley. Es el único cheat code del universo." },
+    { "status": "warn", "label": "⚠ T_DISSIPATION calibración",  "text": "La velocidad de muerte depende de T_DISSIPATION. Con 0.0008 el sistema vive ~5000 frames. Con 0.005 muere en ~500. Ajustar según paciencia." },
+    { "status": "open", "label": "○ ¿Hay estructuras universales?","text":"¿Diferentes semillas con la misma T_INIT producen las mismas estructuras congeladas? ¿O el estado final depende de la historia?" }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Congelamiento en frontera",    "text": "Las estructuras que sobreviven deben estar en las fronteras de las zonas calientes — donde T descendió lentamente, no en el centro donde cayó rápido." },
+    { "id": "P2", "label": "Nebulosa → fragmentos",        "text": "La semilla 'nebulosa' con múltiples focos debe producir múltiples fragmentos congelados independientes, no una estructura unificada." },
+    { "id": "P3", "label": "Frío muere rápido",            "text": "La semilla 'frío' no tiene tiempo de organizarse antes de congelarse. El resultado debe ser casi ruido — sin estructuras discernibles." },
+    { "id": "P4", "label": "Calor prolonga pero no salva", "text": "Inyectar calor retrasa el congelamiento local pero produce más σ. Al final, la zona inyectada se congela más rápido que si no se hubiera inyectado." },
+    { "id": "P5", "label": "La Trampa reinicia el reloj",  "text": "⚡ La Trampa (reset de σ y T) debe restaurar exactamente el comportamiento inicial. La historia previa de σ se borra completamente." },
+    { "id": "P6", "label": "Falsificación: sin σ",         "text": "Con S_COUPLING=0 (σ no frena a ψ) y T_DISSIPATION=0 (sin pérdida de calor), el sistema debe ser conservativo y no congelarse nunca." }
+  ]
+}

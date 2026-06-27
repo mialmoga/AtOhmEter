@@ -1,0 +1,55 @@
+{
+  "id": "ceniza",
+  "name": "CENIZA — Termodinámica Irreversible",
+  "description": "Todo muere. La entropía σ solo sube. El calor se disipa. ψ se congela en lo que logró antes de que se acabara la energía. La segunda ley es la única ley que importa.",
+  "panelTitle": "🌡 CENIZA",
+  "params": {
+    "T_INIT":        { "default":2.0,    "label":"T inicial",    "min":0.1,  "max":5.0,  "step":0.1   },
+    "T_DIFFUSION":   { "default":0.08,   "label":"difusión T",   "min":0.0,  "max":0.3,  "step":0.01  },
+    "T_DISSIPATION": { "default":0.0008, "label":"disipación T", "min":0.0,  "max":0.005,"step":0.0001},
+    "C_SPEED":       { "default":0.4,    "label":"c velocidad",  "min":0.05, "max":1.0,  "step":0.05  },
+    "ORDER_GAIN":    { "default":1.2,    "label":"orden γ",      "min":0.0,  "max":3.0,  "step":0.1   },
+    "S_PRODUCTION":  { "default":0.4,    "label":"σ producción", "min":0.0,  "max":2.0,  "step":0.05  },
+    "S_COUPLING":    { "default":0.6,    "label":"σ acoplam.",   "min":0.0,  "max":2.0,  "step":0.05  },
+    "S_DIFFUSION":   { "default":0.01,   "label":"σ difusión",   "min":0.0,  "max":0.1,  "step":0.005 },
+    "T_FREEZE":      { "default":0.05,   "label":"T congelam.",  "min":0.01, "max":0.3,  "step":0.01  },
+    "HEAT_AMP":      { "default":0.5,    "label":"calor inject.", "min":0.1,  "max":2.0,  "step":0.1   },
+    "DT":            { "default":0.015,  "label":"DT",           "min":0.002,"max":0.04, "step":0.001 },
+    "THRESH":        { "default":0.08,   "label":"Umbral 👁",    "min":0.01, "max":1.0,  "step":0.01  }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "estrella",  "label": "Estrella — caliente en el centro, frío afuera" },
+    { "id": "nebulosa",  "label": "Nebulosa — múltiples focos de calor" },
+    { "id": "cascaras",  "label": "Cáscaras — capas alternadas de calor y frío" },
+    { "id": "uniforme",  "label": "Uniforme — máxima energía inicial" },
+    { "id": "frio",      "label": "Frío — casi muerto desde el inicio" }
+  ],
+  "defaultSeed": "estrella",
+  "injections": [
+    { "id": "calor",    "label": "🔥 Calor",      "class": "amber" },
+    { "id": "viento",   "label": "💨 Viento",     "class": ""      },
+    { "id": "reset_s",  "label": "⚡ Trampa",     "class": "amber" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "T̄ media",    "class": "hot"  },
+    { "id": "s-ekin",      "label": "|ψ| media",  "class": ""     },
+    { "id": "s-etorsion", "label": "σ̄ entropía", "class": "cool" },
+    { "id": "s-ephase",   "label": "T_max",       "class": "hot"  },
+    { "id": "s-helic",    "label": "σ_max",       "class": "cool" },
+    { "id": "s-boundary", "label": "congelado",   "class": "cool" },
+    { "id": "s-pump",     "label": "generación",  "class": ""     },
+    { "id": "s-coher",    "label": "overlap",     "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "cosmos"   },
+    { "min": 4,  "label": "campo"    },
+    { "min": 2,  "label": "frontera" },
+    { "min": 0,  "label": "ceniza"   }
+  ]
+}

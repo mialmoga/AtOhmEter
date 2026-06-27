@@ -1,0 +1,64 @@
+{
+  "title": "La Dinámica del Rumor",
+  "formula": [
+    { "term": "ψₙ₊₁ = σ·R̄ₙ",                  "class": "ft-kin",   "key": "conformity", "op": null },
+    { "term": "⊕ τ·ψₙ",                         "class": "ft-higgs", "key": "stubborn",  "op": "+"  },
+    { "term": "⊕ κ·e^{iΔφ}·ψₙ",                "class": "ft-snap",  "key": "interfere", "op": "+"  },
+    { "term": "⊕ ε·e^{iξ}",                     "class": "ft-bohm",  "key": "rebel",     "op": "+"  }
+  ],
+  "legend": [
+    { "key": "conformity", "label": "Conformidad σ",    "color": "rgba(60,200,255,0.7)"  },
+    { "key": "stubborn",   "label": "Terquedad τ",      "color": "rgba(255,200,60,0.7)"  },
+    { "key": "interfere",  "label": "Interferencia κ",  "color": "rgba(255,80,120,0.7)"  },
+    { "key": "rebel",      "label": "Rebeldía ε",       "color": "rgba(100,255,180,0.7)" }
+  ],
+  "tooltips": {
+    "conformity": "σ·R̄ₙ — Conformidad. La celda adopta el promedio ponderado del vecindario. Los vecinos con más amplitud (más 'convencidos') tienen más peso. σ=0 = anarquía total, σ=1 = puro seguimiento.",
+    "stubborn":   "τ·ψₙ — Terquedad. Cuánto peso le doy a mi propia opinión anterior. Si τ es alto, ignoro a mis vecinos aunque griten fuerte. Terquedad + baja conformidad = pensamiento independiente.",
+    "interfere":  "κ·e^{iΔφ}·ψₙ — Interferencia de fase. Si estoy en fase con el rumor (Δφ≈0) me refuerzo. Si estoy en antifase (Δφ≈π) me cancelo. Es literalmente interferencia cuántica aplicada a opiniones.",
+    "rebel":      "ε·e^{iξ} — Rebeldía. Un pequeño ruido aleatorio de fase y amplitud por generación. Sin esto el sistema converge a muerte. Con demasiado, el caos impide cualquier estructura."
+  },
+  "states": {
+    "vacuum":     "Silencio. Amplitud cayendo a cero. El rumor murió — nadie lo está propagando.",
+    "nucleating": "Propagación inicial. El chisme se está extendiendo desde su fuente. Las fronteras de fase se están formando.",
+    "active":     "Alto disenso. Múltiples facciones en tensión. Las fronteras son activas y se mueven.",
+    "pumping":    "Cambio rápido por generación. El sistema oscila — las facciones compiten activamente.",
+    "stable":     "Overlap alto. Las estructuras se reconocen a sí mismas. Identidad preservada.",
+    "locked":     "CONSENSO MASIVO. Más del 70% del espacio en acuerdo. El rumor ganó... o todos se rindieron.",
+    "collapse":   "Amplitud divergente. Reducir decaimiento o conformidad."
+  },
+  "stateLabels": {
+    "vacuum":     "rumor — silencio",
+    "nucleating": "rumor — propagándose",
+    "active":     "rumor — en tensión",
+    "pumping":    "rumor — oscilando",
+    "stable":     "rumor — identidad estable",
+    "locked":     "rumor — CONSENSO ◉",
+    "collapse":   "rumor — divergencia"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "conformity":0.3, "stubborn":0.5, "interfere":0.2, "rebel":0.2 },
+    "nucleating": { "conformity":0.8, "stubborn":0.4, "interfere":0.5, "rebel":0.3 },
+    "active":     { "conformity":0.7, "stubborn":0.5, "interfere":1.0, "rebel":0.5 },
+    "pumping":    { "conformity":0.9, "stubborn":0.6, "interfere":0.9, "rebel":0.7 },
+    "stable":     { "conformity":0.5, "stubborn":1.0, "interfere":0.6, "rebel":0.2 },
+    "locked":     { "conformity":1.0, "stubborn":0.3, "interfere":0.8, "rebel":0.1 },
+    "collapse":   { "conformity":1.0, "stubborn":0.2, "interfere":0.5, "rebel":1.0 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Sin ecuaciones diferenciales", "text": "El tiempo es discreto de verdad. No hay dt, no hay derivadas. Cada generación es un estado completo que depende solo del estado anterior." },
+    { "status": "ok",   "label": "✓ Interferencia cuántica real",  "text": "La actualización usa cos(Δφ) para ponderar el acuerdo de fase. No es una metáfora — es interferencia constructiva/destructiva entre estados complejos." },
+    { "status": "ok",   "label": "✓ Polaridad invertible",         "text": "POLARITY=-1 convierte el sistema en antiferromagnético — cada celda quiere estar en ANTIFASE con sus vecinos. Crea patrones de tablero de ajedrez 3D." },
+    { "status": "warn", "label": "⚠ No conserva energía",          "text": "El parámetro AMPLITUDE < 1 extrae energía continuamente. Sin esto el sistema explota. Es un disipador por diseño." },
+    { "status": "warn", "label": "⚠ Orden de actualización",       "text": "Todos los vecinos se leen del estado actual (no del buffer nuevo). Si se actualizaran en secuencia habría dependencia del orden. Esto es deliberado." },
+    { "status": "open", "label": "○ ¿Hay universalidad?",          "text": "¿El sistema pertenece a alguna clase de universalidad de los autómatas celulares? ¿Hay reglas análogas a B3/S23 de Game of Life pero en ℂ?" }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Propagación del chisme",    "text": "La semilla 'gossip' debe propagarse desde el centro hacia afuera a velocidad finita (≤ 1 celda/generación con REACH=1). La velocidad debe ser medible." },
+    { "id": "P2", "label": "Transición de fase",        "text": "Existe un valor crítico de CONFORMITY donde el sistema transiciona de caos a orden. Por debajo: facciones eternas. Por encima: consenso inevitable." },
+    { "id": "P3", "label": "Antiferro inestable",       "text": "La semilla antiferromagnética (tablero de ajedrez) con POLARITY=1 debe ser inestable — los dominios de fase se reorganizarán espontáneamente." },
+    { "id": "P4", "label": "Silencio como perturbación","text": "Silenciar el centro de un chisme activo (inyección silencio) debe crear un 'agujero' que primero se propaga hacia afuera y luego se cierra." },
+    { "id": "P5", "label": "Contradicción simétrica",   "text": "Invertir la fase en el centro (inyección contradicción) debe crear una onda de disenso radial que choca con las fronteras existentes." },
+    { "id": "P6", "label": "Falsificación: rebeldía=0", "text": "Sin rebeldía (REBELLION=0) el sistema debe converger a silencio o consenso completo en tiempo finito. Si hay estructuras persistentes, algo está mal." }
+  ]
+}

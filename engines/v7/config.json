@@ -1,0 +1,66 @@
+{
+  "id": "v7",
+  "name": "V7 — Cavidades τ-Cosserat",
+  "description": "Sustrato Cosserat isocórico modulado por τ-metric. Semillas Bessel (Dirichlet/Neumann). El vacío tiene modos propios.",
+  "panelTitle": "⚗ CAVIDADES",
+  "metric": "tau",
+  "medium": "cosserat",
+  "params": {
+    "MU":             { "default":1.5,   "label":"μ rigidez",     "min":0.1,  "max":5.0,  "step":0.1 },
+    "GAMMA_T":        { "default":0.5,   "label":"γ torsión",     "min":0.05, "max":3.0,  "step":0.05 },
+    "ALPHA_C":        { "default":2.0,   "label":"α bombeo",      "min":0.0,  "max":5.0,  "step":0.1 },
+    "LAMBDA_DW":      { "default":0.8,   "label":"λ pozo",        "min":0.0,  "max":3.0,  "step":0.05 },
+    "SPIN_COUPLING":  { "default":0.15,  "label":"spin ↻",        "min":0.0,  "max":1.0,  "step":0.01 },
+    "PUMP_GAIN":      { "default":0.08,  "label":"pump ⟳",        "min":0.0,  "max":0.5,  "step":0.01 },
+    "TAU_FEEDBACK":   { "default":0.1,   "label":"τ feedback",    "min":0.0,  "max":1.0,  "step":0.01 },
+    "TAU_DIFFUSION":  { "default":0.02,  "label":"τ difusión",    "min":0.0,  "max":0.2,  "step":0.005 },
+    "CURVATURE_GAIN": { "default":0.3,   "label":"β curvatura",   "min":0.0,  "max":2.0,  "step":0.05 },
+    "ISOCHORIC":      { "default":1.0,   "label":"Tr(ε)=0",       "min":0.0,  "max":1.0,  "step":0.1 },
+    "DAMP_BULK":      { "default":0.9998,"label":"damp bulk",      "min":0.99, "max":1.0,  "step":0.0002 },
+    "DAMP_BORDER":    { "default":0.995, "label":"damp borde",     "min":0.9,  "max":1.0,  "step":0.005 },
+    "DT":             { "default":0.008, "label":"DT",              "min":0.001,"max":0.02, "step":0.001 },
+    "THRESH":         { "default":0.05,  "label":"Umbral 👁",      "min":0.01, "max":2.0,  "step":0.01 }
+  },
+  "uniformBindings": { "THRESH": "uThresh" },
+  "seeds": [
+    { "id": "dirichlet_l0", "label": "Dirichlet l=0 (electrón)" },
+    { "id": "dirichlet_l1", "label": "Dirichlet l=1 (muón)" },
+    { "id": "dirichlet_l2", "label": "Dirichlet l=2 (tau)" },
+    { "id": "neumann_q0",   "label": "Neumann q=0 (quark up)" },
+    { "id": "neumann_q1",   "label": "Neumann q=1 (quark down)" },
+    { "id": "tau_torus",    "label": "τ-Toro (topológico)" },
+    { "id": "tau_helix",    "label": "τ-Hélice (720°)" },
+    { "id": "grumo",        "label": "Grumo legacy (V3)" },
+    { "id": "vacuum",       "label": "Vacío (fluctuaciones)" }
+  ],
+  "defaultSeed": "dirichlet_l0",
+  "injections": [
+    { "id": "torsion",    "label": "⊕ Torsión",   "class": "amber" },
+    { "id": "fase_flip",  "label": "◐ Fase flip",  "class": "amber" },
+    { "id": "tau_pulse",  "label": "τ Pulso",       "class": "" },
+    { "id": "inject_mode","label": "♫ Modo",         "class": "" }
+  ],
+  "gridOptions": [
+    { "value": 32, "label": "32³", "default": true },
+    { "value": 48, "label": "48³" },
+    { "value": 64, "label": "64³" }
+  ],
+  "hud": [
+    { "id": "s-etotal",   "label": "E_total",    "class": "hot"  },
+    { "id": "s-ekin",      "label": "E_kin",       "class": ""     },
+    { "id": "s-etorsion", "label": "E_torsion",  "class": ""     },
+    { "id": "s-ephase",   "label": "E_phase",    "class": "cool" },
+    { "id": "s-pump",     "label": "bombeo",      "class": "hot"  },
+    { "id": "s-boundary", "label": "frontera",    "class": "cool" },
+    { "id": "s-umax",     "label": "|u|_max",    "class": ""     },
+    { "id": "s-thmax",    "label": "|θ|_max",    "class": ""     },
+    { "id": "s-helic",    "label": "helicidad",   "class": "cool" },
+    { "id": "s-coher",    "label": "overlap",     "class": "cool" }
+  ],
+  "zoomLabels": [
+    { "min": 8,  "label": "cosmos"   },
+    { "min": 4,  "label": "cavidad"  },
+    { "min": 2,  "label": "modo"     },
+    { "min": 0,  "label": "nodo"     }
+  ]
+}

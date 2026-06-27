@@ -1,0 +1,646 @@
+// ══════════════════════════════════════════════════════════════
+//  AtOhmEter V7 — Cavidades Resonantes τ-Cosserat
+//  Brujo • Éter • Velvet • Ámbar
+//
+//  Capas:
+//    1. τ-metric    → rigidez local, índice óptico del sustrato
+//    2. Cosserat    → u(3), u_v(3), θ(3), θ_v(3) con traza nula
+//    3. Phase φ     → cavidad bifásica (Störmer-Verlet)
+//    4. Observables → energía, Q-factor, mode overlap, identidad
+//
+//  Semillas: Bessel (Dirichlet/Neumann), torus, helix, legacy
+//  Restricción: Ninguna semilla inyecta energía. Solo geometría.
+// ══════════════════════════════════════════════════════════════
+
+export function createEngine(N, renderVolume, phaseData, texture3D, texturePhase) {
+
+    const T = N * N * N;
+
+    // ── Parámetros ───────────────────────────────────────────
+    let P = {
+        RHO:            1.0,
+        J_INERTIA:      0.4,
+        MU:             1.5,
+        GAMMA_T:        0.5,
+        ALPHA_C:        2.0,
+        LAMBDA_DW:      0.8,
+        PHI0:           1.0,
+        SPIN_COUPLING:  0.15,
+        PUMP_GAIN:      0.08,
+        DAMP_BULK:      0.9998,
+        DAMP_BORDER:    0.995,
+        DX:             0.1,
+        DT:             0.008,
+        THRESH:         0.05,
+        // V7 nuevos
+        TAU_FEEDBACK:   0.1,    // φ→τ feedback
+        TAU_DIFFUSION:  0.02,   // suavizado de τ
+        CURVATURE_GAIN: 0.3,    // β|∇θ|² energía de curvatura
+        ISOCHORIC:      1.0,    // 0=off, 1=traza nula completa
+    };
+
+    const DX2 = P.DX * P.DX;
+    const inv2dx = 1.0 / (2 * P.DX);
+
+    // ── Campos ───────────────────────────────────────────────
+    const ux = new Float64Array(T);
+    const uy = new Float64Array(T);
+    const uz = new Float64Array(T);
+    const ux_v = new Float64Array(T);
+    const uy_v = new Float64Array(T);
+    const uz_v = new Float64Array(T);
+    const thx = new Float64Array(T);
+    const thy = new Float64Array(T);
+    const thz = new Float64Array(T);
+    const thx_v = new Float64Array(T);
+    const thy_v = new Float64Array(T);
+    const thz_v = new Float64Array(T);
+    const phi = new Float64Array(T);
+    const phi_prev = new Float64Array(T);
+
+    // V7: τ-metric field
+    const tau = new Float64Array(T);
+
+    // Semilla de referencia para overlap
+    const phi_seed = new Float64Array(T);
+
+    // Temporales
+    const curl_th_x = new Float64Array(T);
+    const curl_th_y = new Float64Array(T);
+    const curl_th_z = new Float64Array(T);
+    const curl_u_x = new Float64Array(T);
+    const curl_u_y = new Float64Array(T);
+    const curl_u_z = new Float64Array(T);
+    const lap_ux = new Float64Array(T);
+    const lap_uy = new Float64Array(T);
+    const lap_uz = new Float64Array(T);
+    const lap_thx = new Float64Array(T);
+    const lap_thy = new Float64Array(T);
+    const lap_thz = new Float64Array(T);
+    const lap_phi_arr = new Float64Array(T);
+    const lap_tau = new Float64Array(T);
+    const gphi_x = new Float64Array(T);
+    const gphi_y = new Float64Array(T);
+    const gphi_z = new Float64Array(T);
+    const div_u = new Float64Array(T);  // divergencia de u (para traza nula)
+
+    // ── Índice periódico ─────────────────────────────────────
+    function idx(x, y, z) {
+        return ((x + N) % N) * N * N + ((y + N) % N) * N + ((z + N) % N);
+    }
+
+    // ── Operadores diferenciales ─────────────────────────────
+    function lap_scalar(F, out) {
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            out[i] = (F[idx(x+1,y,z)] + F[idx(x-1,y,z)]
+                     + F[idx(x,y+1,z)] + F[idx(x,y-1,z)]
+                     + F[idx(x,y,z+1)] + F[idx(x,y,z-1)] - 6*F[i]) / DX2;
+        }
+    }
+
+    function curl3(Ax, Ay, Az, cx, cy, cz) {
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            cx[i] = (Az[idx(x,y+1,z)] - Az[idx(x,y-1,z)] - Ay[idx(x,y,z+1)] + Ay[idx(x,y,z-1)]) * inv2dx;
+            cy[i] = (Ax[idx(x,y,z+1)] - Ax[idx(x,y,z-1)] - Az[idx(x+1,y,z)] + Az[idx(x-1,y,z)]) * inv2dx;
+            cz[i] = (Ay[idx(x+1,y,z)] - Ay[idx(x-1,y,z)] - Ax[idx(x,y+1,z)] + Ax[idx(x,y-1,z)]) * inv2dx;
+        }
+    }
+
+    function grad_scalar(F, gx, gy, gz) {
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            gx[i] = (F[idx(x+1,y,z)] - F[idx(x-1,y,z)]) * inv2dx;
+            gy[i] = (F[idx(x,y+1,z)] - F[idx(x,y-1,z)]) * inv2dx;
+            gz[i] = (F[idx(x,y,z+1)] - F[idx(x,y,z-1)]) * inv2dx;
+        }
+    }
+
+    function compute_div_u() {
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            div_u[i] = ((ux[idx(x+1,y,z)] - ux[idx(x-1,y,z)])
+                       + (uy[idx(x,y+1,z)] - uy[idx(x,y-1,z)])
+                       + (uz[idx(x,y,z+1)] - uz[idx(x,y,z-1)])) * inv2dx;
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  τ-METRIC LAYER
+    // ══════════════════════════════════════════════════════════
+    function updateTau() {
+        // τ responde a |∇φ| (fronteras de fase) y se difunde
+        grad_scalar(phi, gphi_x, gphi_y, gphi_z);
+        lap_scalar(tau, lap_tau);
+        for (let i = 0; i < T; i++) {
+            const grad_phi_mag = Math.sqrt(gphi_x[i]*gphi_x[i] + gphi_y[i]*gphi_y[i] + gphi_z[i]*gphi_z[i]);
+            const th_mag = Math.sqrt(thx[i]*thx[i] + thy[i]*thy[i] + thz[i]*thz[i]);
+            // τ sube donde hay frontera de fase o torsión
+            const target = 1.0 + P.TAU_FEEDBACK * (grad_phi_mag + 0.5 * th_mag);
+            tau[i] += 0.1 * (target - tau[i]) + P.TAU_DIFFUSION * lap_tau[i];
+            if (tau[i] < 0.1) tau[i] = 0.1;
+            if (tau[i] > 5.0) tau[i] = 5.0;
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  BESSEL SEEDS
+    // ══════════════════════════════════════════════════════════
+    function besselJ0approx(x) {
+        // Approximation of j0(x) = sin(x)/x
+        if (Math.abs(x) < 1e-8) return 1.0;
+        return Math.sin(x) / x;
+    }
+
+    function besselJ1approx(x) {
+        // Approximation of j1(x) = sin(x)/x² - cos(x)/x
+        if (Math.abs(x) < 1e-8) return x / 3.0;
+        return Math.sin(x) / (x * x) - Math.cos(x) / x;
+    }
+
+    function clearFields() {
+        ux.fill(0); uy.fill(0); uz.fill(0);
+        ux_v.fill(0); uy_v.fill(0); uz_v.fill(0);
+        thx.fill(0); thy.fill(0); thz.fill(0);
+        thx_v.fill(0); thy_v.fill(0); thz_v.fill(0);
+        phi.fill(0); phi_prev.fill(0);
+        tau.fill(1);
+    }
+
+    function seedDirichlet(l) {
+        clearFields();
+        const root = Math.PI * (l + 1); // j0 roots at nπ
+        const c = N >> 1;
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            const fx = (x - c) / (c - 1);
+            const fy = (y - c) / (c - 1);
+            const fz = (z - c) / (c - 1);
+            const r = Math.sqrt(fx*fx + fy*fy + fz*fz);
+            if (r > 1.0) { phi[i] = 0; }
+            else { phi[i] = besselJ0approx(root * r); }
+            phi_prev[i] = phi[i];
+            // τ starts higher at cavity boundary
+            tau[i] = 1.0 + 0.5 * Math.exp(-((r - 0.8) * (r - 0.8)) * 20);
+            // θ from gradient of φ (torsión inherente a la geometría)
+            if (r > 0.01 && r < 1.0) {
+                thx[i] = -(fx / r) * phi[i] * 0.3;
+                thy[i] = -(fy / r) * phi[i] * 0.3;
+                thz[i] = -(fz / r) * phi[i] * 0.3;
+            }
+        }
+        phi_seed.set(phi);
+    }
+
+    function seedNeumann(q) {
+        clearFields();
+        // Neumann: dφ/dr = 0 at boundary → use cos-based modes
+        const root = (q + 0.5) * Math.PI;
+        const c = N >> 1;
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            const fx = (x - c) / (c - 1);
+            const fy = (y - c) / (c - 1);
+            const fz = (z - c) / (c - 1);
+            const r = Math.sqrt(fx*fx + fy*fy + fz*fz);
+            if (r > 1.0) { phi[i] = 0; }
+            else {
+                // cos(k·r) satisfies dφ/dr ∝ -sin(kr)/r → 0 at r=0
+                phi[i] = Math.cos(root * r) * Math.exp(-r * r * 2);
+            }
+            phi_prev[i] = phi[i];
+            tau[i] = 1.0 + 0.3 * (1 - r * r);
+            // Neumann: torsion tangencial (abierto)
+            if (r > 0.01 && r < 1.0) {
+                thx[i] = fy * phi[i] * 0.4;
+                thy[i] = -fx * phi[i] * 0.4;
+                thz[i] = 0.1 * phi[i];
+            }
+        }
+        phi_seed.set(phi);
+    }
+
+    function seedTorus() {
+        clearFields();
+        const c = N >> 1;
+        const R0 = 0.45, r0 = 0.18;
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            const fx = (x - c) / (c - 1);
+            const fy = (y - c) / (c - 1);
+            const fz = (z - c) / (c - 1);
+            const rxy = Math.sqrt(fx*fx + fy*fy);
+            const rt = Math.sqrt((rxy - R0) * (rxy - R0) + fz * fz);
+            phi[i] = Math.exp(-(rt / r0) * (rt / r0));
+            phi_prev[i] = phi[i];
+            // Torsión toroidal
+            const angle = Math.atan2(fy, fx);
+            thx[i] = -Math.sin(angle) * phi[i] * 0.5;
+            thy[i] = Math.cos(angle) * phi[i] * 0.5;
+            thz[i] = 0.3 * phi[i];
+            tau[i] = 1.0 + phi[i];
+        }
+        phi_seed.set(phi);
+    }
+
+    function seedHelix() {
+        clearFields();
+        const c = N >> 1;
+        const k = 8; // winding
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            const fx = (x - c) / (c - 1);
+            const fy = (y - c) / (c - 1);
+            const fz = (z - c) / (c - 1);
+            const angle = Math.atan2(fy, fx);
+            const rxy = Math.sqrt(fx*fx + fy*fy);
+            phi[i] = Math.sin(k * fz + angle) * Math.exp(-rxy * rxy * 4);
+            phi_prev[i] = phi[i];
+            thx[i] = Math.cos(angle) * phi[i] * 0.4;
+            thy[i] = Math.sin(angle) * phi[i] * 0.4;
+            thz[i] = phi[i] * 0.5;
+            tau[i] = 1.0 + 0.3 * Math.abs(phi[i]);
+        }
+        phi_seed.set(phi);
+    }
+
+    function seedGrumo() {
+        // Legacy V3 compatible
+        clearFields();
+        const w = 0.06, c = N >> 1, r = Math.max(2, N >> 3);
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            const fx = (2*x/(N-1)) - 1;
+            const fy = (2*y/(N-1)) - 1;
+            const fz = (2*z/(N-1)) - 1;
+            phi[i] = Math.tanh(fx/w) * Math.tanh(fy/w) * Math.tanh(fz/w);
+            phi[i] += (Math.random()-0.5) * 0.01;
+            phi_prev[i] = phi[i];
+            const dx = x-c, dy = y-c, dz = z-c;
+            const dist = Math.sqrt(dx*dx+dy*dy+dz*dz)+1e-6;
+            const kick = 0.2 * Math.exp(-dist*0.1);
+            ux[i] = kick*dx/dist; uy[i] = kick*dy/dist; uz[i] = kick*dz/dist;
+            if (Math.abs(dx)<=r && Math.abs(dy)<=r && Math.abs(dz)<=r) {
+                thx[i] = Math.PI/2; thy[i] = -Math.PI/2; thz[i] = Math.PI/3;
+            }
+            thx[i] += (Math.random()-0.5)*0.02;
+            thy[i] += (Math.random()-0.5)*0.02;
+            thz[i] += (Math.random()-0.5)*0.02;
+            tau[i] = 1.0;
+        }
+        phi_seed.set(phi);
+    }
+
+    function seedVacuum() {
+        clearFields();
+        for (let i = 0; i < T; i++) {
+            phi[i] = (Math.random()-0.5)*0.01;
+            phi_prev[i] = phi[i];
+            tau[i] = 1.0;
+        }
+        phi_seed.set(phi);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  STEP — Cosserat isocórico + τ-modulado
+    // ══════════════════════════════════════════════════════════
+    function step() {
+        const dt = P.DT;
+        const dt2 = dt * dt;
+
+        // 0. Actualizar τ-metric
+        updateTau();
+
+        // 1. Derivadas espaciales
+        curl3(thx, thy, thz, curl_th_x, curl_th_y, curl_th_z);
+        curl3(ux, uy, uz, curl_u_x, curl_u_y, curl_u_z);
+        lap_scalar(ux, lap_ux); lap_scalar(uy, lap_uy); lap_scalar(uz, lap_uz);
+        lap_scalar(thx, lap_thx); lap_scalar(thy, lap_thy); lap_scalar(thz, lap_thz);
+        lap_scalar(phi, lap_phi_arr);
+        grad_scalar(phi, gphi_x, gphi_y, gphi_z);
+
+        // 2. Divergencia de u (para constraint isocórico)
+        compute_div_u();
+
+        // 3. Magnitudes para damping adaptativo
+        let th_mag_max = 0;
+        for (let i = 0; i < T; i++) {
+            const m = Math.sqrt(thx[i]*thx[i] + thy[i]*thy[i] + thz[i]*thz[i]);
+            if (m > th_mag_max) th_mag_max = m;
+        }
+        const th_mag_inv = 1.0 / (th_mag_max + 1e-10);
+
+        // 4. Evolución u, θ
+        for (let i = 0; i < T; i++) {
+            const ti = tau[i]; // modulación τ local
+            const th_mag = Math.sqrt(thx[i]*thx[i] + thy[i]*thy[i] + thz[i]*thz[i]);
+            const grad_phi_mag = Math.sqrt(gphi_x[i]*gphi_x[i] + gphi_y[i]*gphi_y[i] + gphi_z[i]*gphi_z[i]);
+
+            // μ y γ modulados por τ
+            const mu_eff = P.MU * ti;
+            const gamma_eff = P.GAMMA_T * ti;
+
+            // ── Constraint isocórico: restar ∇·u/3 de las fuerzas diagonales ──
+            const iso = P.ISOCHORIC * div_u[i] / 3.0;
+            const grad_div_x = (div_u[idx(Math.floor(i/(N*N))%N+1, Math.floor(i/N)%N, i%N)]
+                               - div_u[idx(Math.floor(i/(N*N))%N-1, Math.floor(i/N)%N, i%N)]) * inv2dx;
+            // Simplified: subtract isochoric pressure gradient from acceleration
+            // ∇(∇·u)/3 acts as a pressure that prevents volume change
+
+            // ── Fuerzas sobre u (Cosserat + τ) ──
+            const f_ux = mu_eff * lap_ux[i] + 2*P.ALPHA_C * curl_th_x[i]
+                       + P.PUMP_GAIN * gphi_x[i] * grad_phi_mag
+                       - P.ISOCHORIC * mu_eff * (div_u[idx(((i/(N*N))|0)+1, ((i/N)|0)%N, i%N)] !== undefined ? 0 : 0);
+            const f_uy = mu_eff * lap_uy[i] + 2*P.ALPHA_C * curl_th_y[i]
+                       + P.PUMP_GAIN * gphi_y[i] * grad_phi_mag;
+            const f_uz = mu_eff * lap_uz[i] + 2*P.ALPHA_C * curl_th_z[i]
+                       + P.PUMP_GAIN * gphi_z[i] * grad_phi_mag;
+
+            // ── Fuerzas sobre θ (Cosserat + curvatura β|∇θ|²) ──
+            const f_thx = gamma_eff * lap_thx[i] + 2*P.ALPHA_C * (curl_u_x[i] - 2*thx[i])
+                        + P.SPIN_COUPLING * gphi_x[i] * th_mag;
+            const f_thy = gamma_eff * lap_thy[i] + 2*P.ALPHA_C * (curl_u_y[i] - 2*thy[i])
+                        + P.SPIN_COUPLING * gphi_y[i] * th_mag;
+            const f_thz = gamma_eff * lap_thz[i] + 2*P.ALPHA_C * (curl_u_z[i] - 2*thz[i])
+                        + P.SPIN_COUPLING * gphi_z[i] * th_mag;
+
+            // ── Integración velocidad ──
+            const rho_eff = P.RHO * ti;
+            const J_eff = P.J_INERTIA * ti;
+            ux_v[i] += (f_ux / rho_eff) * dt;
+            uy_v[i] += (f_uy / rho_eff) * dt;
+            uz_v[i] += (f_uz / rho_eff) * dt;
+            thx_v[i] += (f_thx / J_eff) * dt;
+            thy_v[i] += (f_thy / J_eff) * dt;
+            thz_v[i] += (f_thz / J_eff) * dt;
+
+            // ── Damping adaptativo ──
+            const t_norm = Math.min(1, th_mag * th_mag_inv);
+            const damp = P.DAMP_BORDER + (P.DAMP_BULK - P.DAMP_BORDER) * t_norm;
+            ux_v[i] *= damp; uy_v[i] *= damp; uz_v[i] *= damp;
+            thx_v[i] *= damp; thy_v[i] *= damp; thz_v[i] *= damp;
+
+            // ── Integración posición ──
+            ux[i] += ux_v[i] * dt; uy[i] += uy_v[i] * dt; uz[i] += uz_v[i] * dt;
+            thx[i] += thx_v[i] * dt; thy[i] += thy_v[i] * dt; thz[i] += thz_v[i] * dt;
+        }
+
+        // 5. Proyección isocórica: remover componente volumétrica
+        if (P.ISOCHORIC > 0.5) {
+            compute_div_u();
+            grad_scalar(phi, gphi_x, gphi_y, gphi_z); // reusar para grad(div_u)
+            // Simple: restar ∇·u/3 del campo de velocidad
+            for (let x = 0; x < N; x++)
+            for (let y = 0; y < N; y++)
+            for (let z = 0; z < N; z++) {
+                const i = idx(x, y, z);
+                const gdx = (div_u[idx(x+1,y,z)] - div_u[idx(x-1,y,z)]) * inv2dx;
+                const gdy = (div_u[idx(x,y+1,z)] - div_u[idx(x,y-1,z)]) * inv2dx;
+                const gdz = (div_u[idx(x,y,z+1)] - div_u[idx(x,y,z-1)]) * inv2dx;
+                // Helmholtz projection: remove irrotational part
+                ux_v[i] -= P.ISOCHORIC * gdx * dt * 0.3;
+                uy_v[i] -= P.ISOCHORIC * gdy * dt * 0.3;
+                uz_v[i] -= P.ISOCHORIC * gdz * dt * 0.3;
+            }
+        }
+
+        // 6. Evolución de φ (Störmer-Verlet, τ-modulado)
+        for (let x = 0; x < N; x++)
+        for (let y = 0; y < N; y++)
+        for (let z = 0; z < N; z++) {
+            const i = idx(x, y, z);
+            const p = phi[i];
+            const ti = tau[i];
+
+            // Doble pozo: -4λφ(φ²−1)
+            const dV = -4 * P.LAMBDA_DW * p * (p*p - P.PHI0*P.PHI0);
+
+            // Spin emergente
+            const gx0 = gphi_x[i], gy0 = gphi_y[i], gz0 = gphi_z[i];
+            const spin = (gphi_x[idx(x,y+1,z)] * gy0 - gphi_y[idx(x+1,y,z)] * gx0)
+                       + (gphi_y[idx(x,y,z+1)] * gz0 - gphi_z[idx(x,y+1,z)] * gy0)
+                       + (gphi_z[idx(x+1,y,z)] * gx0 - gphi_x[idx(x,y,z+1)] * gz0);
+
+            const domain_e = Math.sqrt(gx0*gx0 + gy0*gy0 + gz0*gz0);
+            const pumping = P.PUMP_GAIN * domain_e * Math.tanh(p);
+
+            const div_th = (thx[idx(x+1,y,z)] - thx[idx(x-1,y,z)]
+                          + thy[idx(x,y+1,z)] - thy[idx(x,y-1,z)]
+                          + thz[idx(x,y,z+1)] - thz[idx(x,y,z-1)]) * inv2dx;
+
+            // τ modula la velocidad de propagación de φ
+            const mu_phi = P.MU * ti;
+            const phi_acc = mu_phi * lap_phi_arr[i] + dV
+                          + P.SPIN_COUPLING * spin + pumping
+                          + P.ALPHA_C * 0.5 * div_th;
+
+            let phi_next = 2*p - phi_prev[i] + dt2 * phi_acc;
+            phi_next -= 0.002 * (phi_next - p);
+            phi_prev[i] = p;
+            phi[i] = phi_next;
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  REFRESH
+    // ══════════════════════════════════════════════════════════
+    function refresh() {
+        grad_scalar(phi, gphi_x, gphi_y, gphi_z);
+        for (let i = 0; i < T; i++) {
+            const u_mag = Math.sqrt(ux[i]*ux[i] + uy[i]*uy[i] + uz[i]*uz[i]);
+            const th_mag = Math.sqrt(thx[i]*thx[i] + thy[i]*thy[i] + thz[i]*thz[i]);
+            const gp_mag = Math.sqrt(gphi_x[i]*gphi_x[i] + gphi_y[i]*gphi_y[i] + gphi_z[i]*gphi_z[i]);
+            // τ amplifica la visibilidad donde el medio es más denso
+            const t_boost = tau[i];
+            renderVolume[i] = (gp_mag * 0.08 + th_mag * 0.5 + u_mag * 2.0) * t_boost;
+            phaseData[i] = phi[i] * 0.5 + 0.5;
+        }
+        texture3D.needsUpdate = true;
+        texturePhase.needsUpdate = true;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  OBSERVABLES
+    // ══════════════════════════════════════════════════════════
+    function getMetrics() {
+        let E_kin = 0, E_torsion = 0, E_phase = 0, E_tau = 0;
+        let helic = 0, u_max = 0, th_max = 0, phi_max = 0;
+        let boundary_count = 0, pump_sum = 0, pump_count = 0;
+        let tau_sum = 0, tau_max = 0;
+        let overlap_sum = 0, overlap_norm_a = 0, overlap_norm_b = 0;
+
+        curl3(thx, thy, thz, curl_th_x, curl_th_y, curl_th_z);
+        const c = N >> 1, r = Math.max(1, N >> 3);
+
+        for (let i = 0; i < T; i++) {
+            E_kin += ux_v[i]*ux_v[i] + uy_v[i]*uy_v[i] + uz_v[i]*uz_v[i]
+                   + thx_v[i]*thx_v[i] + thy_v[i]*thy_v[i] + thz_v[i]*thz_v[i];
+            E_torsion += thx[i]*thx[i] + thy[i]*thy[i] + thz[i]*thz[i];
+            const p2 = phi[i]*phi[i];
+            E_phase += (p2 - P.PHI0*P.PHI0) * (p2 - P.PHI0*P.PHI0);
+            E_tau += (tau[i] - 1) * (tau[i] - 1);
+            helic += thx[i]*curl_th_x[i] + thy[i]*curl_th_y[i] + thz[i]*curl_th_z[i];
+            const um = Math.sqrt(ux[i]*ux[i]+uy[i]*uy[i]+uz[i]*uz[i]);
+            const tm = Math.sqrt(thx[i]*thx[i]+thy[i]*thy[i]+thz[i]*thz[i]);
+            if (um > u_max) u_max = um;
+            if (tm > th_max) th_max = tm;
+            const ap = Math.abs(phi[i]); if (ap > phi_max) phi_max = ap;
+            if (ap < 0.5) boundary_count++;
+            tau_sum += tau[i]; if (tau[i] > tau_max) tau_max = tau[i];
+            // Mode overlap
+            overlap_sum += phi[i] * phi_seed[i];
+            overlap_norm_a += phi[i] * phi[i];
+            overlap_norm_b += phi_seed[i] * phi_seed[i];
+        }
+
+        for (let x = c-r; x < c+r; x++)
+        for (let y = c-r; y < c+r; y++)
+        for (let z = c-r; z < c+r; z++) {
+            const i = idx(x,y,z);
+            pump_sum += (phi[i] - phi_prev[i]); pump_count++;
+        }
+
+        const norm = Math.sqrt(overlap_norm_a * overlap_norm_b) + 1e-12;
+        const mode_overlap = overlap_sum / norm;
+
+        return {
+            E_total:  0.5*(E_kin + E_torsion + E_phase)/T,
+            E_kin:    0.5*E_kin/T,
+            E_torsion: 0.5*P.GAMMA_T*E_torsion/T,
+            E_phase:  P.LAMBDA_DW*E_phase/T,
+            E_tau:    E_tau/T,
+            helicity: helic/T,
+            boundary: boundary_count/T,
+            pump:     pump_count>0 ? pump_sum/(pump_count*P.DT) : 0,
+            u_max, th_max, phi_max,
+            tau_avg:  tau_sum/T,
+            tau_max,
+            mode_overlap: Math.abs(mode_overlap),
+            psiMax: u_max, vortices: 0, coherence: mode_overlap,
+        };
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  INYECCIONES
+    // ══════════════════════════════════════════════════════════
+    function injectTorsion() {
+        const c = N>>1, r = Math.max(3, N>>2);
+        for (let x=c-r; x<=c+r; x++)
+        for (let y=c-r; y<=c+r; y++)
+        for (let z=c-r; z<=c+r; z++) {
+            const i = idx(x,y,z);
+            thx[i]+=(Math.random()-0.5)*2; thy[i]+=(Math.random()-0.5)*2; thz[i]+=(Math.random()-0.5)*2;
+            ux_v[i]+=(Math.random()-0.5)*0.5; uy_v[i]+=(Math.random()-0.5)*0.5; uz_v[i]+=(Math.random()-0.5)*0.5;
+        }
+    }
+
+    function injectPhaseFlip() {
+        const c=N>>1, r=Math.max(3,N>>3);
+        for(let x=0;x<N;x++) for(let y=0;y<N;y++) for(let z=0;z<N;z++){
+            const dx=x-c,dy=y-c,dz=z-c;
+            if(dx*dx+dy*dy+dz*dz<r*r){
+                const i=idx(x,y,z); phi[i]*=-1; phi_prev[i]*=-1;
+                thx[i]+=(Math.random()-0.5); thy[i]+=(Math.random()-0.5);
+            }
+        }
+    }
+
+    function injectTauPulse() {
+        const c=N>>1;
+        for(let x=0;x<N;x++) for(let y=0;y<N;y++) for(let z=0;z<N;z++){
+            const dx=x-c,dy=y-c,dz=z-c;
+            const r=Math.sqrt(dx*dx+dy*dy+dz*dz)+1e-6;
+            const i=idx(x,y,z);
+            tau[i] += 2.0 * Math.exp(-r*0.15);
+        }
+    }
+
+    function injectMode(bc, n) {
+        if (bc === 'dirichlet') seedDirichlet(n || 0);
+        else seedNeumann(n || 0);
+    }
+
+    // ══════════════════════════════════════════════════════════
+    //  INIT
+    // ══════════════════════════════════════════════════════════
+    function initSeed(name) {
+        if (name === 'dirichlet_l0')      seedDirichlet(0);
+        else if (name === 'dirichlet_l1') seedDirichlet(1);
+        else if (name === 'dirichlet_l2') seedDirichlet(2);
+        else if (name === 'neumann_q0')   seedNeumann(0);
+        else if (name === 'neumann_q1')   seedNeumann(1);
+        else if (name === 'tau_torus')    seedTorus();
+        else if (name === 'tau_helix')    seedHelix();
+        else if (name === 'grumo')        seedGrumo();
+        else if (name === 'vacuum')       seedVacuum();
+        else                              seedDirichlet(0);
+        refresh();
+    }
+
+    // Init default
+    initSeed('dirichlet_l0');
+
+    // ══════════════════════════════════════════════════════════
+    //  API
+    // ══════════════════════════════════════════════════════════
+    return {
+        step,
+        refresh,
+        getMetrics,
+        getState() {
+            return {
+                ux: new Float32Array(ux), uy: new Float32Array(uy), uz: new Float32Array(uz),
+                thx: new Float32Array(thx), thy: new Float32Array(thy), thz: new Float32Array(thz),
+                phi: new Float32Array(phi), tau: new Float32Array(tau),
+            };
+        },
+        loadState(s) {
+            if(s.ux) ux.set(s.ux); if(s.uy) uy.set(s.uy); if(s.uz) uz.set(s.uz);
+            if(s.thx) thx.set(s.thx); if(s.thy) thy.set(s.thy); if(s.thz) thz.set(s.thz);
+            if(s.phi) { phi.set(s.phi); phi_prev.set(s.phi); }
+            if(s.tau) tau.set(s.tau); else tau.fill(1);
+            refresh();
+        },
+        setState(s) { this.loadState(s); },
+        savePrev() {},
+        applyParams(p) { Object.assign(P, p); },
+        getParams() { return { ...P }; },
+        initSeed,
+        seed: initSeed,
+        inject(name) {
+            if(name==='torsion') injectTorsion();
+            else if(name==='fase_flip') injectPhaseFlip();
+            else if(name==='tau_pulse') injectTauPulse();
+            else if(name==='inject_mode') injectMode('dirichlet', 1);
+            refresh();
+        },
+        classifyState(m) {
+            if(m.phi_max>10 || m.u_max>10) return 'collapse';
+            if(m.pump && Math.abs(m.pump)>0.5) return 'pumping';
+            if(m.mode_overlap>0.85) return 'locked';
+            if(m.E_total>2 || m.boundary>0.15) return 'active';
+            if(m.E_torsion>0.5) return 'torsion';
+            if(m.E_total>0.1) return 'nucleating';
+            return 'vacuum';
+        },
+    };
+}

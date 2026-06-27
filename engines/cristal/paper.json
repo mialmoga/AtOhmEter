@@ -1,0 +1,55 @@
+{
+  "title": "Cristalización como Ruptura de Simetría",
+  "formula": [
+    { "term": "∂c/∂t = v · ΔT · Σ_w c_ᵢ", "class": "ft-snap",  "key": "nucl",  "op": null },
+    { "term": "+ η(x)",                       "class": "ft-higgs", "key": "noise", "op": "+"  },
+    { "term": "∂T/∂t = κ∇²T − Q·∂c/∂t",    "class": "ft-kin",   "key": "heat",  "op": ";"  },
+    { "term": "∂l/∂t = −∂c/∂t",             "class": "ft-bohm",  "key": "liq",   "op": ";"  }
+  ],
+  "legend": [
+    { "key": "nucl",  "label": "Propagación del frente", "color": "rgba(120,200,255,0.8)" },
+    { "key": "noise", "label": "Ruido / impurezas η",    "color": "rgba(200,200,200,0.5)" },
+    { "key": "heat",  "label": "Difusión de calor",      "color": "rgba(255,140,60,0.8)"  },
+    { "key": "liq",   "label": "Conservación de fluido", "color": "rgba(60,180,255,0.7)"  }
+  ],
+  "tooltips": {
+    "nucl":  "∂c/∂t = v·ΔT·Σ_w cᵢ — El frente de cristalización avanza cuando la temperatura local cae por debajo del punto crítico (ΔT>0) y hay cristal vecino. Cada mineral pesa a sus vecinos de forma distinta: el hielo prefiere los 6 ejes hexagonales, la sal solo los 6 ortogonales, el bismuto las esquinas.",
+    "noise": "η(x) — Ruido de impurezas: una función determinista (sin senoidal sobre las coordenadas) que rompe la simetría perfecta. Sin impurezas el cristal crece simétricamente; con impurezas emerge la textura orgánica observada en la naturaleza.",
+    "heat":  "∂T/∂t = κ∇²T − Q·∂c/∂t — La cristalización es exotérmica: libera calor Q en el punto de nucleación. Ese calor difunde por el medio con conductividad κ, que es distinta en el cristal vs el líquido. El frente puede inhibir su propia propagación.",
+    "liq":   "∂l/∂t = −∂c/∂t — Conservación: el fluido que se cristaliza desaparece del campo líquido. Un voxel con l=0 ya no puede cristalizar más."
+  },
+  "states": {
+    "vacuum":     "Fluido en reposo. La temperatura determina si puede cristalizar.",
+    "nucleating": "Primeros núcleos formándose. El frente empieza a propagarse.",
+    "active":     "Frente de cristalización activo. Las facetas son visibles.",
+    "pumping":    "Cristalización avanzada. Múltiples dominios compitiendo.",
+    "locked":     "Cubo casi congelado. Las cicatrices entre dominios son permanentes."
+  },
+  "stateLabels": {
+    "vacuum":     "cristal — fluido en reposo",
+    "nucleating": "cristal — nucleación inicial",
+    "active":     "cristal — frente activo",
+    "pumping":    "cristal — dominios compitiendo",
+    "locked":     "cristal — ❄️ congelado"
+  },
+  "formulaOpacity": {
+    "vacuum":     { "nucl":0.2, "noise":0.3, "heat":0.5, "liq":0.4 },
+    "nucleating": { "nucl":0.7, "noise":0.5, "heat":0.6, "liq":0.5 },
+    "active":     { "nucl":1.0, "noise":0.6, "heat":0.8, "liq":0.7 },
+    "pumping":    { "nucl":0.9, "noise":0.7, "heat":0.9, "liq":0.8 },
+    "locked":     { "nucl":0.4, "noise":0.3, "heat":0.6, "liq":0.3 }
+  },
+  "limits": [
+    { "status": "ok",   "label": "✓ Calor latente emergente",  "text": "La cristalización libera calor exotérmico que puede inhibir su propia propagación — autorregulación sin regla programada. Emerge de la ecuación de calor." },
+    { "status": "ok",   "label": "✓ Geometría por vecindad",   "text": "La forma del cristal (hexagonal, cúbico, escalonado) emerge de la función de peso de los vecinos. No hay plantilla de forma — solo la regla de quién influye a quién." },
+    { "status": "ok",   "label": "✓ Touch siembra núcleo",     "text": "El toque coloca cristal en el punto de intersección ray→cubo y enfría ese voxel. Un nuevo frente de cristalización emerge desde ahí." },
+    { "status": "warn", "label": "⚠ Bismuto simplificado",     "text": "Los cristales reales de bismuto tienen escalones de Bi₂O₃ en la superficie. El modelo captura la geometría hopper (aristas>caras) pero no el grosor exacto de la capa de óxido." },
+    { "status": "open", "label": "○ Fusión por toque caliente","text": "Pendiente: un toque prolongado debería calentar el voxel y fundir el cristal. Actualmente el toque solo cristaliza." }
+  ],
+  "predictions": [
+    { "id": "P1", "label": "Cicatrices de dominio",    "text": "Con humedad=100 y temperatura baja, múltiples núcleos deben producir dominios de cristal que se encuentran en fronteras visibles — cicatrices de diferente orientación." },
+    { "id": "P2", "label": "Inhibición por calor",     "text": "Con vel. nucl. alta, el frente debe frenarse solo al acercarse: la cristalización libera calor que sube la temperatura local por encima del punto crítico." },
+    { "id": "P3", "label": "Geometría mineral",        "text": "El hielo debe producir ramas radiales (dendrítico), la sal cubos perfectos, el bismuto escalones. La geometría debe ser reconocible sin parámetros adicionales." },
+    { "id": "P4", "label": "Touch = nuevo frente",     "text": "Tocar el cubo con cristalización parcial debe iniciar un nuevo frente desde el punto tocado que compite con los existentes." }
+  ]
+}
