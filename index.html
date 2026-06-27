@@ -121,8 +121,12 @@
             display:none; align-items:center; gap:8px; flex-wrap:wrap;
             border-top:1px solid rgba(255,255,255,0.05);
             pointer-events:auto;
+            transition: opacity 0.4s ease;
         }
         #timeline-wrap.visible { display:flex; }
+        /* Durante playback, la barra se desvanece como en un reproductor de
+           video para no estorbar; reaparece al tocar la pantalla. */
+        #timeline-wrap.playback-hidden { opacity:0; pointer-events:none; }
         #timeline-slider { flex:1; min-width:80px; height:2px; -webkit-appearance:none; appearance:none;
             background:rgba(255,255,255,0.15); border-radius:1px; cursor:pointer; }
         #timeline-slider::-webkit-slider-thumb { -webkit-appearance:none; width:10px; height:10px;
@@ -238,8 +242,8 @@
 <div id="render-panel">
     <div class="pt">🎨 RENDERER</div>
     <div class="pgrid">
-        <div><label>Bloom <span id="vBloom">1.8</span></label>
-             <input type="range" id="sBloom" min="0" max="4" step="0.1" value="1.8"></div>
+        <div><label>Bloom <span id="vBloom">0.3</span></label>
+             <input type="range" id="sBloom" min="0" max="4" step="0.1" value="0.3"></div>
         <div><label>Radius <span id="vBRadius">0.6</span></label>
              <input type="range" id="sBRadius" min="0" max="2" step="0.05" value="0.6"></div>
         <div><label>Threshold <span id="vBThresh">0.05</span></label>
@@ -324,7 +328,7 @@
         <option value="fixed">Fijo cada N</option>
         <option value="manual">Manual</option>
     </select>
-    <input type="number" id="tl-fixed-n" min="5" max="500" value="50"
+    <input type="number" id="tl-fixed-n" min="1" max="500" value="50"
         style="width:36px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.1);
         color:rgba(255,255,255,0.4);font-size:7px;font-family:'Courier New',monospace;
         padding:1px 3px;border-radius:2px;display:none;">
@@ -387,6 +391,14 @@
             <span style="font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">GIROSCOPIO</span>
             <button id="btn-gyro" style="font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(180,110,255,0.08);border:1px solid rgba(180,110,255,0.25);color:rgba(180,110,255,0.7);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">📱 Sentir</button>
             <span style="font-size:7px;letter-spacing:0.08em;color:rgba(180,110,255,0.3);">inclina el mundo</span>
+        </div>
+
+        <div id="hand-bar" style="display:none;align-items:center;gap:8px;margin-top:6px;padding-top:5px;border-top:1px solid rgba(120,255,180,0.06);flex-wrap:wrap;">
+            <span id="hand-dot" style="width:7px;height:7px;border-radius:50%;background:#333;display:inline-block;transition:background 0.3s;flex-shrink:0;"></span>
+            <span style="font-size:7px;letter-spacing:0.12em;color:rgba(255,255,255,0.2);text-transform:uppercase;">MANO</span>
+            <button id="btn-hand" style="font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(120,255,180,0.08);border:1px solid rgba(120,255,180,0.25);color:rgba(120,255,180,0.7);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">🖐️ Mano</button>
+            <button id="btn-hand-reset" style="display:none;font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(120,255,180,0.05);border:1px solid rgba(120,255,180,0.18);color:rgba(120,255,180,0.45);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">↺ Reset Pose</button>
+            <button id="btn-hand-toggle" style="display:none;font-size:8px;letter-spacing:0.1em;padding:3px 10px;background:rgba(80,200,255,0.05);border:1px solid rgba(80,200,255,0.18);color:rgba(80,200,255,0.45);border-radius:3px;cursor:pointer;font-family:'Courier New',monospace;">◈ Vol.Mano</button>
         </div>
     
     <div class="lp-title" id="lp-formula-title">▸ La Ecuación del Tejido</div>
@@ -670,6 +682,40 @@ async function loadEngine() {
         gyroBar.style.display = 'none';
     }
 
+    // 8e2. Capacidad de mano (cámara/MediaPipe): si el motor declaró bloque
+    // "hand", mostrar la barra 🖐️ (no pide cámara hasta que el usuario toque).
+    // Cero impacto si no la declara.
+    HandEngine.dispose();
+    const handBar = document.getElementById('hand-bar');
+    if (engineCfg.hand && engineCfg.hand.enabled) {
+        HandEngine.init(engineCfg.hand);
+        if (handBar) handBar.style.display = 'flex';
+        const hbtn = document.getElementById('btn-hand');
+        if (hbtn) { hbtn.textContent = '🖐️ Mano'; hbtn.style.opacity = '1'; }
+        const hdot = document.getElementById('hand-dot');
+        if (hdot) hdot.style.background = '#333';
+        // El tercer botón depende del config:
+        //  · volHand:true → ◈ Vol.Mano (toggle de la mano de plasma volumétrica)
+        //  · sin volHand  → ▣ Map.Mano (toggle del minimapa estilo radar)
+        // Los botones extra (Reset Pose + toggle) arrancan ocultos; aparecen
+        // cuando el usuario enciende la cámara con 🖐️ Mano.
+        const tbtn = document.getElementById('btn-hand-toggle');
+        if (tbtn) {
+            if (engineCfg.hand.volHand) {
+                tbtn.textContent = '◈ Vol.Mano';
+                tbtn.dataset.mode = 'vol';
+            } else {
+                tbtn.textContent = '▣ Map.Mano';
+                tbtn.dataset.mode = 'map';
+            }
+            tbtn.style.display = 'none';
+        }
+        const rbtn = document.getElementById('btn-hand-reset');
+        if (rbtn) rbtn.style.display = 'none';
+    } else if (handBar) {
+        handBar.style.display = 'none';
+    }
+
     // 8e. Órbita automática (control universal del visor): la barra está
     // siempre visible (debajo del timeline). El config solo decide si arranca
     // encendida (autoOrbit) y a qué velocidad (autoOrbitSpeed). El usuario la
@@ -905,7 +951,7 @@ function initThree(vertSrc, fragSrc) {
     ctrl.autoRotateSpeed = 0.6; // grados/seg suaves
 
     const bloom = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth * 0.5, window.innerHeight * 0.5), 1.8, 0.6, 0.05);
+        new THREE.Vector2(window.innerWidth * 0.5, window.innerHeight * 0.5), 0.3, 0.6, 0.05);
     window._bloom = bloom;
     window._bloom = bloom; // exponer para los sliders del renderer
     const rgbShift = new ShaderPass(RGBShiftShader);
@@ -940,6 +986,10 @@ function initThree(vertSrc, fragSrc) {
         uTouchTime:   { value: 0.0 },   // tiempo desde el último toque
         uRaySteps:    { value: 96.0 },
         uStepDiv:     { value: 48.0 },
+        // Mano volumétrica — HandEngine escribe aquí los 21 landmarks.
+        // Cero impacto si el motor no consume mano (uHandActive queda false).
+        uHandBones:   { value: Array.from({length: 21}, () => new THREE.Vector3()) },
+        uHandActive:  { value: false },
     };
     window._uniforms = uniforms; // para que el motor pueda actualizarlo
 
@@ -965,6 +1015,8 @@ function initThree(vertSrc, fragSrc) {
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
         composer.setSize(window.innerWidth, window.innerHeight);
+        // Reajustar el minimapa de la mano al aspect nuevo (rotación)
+        if (typeof HandEngine !== 'undefined') HandEngine.onResize();
     });
 
     // ── Raycaster — interacción táctil con el campo ───────────
@@ -1020,6 +1072,11 @@ function initThree(vertSrc, fragSrc) {
     renderer.domElement.addEventListener('mousemove', (e) => {
         if (e.buttons > 0) onTouchStart(e);
     });
+    // Tocar la pantalla durante el playback trae de vuelta la barra (y
+    // reinicia el temporizador para volver a ocultarla). Como reproductor de video.
+    const _revealOnTouch = () => { if (playbackActive) revealPlaybackBar(); };
+    renderer.domElement.addEventListener('touchstart', _revealOnTouch, { passive: true });
+    renderer.domElement.addEventListener('mousedown',  _revealOnTouch);
 }
 
 // ════════════════════════════════════════════════════════════
@@ -1175,8 +1232,7 @@ function importSnapshots(file) {
             });
             updateTimelineUI();
             paused = true;
-            document.getElementById('btn-pause').textContent = '▶ Reanudar';
-            document.getElementById('timeline-wrap').classList.add('visible');
+            syncPauseUI();
             loadSnapshot(tlSnapshots.length - 1);
             alert(`${tlSnapshots.length} snapshots importados`);
         } catch(err) {
@@ -1234,6 +1290,27 @@ function animate(t) {
         u.uCameraLocal.value.copy(camera.position).divideScalar(2.5);
         // Incrementar tiempo de toque — para que el efecto se desvanezca
         if(u.uTouchTime) u.uTouchTime.value += dt;
+    }
+
+    // Mano (cámara/MediaPipe): se actualiza SIEMPRE, incluso en pausa, para
+    // que la mano de plasma siga tu movimiento en tiempo real (sirve de guía
+    // de ubicación en el campo). tick() entrega los landmarks crudos al motor
+    // vía engine.setHand(); el motor decide qué hacer con ellos.
+    if(HandEngine.isActive() && engine && !Socket.isActive()) {
+        HandEngine.tick(engine);
+        const hdot = document.getElementById('hand-dot');
+        if(hdot) {
+            const lm = HandEngine.getLandmarks();
+            hdot.style.boxShadow = lm
+                ? `0 0 10px rgba(120,255,180,0.9)` : `0 0 0 rgba(0,0,0,0)`;
+            hdot.style.background = lm ? '#78ffb4' : '#333';
+        }
+        // En pausa, refrescar la textura para ver la mano "pintando" el campo.
+        if(paused) {
+            engine.refresh();
+            texture3D.needsUpdate = true;
+            texturePhase.needsUpdate = true;
+        }
     }
 
     if(!paused && engine && !playbackActive) {
@@ -1485,20 +1562,28 @@ document.getElementById('btn-paper').onclick = () =>
 document.getElementById('lp-close').onclick = () =>
     document.getElementById('lp-overlay').classList.remove('open');
 
-document.getElementById('btn-pause').onclick = function() {
-    paused = !paused;
-    this.textContent = paused ? '▶ Reanudar' : '‖ Pausar';
-    document.getElementById('timeline-wrap').classList.toggle('visible', paused);
-    // Sincronizar con el servidor
-    if(paused) Socket.pause();
-    else        Socket.resume();
-    // Sincronizar botón del live paper
+// Sincroniza AMBOS botones de pausa (el de abajo y el del Live Paper) con el
+// estado real de `paused`. Llamar siempre que `paused` cambie desde cualquier
+// lugar (handler, playback, reset, fin de playback) para que no se desincronicen.
+function syncPauseUI() {
+    const btn = document.getElementById('btn-pause');
+    if (btn) btn.textContent = paused ? '▶ Reanudar' : '‖ Pausar';
+    const tlWrap = document.getElementById('timeline-wrap');
+    if (tlWrap) tlWrap.classList.toggle('visible', paused);
     const lpBtn = document.getElementById('lp-start');
-    if(lpBtn) {
+    if (lpBtn) {
         lpBtn.textContent = paused ? '▶ REANUDAR SIMULACIÓN' : '‖ PAUSAR SIMULACIÓN';
         lpBtn.style.borderColor = paused ? 'rgba(255,160,40,0.3)' : 'rgba(60,200,255,0.3)';
         lpBtn.style.color = paused ? 'rgba(255,160,40,0.7)' : 'rgba(60,200,255,0.6)';
     }
+}
+
+document.getElementById('btn-pause').onclick = function() {
+    paused = !paused;
+    // Sincronizar con el servidor
+    if(paused) Socket.pause();
+    else        Socket.resume();
+    syncPauseUI();
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -1791,6 +1876,250 @@ const MicEngine = (() => {
 })();
 
 // ══════════════════════════════════════════════════════════════
+//  HandEngine — el shell VE tu mano (gemelo de MicEngine/GyroEngine)
+//
+//  Adquiere 21 landmarks por cámara vía MediaPipe Hands y los ENTREGA
+//  crudos al motor con engine.setHand(landmarks, active). El motor
+//  decide qué hacer (dibujarlos como plasma, inyectarlos al campo, etc).
+//  El shell NO interpreta la mano — solo la capta.
+//
+//  Un motor pide la cámara declarando un bloque "hand" en su config:
+//
+//    "hand": { "enabled": true, "volHand": true }
+//
+//  · enabled: muestra la barra 🖐️ (no pide cámara hasta el gesto).
+//  · volHand: el motor dibuja su PROPIA mano (plasma volumétrico) →
+//    el shell NO añade el fallback de huesitos. Si volHand es false/
+//    ausente, el shell mostrará los huesitos sutiles por su cuenta
+//    (fallback — pendiente de implementar para la prueba v56b).
+//
+//  Carga MediaPipe por CDN on-demand en start() (no pesa si nadie lo pide).
+//  Si el bloque NO existe, el shell jamás toca la cámara — cero impacto
+//  para los ~29 motores que no la declaran.
+// ══════════════════════════════════════════════════════════════
+const HandEngine = (() => {
+    let cfg = null;
+    let enabled = false;     // el motor lo pidió
+    let active = false;      // cámara entregando frames
+    let hands = null, camUtil = null, videoEl = null;
+    let landmarks = null;    // último frame crudo (21 × {x,y,z}) o null
+    let _scriptsLoaded = false;
+
+    // ── Minimapa fallback (estilo radar de videojuego) ──────────
+    // Solo se usa cuando el motor pide "hand" SIN volHand: el shell
+    // NO tiene una mano de plasma que mostrar, así que dibuja un
+    // cuadrito en la esquina (con el aspect de la pantalla) y la mano
+    // a escala adentro — para que el usuario no se pierda. Como el
+    // minimapa de un shooter.
+    let mapCanvas = null, mapCtx = null;
+    // Topología MediaPipe Hands — 21 conexiones (pares de índices)
+    const HAND_CONNECTIONS = [
+        [0,1],[1,2],[2,3],[3,4],            // pulgar
+        [0,5],[5,6],[6,7],[7,8],            // índice
+        [5,9],[9,10],[10,11],[11,12],       // medio
+        [9,13],[13,14],[14,15],[15,16],     // anular
+        [13,17],[0,17],[17,18],[18,19],[19,20], // meñique + palma
+    ];
+
+    // Declarar intención (no pide cámara aún — eso es en start()).
+    function init(handCfg) {
+        dispose();
+        if (!handCfg || !handCfg.enabled) { enabled = false; return false; }
+        cfg = handCfg; enabled = true; return true;
+    }
+
+    function volHand() { return !!(cfg && cfg.volHand); }
+
+    // ── Crear / dimensionar el minimapa según el aspect de pantalla ──
+    function ensureMap() {
+        if (mapCanvas) return;
+        mapCanvas = document.createElement('canvas');
+        mapCanvas.id = 'hand-minimap';
+        mapCanvas.style.cssText =
+            'position:fixed;right:12px;bottom:96px;z-index:12;' +
+            'pointer-events:none;border:1px solid rgba(120,220,255,0.35);' +
+            'border-radius:4px;background:rgba(8,12,20,0.55);' +
+            'box-shadow:0 0 12px rgba(0,0,0,0.4);';
+        document.body.appendChild(mapCanvas);
+        sizeMap();
+    }
+
+    // El cuadrito imita la orientación de la pantalla: vertical en
+    // retrato, horizontal en apaisado. Lado mayor ~92px.
+    function sizeMap() {
+        if (!mapCanvas) return;
+        const portrait = window.innerHeight >= window.innerWidth;
+        const major = 92;
+        const aspect = window.innerWidth / window.innerHeight;
+        let w, h;
+        if (portrait) { h = major; w = Math.round(major * aspect); }
+        else          { w = major; h = Math.round(major / aspect); }
+        // Densidad de píxel para que se vea nítido
+        const dpr = Math.min(2, window.devicePixelRatio || 1);
+        mapCanvas.style.width  = w + 'px';
+        mapCanvas.style.height = h + 'px';
+        mapCanvas.width  = Math.round(w * dpr);
+        mapCanvas.height = Math.round(h * dpr);
+        mapCtx = mapCanvas.getContext('2d');
+        mapCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        mapCanvas._w = w; mapCanvas._h = h;
+    }
+
+    let _mapVisible = false;  // ¿mostrar el minimapa? lo controla el botón Map.Mano
+    function hideMap() {
+        _mapVisible = false;
+        if (mapCanvas) mapCanvas.style.display = 'none';
+    }
+    function showMap() {
+        _mapVisible = true;
+        ensureMap();
+        if (mapCanvas) mapCanvas.style.display = 'block';
+    }
+    function isMapVisible() { return _mapVisible; }
+
+    // Dibujar la mano (o el cuadro vacío) dentro del minimapa.
+    // x espejado (selfie), y directo — coords normalizadas [0,1].
+    function drawMap() {
+        if (!mapCtx || !mapCanvas) return;
+        const W = mapCanvas._w, H = mapCanvas._h;
+        mapCtx.clearRect(0, 0, W, H);
+
+        // Sin mano: cuadro en espera, puntito tenue al centro
+        if (!landmarks) {
+            mapCtx.fillStyle = 'rgba(120,220,255,0.18)';
+            mapCtx.beginPath();
+            mapCtx.arc(W/2, H/2, 2, 0, Math.PI*2);
+            mapCtx.fill();
+            return;
+        }
+
+        const px = (lm) => (1.0 - lm.x) * W;  // espejo horizontal
+        const py = (lm) => lm.y * H;
+
+        // Conexiones (huesos) — líneas finas cian
+        mapCtx.lineWidth = 1;
+        mapCtx.strokeStyle = 'rgba(120,230,255,0.6)';
+        mapCtx.beginPath();
+        for (const [a, b] of HAND_CONNECTIONS) {
+            mapCtx.moveTo(px(landmarks[a]), py(landmarks[a]));
+            mapCtx.lineTo(px(landmarks[b]), py(landmarks[b]));
+        }
+        mapCtx.stroke();
+
+        // Articulaciones — puntitos blancos (puntas un poco más grandes)
+        const TIPS = new Set([4, 8, 12, 16, 20]);
+        for (let i = 0; i < 21; i++) {
+            const r = TIPS.has(i) ? 2.0 : 1.3;
+            mapCtx.fillStyle = TIPS.has(i)
+                ? 'rgba(180,255,230,0.95)' : 'rgba(220,240,255,0.7)';
+            mapCtx.beginPath();
+            mapCtx.arc(px(landmarks[i]), py(landmarks[i]), r, 0, Math.PI*2);
+            mapCtx.fill();
+        }
+    }
+
+    // Cargar los scripts de MediaPipe por CDN una sola vez.
+    function loadScripts() {
+        if (_scriptsLoaded) return Promise.resolve();
+        const urls = [
+            'https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js',
+            'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/hands.js',
+        ];
+        return Promise.all(urls.map(src => new Promise((res, rej) => {
+            if (document.querySelector(`script[src="${src}"]`)) return res();
+            const s = document.createElement('script');
+            s.src = src; s.crossOrigin = 'anonymous';
+            s.onload = res; s.onerror = () => rej(new Error('no se pudo cargar ' + src));
+            document.head.appendChild(s);
+        }))).then(() => { _scriptsLoaded = true; });
+    }
+
+    // Pedir la cámara (requiere gesto de usuario). Idempotente.
+    async function start() {
+        if (!enabled || active) return active;
+        try {
+            await loadScripts();
+            // Video oculto — el feed nunca se ve, solo se procesa.
+            videoEl = document.getElementById('hand-video');
+            if (!videoEl) {
+                videoEl = document.createElement('video');
+                videoEl.id = 'hand-video';
+                videoEl.playsInline = true; videoEl.muted = true; videoEl.autoplay = true;
+                videoEl.style.cssText = 'display:none;position:fixed;width:1px;height:1px;';
+                document.body.appendChild(videoEl);
+            }
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'user', width:{ideal:320}, height:{ideal:240}, frameRate:{ideal:20} },
+                audio: false
+            });
+            videoEl.srcObject = stream;
+
+            hands = new Hands({ locateFile: f =>
+                `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1646424915/${f}` });
+            hands.setOptions({
+                maxNumHands: 1, modelComplexity: 0,
+                minDetectionConfidence: 0.6, minTrackingConfidence: 0.5,
+            });
+            hands.onResults(r => {
+                landmarks = (r.multiHandLandmarks && r.multiHandLandmarks.length > 0)
+                    ? r.multiHandLandmarks[0] : null;
+            });
+            camUtil = new Camera(videoEl, {
+                onFrame: async () => { if (active && hands) await hands.send({ image: videoEl }); },
+                width: 320, height: 240
+            });
+            camUtil.start();
+            active = true;
+            return true;
+        } catch (e) {
+            console.warn('[Hand] cámara no disponible / permiso denegado:', e);
+            active = false; return false;
+        }
+    }
+
+    // Leer la cámara: entrega los landmarks crudos al motor. Llamado una
+    // vez por frame INCLUSO si la simulación está pausada (para que la
+    // mano de plasma / minimapa sigan tu movimiento en tiempo real).
+    function tick(engine) {
+        if (!active) return;
+        if (engine && engine.setHand) engine.setHand(landmarks, landmarks !== null);
+        // El minimapa se dibuja solo si el usuario lo encendió (botón Map.Mano).
+        if (_mapVisible) drawMap();
+    }
+
+    // apply() existe por simetría con Mic/Gyro. En este motor la
+    // inyección al campo ya la hace setHand() dentro de tick(), así que
+    // apply no necesita hacer nada extra. Se deja para motores futuros
+    // que quieran separar "ver" (tick) de "actuar" (apply).
+    function apply(engine) { /* no-op: setHand ya inyecta */ }
+
+    function getLandmarks() { return landmarks; }
+    function isEnabled() { return enabled; }
+    function isActive() { return active; }
+    function wantsVolHand() { return volHand(); }
+
+    function dispose() {
+        try { if (videoEl && videoEl.srcObject) videoEl.srcObject.getTracks().forEach(t => t.stop()); } catch(e){}
+        try { if (camUtil) camUtil.stop(); } catch(e){}
+        try { if (hands) hands.close(); } catch(e){}
+        if (videoEl) videoEl.srcObject = null;
+        camUtil = null; hands = null; landmarks = null;
+        cfg = null; active = false; enabled = false;
+        // Quitar el minimapa
+        if (mapCanvas) { try { mapCanvas.remove(); } catch(e){} mapCanvas = null; mapCtx = null; }
+        // Apagar la mano en el shader al desmontar
+        const u = window._uniforms;
+        if (u && u.uHandActive) u.uHandActive.value = false;
+    }
+
+    // Reajustar el minimapa al rotar/redimensionar la pantalla
+    function onResize() { if (mapCanvas) sizeMap(); }
+
+    return { init, start, tick, apply, getLandmarks, isEnabled, isActive,
+             wantsVolHand, showMap, hideMap, isMapVisible, onResize, dispose };
+})();
+
+// ══════════════════════════════════════════════════════════════
 //  GyroEngine — el shell SIENTE su orientación (gemelo del MicEngine)
 //
 //  Si MicEngine escucha, GyroEngine siente cómo sostienes el teléfono.
@@ -1934,6 +2263,65 @@ document.getElementById('btn-gyro').onclick = async function() {
     if (dot && ok) dot.style.background = '#b56bff';
 };
 
+// Botón de mano — pide cámara y activa MediaPipe (gesto de usuario).
+// Al encender, aparecen los botones extra (Reset Pose + toggle Vol/Map).
+document.getElementById('btn-hand').onclick = async function() {
+    if (HandEngine.isActive()) {
+        // Ya activa → apagar todo
+        HandEngine.dispose();
+        this.textContent = '🖐️ Mano';
+        this.style.borderColor = 'rgba(120,255,180,0.25)';
+        this.style.color = 'rgba(120,255,180,0.7)';
+        document.getElementById('btn-hand-reset').style.display = 'none';
+        document.getElementById('btn-hand-toggle').style.display = 'none';
+        const dot = document.getElementById('hand-dot');
+        if (dot) dot.style.background = '#333';
+        // re-init para poder volver a encender
+        if (engineCfg && engineCfg.hand) HandEngine.init(engineCfg.hand);
+        return;
+    }
+    this.textContent = '🖐️ ...';
+    const ok = await HandEngine.start();
+    this.textContent = ok ? '🖐️ Mano ON' : '🖐️ Denegado';
+    this.style.opacity = ok ? '1' : '0.5';
+    if (ok) {
+        this.style.borderColor = 'rgba(120,255,180,0.8)';
+        this.style.color = 'rgba(120,255,180,1.0)';
+        document.getElementById('btn-hand-reset').style.display = '';
+        document.getElementById('btn-hand-toggle').style.display = '';
+    }
+    const dot = document.getElementById('hand-dot');
+    if (dot && ok) dot.style.background = '#78ffb4';
+};
+
+// Botón ↺ Reset Pose — limpia el efecto que la mano dejó en el campo,
+// sin apagar la cámara. Re-siembra el estado base del motor.
+document.getElementById('btn-hand-reset').onclick = function() {
+    if (!engine) return;
+    engine.seed(window._currentSeed || engineCfg.defaultSeed || 'grumo');
+};
+
+// Botón toggle — Vol.Mano (plasma) o Map.Mano (minimapa) según el config.
+document.getElementById('btn-hand-toggle').onclick = function() {
+    const mode = this.dataset.mode;
+    if (mode === 'vol') {
+        // Toggle de la mano de plasma volumétrica (en el motor/shader)
+        if (!engine || !engine.setHandVisible) return;
+        const on = !(window._uniforms?.uHandActive?.value);
+        engine.setHandVisible(on);
+        this.textContent = on ? '◈ Vol.ON' : '◈ Vol.Mano';
+        this.style.borderColor = on ? 'rgba(80,200,255,0.9)' : 'rgba(80,200,255,0.18)';
+        this.style.color       = on ? 'rgba(80,200,255,1.0)' : 'rgba(80,200,255,0.45)';
+    } else {
+        // Toggle del minimapa (en el shell)
+        const on = !HandEngine.isMapVisible();
+        if (on) HandEngine.showMap(); else HandEngine.hideMap();
+        this.textContent = on ? '▣ Map.ON' : '▣ Map.Mano';
+        this.style.borderColor = on ? 'rgba(120,230,255,0.9)' : 'rgba(80,200,255,0.18)';
+        this.style.color       = on ? 'rgba(120,230,255,1.0)' : 'rgba(80,200,255,0.45)';
+    }
+};
+
 document.getElementById('btn-snap').onclick    = () => saveSnapshot('📸 manual');
 
 // ── Órbita automática — control universal del visor ──
@@ -1992,6 +2380,7 @@ document.getElementById('btn-reset').onclick = () => {
     Socket.pause();
     // Volver a pausar en el shell
     paused = true;
+    syncPauseUI();
     document.getElementById('btn-pause').textContent = '▶ Iniciar';
 };
 
@@ -2062,7 +2451,7 @@ document.getElementById('tl-mode').onchange = e => {
         tlMode === 'fixed' ? 'inline-block' : 'none';
 };
 document.getElementById('tl-fixed-n').onchange = e => {
-    tlFixedInterval = Math.max(5, +e.target.value);
+    tlFixedInterval = Math.max(1, +e.target.value);
     e.target.value = tlFixedInterval;
 };
 
@@ -2079,6 +2468,26 @@ document.getElementById('tl-speed').oninput = e => {
 };
 
 // ── Playback de snapshots ───────────────────────────────────
+// ── Auto-ocultar la barra de playback (como reproductor de video) ──
+// Durante el playback, la barra se desvanece tras unos segundos para no
+// estorbar la vista; cualquier toque en la pantalla la trae de vuelta y
+// reinicia el temporizador.
+let _playbackHideTimer = null;
+function schedulePlaybackHide() {
+    clearTimeout(_playbackHideTimer);
+    const wrap = document.getElementById('timeline-wrap');
+    if (!wrap || !playbackActive) return;
+    _playbackHideTimer = setTimeout(() => {
+        if (playbackActive) wrap.classList.add('playback-hidden');
+    }, 2500);
+}
+function revealPlaybackBar() {
+    const wrap = document.getElementById('timeline-wrap');
+    if (!wrap) return;
+    wrap.classList.remove('playback-hidden');
+    if (playbackActive) schedulePlaybackHide();
+}
+
 function startPlayback() {
     if(tlSnapshots.length < 2) return;
     playbackActive = true;
@@ -2088,13 +2497,17 @@ function startPlayback() {
     const btn = document.getElementById('tl-play');
     btn.textContent = '⏹';
     btn.classList.add('playing');
-    document.getElementById('btn-pause').textContent = '▶ Reanudar';
-    document.getElementById('timeline-wrap').classList.add('visible');
+    paused = true;
+    syncPauseUI();
+    schedulePlaybackHide(); // empezar el contador para ocultar la barra
 }
 
 function stopPlayback() {
     playbackActive = false;
     playbackAccum = 0;
+    clearTimeout(_playbackHideTimer);
+    const wrap = document.getElementById('timeline-wrap');
+    if (wrap) wrap.classList.remove('playback-hidden'); // al parar, mostrarla
     const btn = document.getElementById('tl-play');
     btn.textContent = '▶';
     btn.classList.remove('playing');
