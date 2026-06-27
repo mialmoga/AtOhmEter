@@ -543,18 +543,30 @@ async function loadEngine() {
     paperCfg  = await paperRes.json();
 
     // 2. Cargar shaders
-    // ?shader=X → shaders/X.glsl (biblioteca)
+    // ?shader=X resuelve en orden: biblioteca → shader de otro motor → propio.
+    //   1. shaders/X.glsl          (biblioteca de shaders sueltos)
+    //   2. engines/X/shader.glsl   (reutiliza el shader de otro motor, sin duplicar)
+    //   3. shader propio del engine (fallback)
     // sin parámetro → shader propio del engine (default)
     const shaderParam = new URLSearchParams(window.location.search).get('shader');
     let shaderSrc;
     if (shaderParam) {
+        // 1. biblioteca
         const libRes = await fetch(`shaders/${shaderParam}.glsl`);
         if (libRes.ok) {
             shaderSrc = await libRes.text();
             console.log(`🎨 Shader de biblioteca: ${shaderParam}`);
         } else {
-            console.warn(`Shader "${shaderParam}" no encontrado en biblioteca, usando shader del engine`);
-            shaderSrc = await (await fetch(`${base}/shader.glsl`)).text();
+            // 2. shader de otro motor (engines/X/shader.glsl)
+            const motorRes = await fetch(`engines/${shaderParam}/shader.glsl`);
+            if (motorRes.ok) {
+                shaderSrc = await motorRes.text();
+                console.log(`🎨 Shader del motor: ${shaderParam}`);
+            } else {
+                // 3. fallback: shader propio del engine
+                console.warn(`Shader "${shaderParam}" no está en biblioteca ni es un motor; usando el shader del engine`);
+                shaderSrc = await (await fetch(`${base}/shader.glsl`)).text();
+            }
         }
     } else {
         shaderSrc = await (await fetch(`${base}/shader.glsl`)).text();
